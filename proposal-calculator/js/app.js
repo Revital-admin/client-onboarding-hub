@@ -36,6 +36,60 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load from localStorage
   loadState();
 
+
+  // ── Package Presets ──
+  const presets = {
+    presetBasic: [
+      "Feed Posts (static images, carousels)",
+      "Reels & Short-Form Video",
+      "Stories",
+      "Community Management (responding to comments, DMs, engaging followers)",
+      "Content Calendar Management"
+    ],
+    presetGrowth: [
+      "Meta Ads (Facebook + Instagram)",
+      "Google Ads — Search",
+      "Audience Research & Targeting",
+      "Ad Creative Production",
+      "Campaign Setup & Management",
+      "Budget Management & Reporting"
+    ],
+    presetFull: [
+      "Feed Posts (static images, carousels)",
+      "Reels & Short-Form Video",
+      "Community Management (responding to comments, DMs, engaging followers)",
+      "Content Calendar Management",
+      "Meta Ads (Facebook + Instagram)",
+      "Google Ads — Search",
+      "Audience Research & Targeting",
+      "Campaign Setup & Management",
+      "On-Page SEO (meta titles, descriptions, headers, content optimization)",
+      "Technical SEO (site speed, crawlability, schema markup)",
+      "Keyword Research & Strategy",
+      "Newsletter Campaigns",
+      "Analytics Setup (GA4, Meta Pixel, GTM)"
+    ]
+  };
+
+  ['presetBasic', 'presetGrowth', 'presetFull'].forEach(presetId => {
+    const btn = document.getElementById(presetId);
+    if (btn) {
+      btn.addEventListener('click', () => {
+        // Clear existing
+        document.querySelectorAll('.service-cb').forEach(cb => cb.checked = false);
+        
+        // Select new
+        const services = presets[presetId];
+        document.querySelectorAll('.service-cb').forEach(cb => {
+          if (services.includes(cb.value)) {
+            cb.checked = true;
+          }
+        });
+        calculate();
+      });
+    }
+  });
+
   // Bind events
   baseFee.addEventListener('change', calculate);
   baseFee.addEventListener('input', calculate);

@@ -2332,3 +2332,16 @@ textarea {
   border-radius: 50%;
 }
 
+
+/* ── Light Theme Overrides ── */
+body.light-theme {
+  --bg-main: #f8fafc;
+  --bg-sidebar: #f1f5f9;
+  --bg-card: rgba(255, 255, 255, 0.9);
+  --bg-card-hover: rgba(248, 250, 252, 1);
+  --border-color: rgba(0, 0, 0, 0.1);
+  --border-focus: rgba(99, 102, 241, 0.6);
+  --text-main: #334155;
+  --text-muted: #64748b;
+  --text-title: #0f172a;
+}

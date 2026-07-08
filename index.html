@@ -16,6 +16,7 @@
   <!-- Central references and Application State Controller -->
   <script src="data-store.js?v=3"></script>
   <script src="app.js?v=3"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
@@ -255,6 +256,28 @@
 
     <!-- ── Main Workspace ── -->
     <main class="main-content">
+
+
+      <!-- TOP UTILITIES BAR -->
+      <div class="top-utils-bar" style="display: flex; justify-content: flex-end; align-items: center; gap: 16px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 30px;">
+        
+        <button id="themeToggleBtn" class="btn btn-secondary" onclick="toggleTheme()" style="background: transparent; border: 1px solid var(--border-color); padding: 8px;" title="Toggle Light/Dark Mode">
+          <span id="themeIcon">☀️</span>
+        </button>
+
+        <button class="btn btn-secondary" id="adminSettingsBtn" onclick="openAdminSettings()" style="display: none; background: #374151; color: white; border: none;">
+          <span class="icon">⚙️</span> Admin
+        </button>
+        
+        <button id="exportPdfBtn" class="btn btn-primary" onclick="generateClientPDF()" style="background: var(--primary); color: white; border: none;">
+          <span class="icon">📥</span> Export PDF Report
+        </button>
+
+        <div id="userProfileUI" style="display: flex; align-items: center; gap: 8px; margin-left: 8px; border-left: 1px solid var(--border-color); padding-left: 16px;">
+          <div id="userAvatar" style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">?</div>
+          <span id="userEmail" style="font-size: 13px; color: var(--text-muted);">Guest</span>
+        </div>
+      </div>
 
       <!-- Sandbox Warning Banner -->
       <div id="sandboxBanner" class="sandbox-banner" style="display: none;">
@@ -938,6 +961,30 @@
 
 
   
+
+
+  <!-- Admin Settings Modal -->
+  <div class="modal-overlay" id="adminModal" style="display: none;">
+    <div class="modal-content" style="max-width: 400px; padding: 20px;">
+      <h2 style="margin-top:0; font-size: 18px;">Admin Settings</h2>
+      <p style="color: var(--color-text-secondary); font-size: 13px; margin-bottom: 20px;">
+        Manage who has permission to edit Quick Links and access Admin features.
+      </p>
+      
+      <div style="margin-bottom: 15px; display: flex; gap: 8px;">
+        <input type="email" id="newAdminEmail" class="custom-input" placeholder="employee@example.com" style="flex: 1;" />
+        <button class="btn btn-primary" onclick="addAdminEmail()">Add</button>
+      </div>
+
+      <ul id="adminEmailsList" style="list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto;">
+        <!-- Admin items injected here -->
+      </ul>
+
+      <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+        <button class="btn btn-secondary" onclick="closeAdminSettings()">Close</button>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>

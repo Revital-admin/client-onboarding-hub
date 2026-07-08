@@ -37,42 +37,42 @@ function initState() {
   });
 
   if (isEmbedded && parentClient) {
-    if (!parentClient.emailAudit) {
-      parentClient.emailAudit = { checked: {}, notes: {}, targetUrl: "", textInputs: { listSize: "", openRate: "", opportunities: "", actions: "" } };
+    if (!parentClient.contentAudit) {
+      parentClient.contentAudit = { checked: {}, notes: {}, targetUrl: "", textInputs: { listSize: "", openRate: "", opportunities: "", actions: "" } };
     }
-    if (!parentClient.emailAudit.checked) {
-      parentClient.emailAudit.checked = {};
+    if (!parentClient.contentAudit.checked) {
+      parentClient.contentAudit.checked = {};
     }
-    if (!parentClient.emailAudit.notes) {
-      parentClient.emailAudit.notes = {};
+    if (!parentClient.contentAudit.notes) {
+      parentClient.contentAudit.notes = {};
     }
-    if (!parentClient.emailAudit.textInputs) {
-      parentClient.emailAudit.textInputs = { listSize: "", openRate: "", opportunities: "", actions: "" };
+    if (!parentClient.contentAudit.textInputs) {
+      parentClient.contentAudit.textInputs = { listSize: "", openRate: "", opportunities: "", actions: "" };
     }
     // Bind child state object reference directly to the parent object
-    Object.keys(parentClient.emailAudit.checked).forEach(k => {
+    Object.keys(parentClient.contentAudit.checked).forEach(k => {
       if (k in state.checked) {
-        state.checked[k] = parentClient.emailAudit.checked[k];
+        state.checked[k] = parentClient.contentAudit.checked[k];
       }
     });
     // Ensure all checklist keys are populated on parent client
     Object.keys(state.checked).forEach(k => {
-      if (parentClient.emailAudit.checked[k] === undefined) {
-        parentClient.emailAudit.checked[k] = state.checked[k];
+      if (parentClient.contentAudit.checked[k] === undefined) {
+        parentClient.contentAudit.checked[k] = state.checked[k];
       } else {
-        state.checked[k] = parentClient.emailAudit.checked[k];
+        state.checked[k] = parentClient.contentAudit.checked[k];
       }
     });
     // Sync notes
     Object.keys(state.notes).forEach(k => {
-      if (parentClient.emailAudit.notes[k] === undefined) {
-        parentClient.emailAudit.notes[k] = "";
+      if (parentClient.contentAudit.notes[k] === undefined) {
+        parentClient.contentAudit.notes[k] = "";
       }
-      state.notes[k] = parentClient.emailAudit.notes[k];
+      state.notes[k] = parentClient.contentAudit.notes[k];
     });
-    state.targetUrl = parentClient.emailAudit.targetUrl || "";
+    state.targetUrl = parentClient.contentAudit.targetUrl || "";
     // Sync text inputs
-    state.textInputs = parentClient.emailAudit.textInputs;
+    state.textInputs = parentClient.contentAudit.textInputs;
   } else {
     try {
       const saved = localStorage.getItem('content-audit-state');
@@ -107,10 +107,10 @@ function initState() {
 
 function saveState() {
   if (isEmbedded && parentClient) {
-    parentClient.emailAudit.checked = state.checked;
-    parentClient.emailAudit.notes = state.notes;
-    parentClient.emailAudit.targetUrl = state.targetUrl;
-    parentClient.emailAudit.textInputs = state.textInputs;
+    parentClient.contentAudit.checked = state.checked;
+    parentClient.contentAudit.notes = state.notes;
+    parentClient.contentAudit.targetUrl = state.targetUrl;
+    parentClient.contentAudit.textInputs = state.textInputs;
     window.parent.saveDatabase();
     window.parent.renderDashboard();
   } else {
