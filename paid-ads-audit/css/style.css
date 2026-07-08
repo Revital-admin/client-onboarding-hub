@@ -5,33 +5,33 @@
 
 /* ── CSS Variables ──────────────────────────────────────────── */
 :root {
-  --color-bg:         #0a0a0c;
-  --color-surface:    #131316;
-  --color-surface-2:  #1b1b20;
-  --color-border:     rgba(255,255,255,0.06);
-  --color-border-md:  rgba(255,255,255,0.11);
+  --color-bg:         #0f0f0d;
+  --color-surface:    #1a1a17;
+  --color-surface-2:  #222220;
+  --color-border:     rgba(255,255,255,0.07);
+  --color-border-md:  rgba(255,255,255,0.12);
 
-  --color-text-primary:   #f3f0e9;
-  --color-text-secondary: #8e8b82;
-  --color-text-muted:     #575652;
+  --color-text-primary:   #f0ede6;
+  --color-text-secondary: #8a887f;
+  --color-text-muted:     #555450;
 
-  --color-accent:     #c084fc;
-  --color-accent-dim: rgba(192,132,252,0.12);
-  --color-accent-glow:rgba(192,132,252,0.05);
+  --color-accent:     #a78bfa;
+  --color-accent-dim: rgba(167,139,250,0.15);
+  --color-accent-glow:rgba(167,139,250,0.06);
 
-  --color-warning:    #fb923c;
-  --color-success:    #4ade80;
-  --color-info:       #38bdf8;
+  --color-warning:    #f0a84a;
+  --color-success:    #4af0a0;
+  --color-info:       #4aaaf0;
 
   /* Step palette — one colour per step */
-  --step-1: #c084fc;
-  --step-2: #818cf8;
-  --step-3: #38bdf8;
-  --step-4: #2dd4bf;
-  --step-5: #34d399;
-  --step-6: #fb7185;
-  --step-7: #f472b6;
-  --step-8: #a1a1aa;
+  --step-1: #f5735a;
+  --step-2: #4aaaf0;
+  --step-3: #6fde8e;
+  --step-4: #f0c34a;
+  --step-5: #c97af5;
+  --step-6: #4af0c3;
+  --step-7: #f57ac9;
+  --step-8: #a0a09a;
 
   --radius-sm:  6px;
   --radius-md:  10px;
@@ -117,13 +117,13 @@ body {
   cursor: pointer;
   letter-spacing: 0.03em;
   transition: all var(--transition);
-  box-shadow: 0 0 12px rgba(192, 132, 252, 0.05);
+  box-shadow: 0 0 12px rgba(167, 139, 250, 0.05);
 }
 
 .download-pdf-btn:hover {
   background: var(--color-accent);
   color: var(--color-bg);
-  box-shadow: 0 0 16px rgba(192, 132, 252, 0.2);
+  box-shadow: 0 0 16px rgba(167, 139, 250, 0.2);
   transform: translateY(-1px);
 }
 
@@ -247,7 +247,7 @@ body {
 }
 
 .score-card.accent {
-  border-color: rgba(192,132,252,0.25);
+  border-color: rgba(167,139,250,0.25);
   background: var(--color-accent-glow);
 }
 
@@ -298,7 +298,7 @@ body {
 .progress-fill {
   height: 100%;
   border-radius: 100px;
-  background: linear-gradient(90deg, var(--color-accent) 0%, #d4f77a 100%);
+  background: linear-gradient(90deg, var(--color-accent) 0%, #c084fc 100%);
   width: 0%;
   transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
 }
@@ -668,6 +668,6 @@ body {
 }
 
 .sub-item:has(.sub-checkbox:checked) {
-  background: rgba(244, 114, 182, 0.05);
+  background: rgba(244, 114, 182, 0.05); /* Accent tint */
   border-color: var(--color-accent);
 }

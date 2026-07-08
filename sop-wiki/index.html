@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SOP & Wiki Library</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="css/style.css?v=8" />
+</head>
+<body>
+  <div class="split-layout">
+    <!-- Left Sidebar: SOP Index -->
+    <aside class="wiki-sidebar">
+      <div class="sidebar-header">
+        <h1 class="wiki-title">SOP Library</h1>
+        <div class="search-container">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="searchInput" class="search-input" placeholder="Search SOPs..." autocomplete="off">
+        </div>
+      </div>
+      <div class="sop-list" id="sopList">
+        <!-- Rendered via JS -->
+      </div>
+    </aside>
+
+    <!-- Right Pane: Document Viewer -->
+    <main class="wiki-content">
+      <div id="welcomeState" class="empty-state">
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+        </div>
+        <h2>Select an SOP</h2>
+        <p>Choose an internal guide from the sidebar or search to begin reading.</p>
+      </div>
+
+      <div id="viewerState" class="viewer-state" style="display: none;">
+        <header class="doc-header">
+          <span class="doc-category" id="docCategory">Category</span>
+          <h1 class="doc-title" id="docTitle">SOP Title</h1>
+          <div class="doc-meta">
+            <span id="docDate">Last updated: Today</span>
+          </div>
+        </header>
+        <div class="doc-body" id="docBody">
+          <!-- Rendered Markdown -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/data.js?v=4"></script>
+  <script src="js/app.js?v=4"></script>
+</body>
+</html>

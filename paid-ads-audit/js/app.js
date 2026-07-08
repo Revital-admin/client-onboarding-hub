@@ -20,6 +20,7 @@ const state = {
   filter: 'all', // 'all' | 'incomplete' | 'complete'
   labelIndices: { steps: 0, tasks: 0, remaining: 0, score: 0 },
   targetUrl: '', // Website or client being audited
+  textInputs: { adSpend: "", roas: "", vulnerabilities: "", actions: "" } // Paid Ads Inputs
 };
 
 // Initialise all tasks as unchecked, restore from localStorage or parent if available
@@ -32,37 +33,42 @@ function initState() {
   });
 
   if (isEmbedded && parentClient) {
-    if (!parentClient.seoAudit) {
-      parentClient.seoAudit = { checked: {}, notes: {}, targetUrl: "" };
+    if (!parentClient.paidAdsAudit) {
+      parentClient.paidAdsAudit = { checked: {}, notes: {}, targetUrl: "", textInputs: { adSpend: "", roas: "", vulnerabilities: "", actions: "" } };
     }
-    if (!parentClient.seoAudit.checked) {
-      parentClient.seoAudit.checked = {};
+    if (!parentClient.paidAdsAudit.checked) {
+      parentClient.paidAdsAudit.checked = {};
     }
-    if (!parentClient.seoAudit.notes) {
-      parentClient.seoAudit.notes = {};
+    if (!parentClient.paidAdsAudit.notes) {
+      parentClient.paidAdsAudit.notes = {};
+    }
+    if (!parentClient.paidAdsAudit.textInputs) {
+      parentClient.paidAdsAudit.textInputs = { adSpend: "", roas: "", vulnerabilities: "", actions: "" };
     }
     // Bind child state object reference directly to the parent object
-    Object.keys(parentClient.seoAudit.checked).forEach(k => {
+    Object.keys(parentClient.paidAdsAudit.checked).forEach(k => {
       if (k in state.checked) {
-        state.checked[k] = parentClient.seoAudit.checked[k];
+        state.checked[k] = parentClient.paidAdsAudit.checked[k];
       }
     });
     // Ensure all checklist keys are populated on parent client
     Object.keys(state.checked).forEach(k => {
-      if (parentClient.seoAudit.checked[k] === undefined) {
-        parentClient.seoAudit.checked[k] = state.checked[k];
+      if (parentClient.paidAdsAudit.checked[k] === undefined) {
+        parentClient.paidAdsAudit.checked[k] = state.checked[k];
       } else {
-        state.checked[k] = parentClient.seoAudit.checked[k];
+        state.checked[k] = parentClient.paidAdsAudit.checked[k];
       }
     });
     // Sync notes
     Object.keys(state.notes).forEach(k => {
-      if (parentClient.seoAudit.notes[k] === undefined) {
-        parentClient.seoAudit.notes[k] = "";
+      if (parentClient.paidAdsAudit.notes[k] === undefined) {
+        parentClient.paidAdsAudit.notes[k] = "";
       }
-      state.notes[k] = parentClient.seoAudit.notes[k];
+      state.notes[k] = parentClient.paidAdsAudit.notes[k];
     });
-    state.targetUrl = parentClient.seoAudit.targetUrl || "";
+    state.targetUrl = parentClient.paidAdsAudit.targetUrl || "";
+    // Sync text inputs
+    state.textInputs = parentClient.paidAdsAudit.textInputs;
   } else {
     try {
       const saved = localStorage.getItem('seo-checklist-state');
@@ -79,9 +85,15 @@ function initState() {
           if (k in state.notes) state.notes[k] = parsedNotes[k];
         });
       }
-      const savedUrl = localStorage.getItem('seo-checklist-target-url');
-      if (savedUrl) {
-        state.targetUrl = savedUrl;
+      const savedData = localStorage.getItem('seo-checklist-data');
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        if (parsedData.targetUrl) {
+          state.targetUrl = parsedData.targetUrl;
+        }
+        if (parsedData.textInputs) {
+          state.textInputs = parsedData.textInputs;
+        }
       }
     } catch (e) {
       // localStorage not available — silent fail
@@ -91,15 +103,17 @@ function initState() {
 
 function saveState() {
   if (isEmbedded && parentClient) {
-    parentClient.seoAudit.checked = state.checked;
-    parentClient.seoAudit.notes = state.notes;
-    parentClient.seoAudit.targetUrl = state.targetUrl;
+    parentClient.paidAdsAudit.checked = state.checked;
+    parentClient.paidAdsAudit.notes = state.notes;
+    parentClient.paidAdsAudit.targetUrl = state.targetUrl;
+    parentClient.paidAdsAudit.textInputs = state.textInputs;
     window.parent.saveDatabase();
     window.parent.renderDashboard();
   } else {
     try {
       localStorage.setItem('seo-checklist-state', JSON.stringify(state.checked));
       localStorage.setItem('seo-checklist-notes', JSON.stringify(state.notes));
+      localStorage.setItem('seo-checklist-data', JSON.stringify({ targetUrl: state.targetUrl, textInputs: state.textInputs }));
     } catch (e) {}
   }
 }
@@ -216,7 +230,7 @@ function renderSteps() {
     card.style.animationDelay = `${idx * 40}ms`;
 
     // Tool tags HTML
-    const toolTags = step.tools
+    const toolTags = (step.tools || [])
       .map(t => `<span class="tool-tag">${escHtml(t)}</span>`)
       .join('');
 
@@ -234,7 +248,7 @@ function renderSteps() {
           />
           <div class="sub-content">
             <div class="sub-label">${escHtml(sub.label)}</div>
-            <div class="sub-desc">${escHtml(sub.desc)}</div>
+            ${sub.desc ? `<div class="sub-desc">${escHtml(sub.desc)}</div>` : ""}
             <div class="sub-notes-wrapper">
               <textarea class="sub-notes-input" placeholder="Add notes..." rows="1">${escHtml(state.notes[sub.id] || "")}</textarea>
             </div>
@@ -244,7 +258,7 @@ function renderSteps() {
 
     card.innerHTML = `
       <div class="step-header" data-step-id="${step.id}" role="button" tabindex="0" aria-expanded="${isOpen}">
-        <div class="step-num" style="background:${bgAlpha};color:${color}">${step.num}</div>
+        <div class="step-num" style="background:${bgAlpha};color:${color}">${step.step}</div>
         <div class="step-meta">
           <div class="step-title${isComplete ? ' is-done' : ''}">${escHtml(step.title)}</div>
           <div class="step-tools">${toolTags}</div>
@@ -256,10 +270,12 @@ function renderSteps() {
         </div>
       </div>
       <div class="step-body${isOpen ? ' open' : ''}" id="body_${step.id}">
+        ${step.tip ? `
         <div class="tip-box">
           <svg class="tip-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <span>${escHtml(step.tip)}</span>
         </div>
+        ` : ''}
         ${subsHtml}
       </div>`;
 
@@ -330,6 +346,28 @@ function attachEvents() {
         saveState();
       }
     }
+    
+    // Handle text inputs
+    if (e.target.matches('.pa-input')) {
+        state.textInputs[e.target.dataset.key] = e.target.value;
+        saveState();
+    }
+    
+    if (e.target.matches('input[id^="pa"]')) {
+      const id = e.target.id;
+      if (id === 'paAdSpend') state.textInputs.adSpend = e.target.value;
+      if (id === 'paTargetRoas') state.textInputs.roas = e.target.value;
+      saveState();
+    }
+  });
+
+  document.body.addEventListener('input', e => {
+    if (e.target.matches('textarea[id^="pa"]')) {
+      const id = e.target.id;
+      if (id === 'paVulnerabilities') state.textInputs.vulnerabilities = e.target.value;
+      if (id === 'paActions') state.textInputs.actions = e.target.value;
+      saveState();
+    }
   });
 
   // Keyboard accessibility for step headers
@@ -372,15 +410,7 @@ function attachEvents() {
     targetInput.value = state.targetUrl || '';
     targetInput.addEventListener('input', e => {
       state.targetUrl = e.target.value.trim();
-      if (isEmbedded && parentClient) {
-        parentClient.seoAudit.targetUrl = state.targetUrl;
-        window.parent.saveDatabase();
-        window.parent.renderDashboard();
-      } else {
-        try {
-          localStorage.setItem('seo-checklist-target-url', state.targetUrl);
-        } catch (err) {}
-      }
+      saveState();
     });
   }
 
@@ -482,15 +512,24 @@ function downloadPdfReport() {
       doc.text('REVITAL PRODUCTIONS', 40, 60);
     }
   } else {
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.setTextColor(139, 92, 246);
-    doc.text('REVITAL PRODUCTIONS', 40, 60);
+    doc.text('Paid Ads Audit Report', 40, 60);
   }
-
-  // Metadata block (align right)
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Client/Project: ${targetHost || 'N/A'}`, 40, 80);
+  
+  // Add performance & strategy inputs to PDF
+  doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
+  doc.text('Performance & Strategy Overview:', 40, 110);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Monthly Ad Spend: ${state.textInputs.adSpend || 'N/A'}`, 40, 130);
+  doc.text(`Target ROAS/CPA: ${state.textInputs.roas || 'N/A'}`, 40, 150);
+
+  // Score summary
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Audit Summary', 40, 180);
   doc.setTextColor(26, 26, 23); // #1a1a17
   doc.text('SEO AUDIT REPORT', 555, 50, { align: 'right' });
 
@@ -739,7 +778,7 @@ function downloadPdfReport() {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.5);
     doc.setTextColor(140, 140, 135);
-    doc.text('Prepared by Revital Productions SEO Checklist', 40, 814);
+    doc.text('Prepared by Revital Hub Paid Ads Audit', 40, 814);
     doc.text(`Page ${i} of ${totalPages}`, 555, 814, { align: 'right' });
   }
 
@@ -766,12 +805,27 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+function renderAll() {
+  updateScoreCards();
+  renderSteps();
+  
+  // Render Text Inputs
+  const adSpendInput = document.getElementById("paAdSpend");
+  const roasInput = document.getElementById("paTargetRoas");
+  const vulInput = document.getElementById("paVulnerabilities");
+  const actInput = document.getElementById("paActions");
+  
+  if (adSpendInput) adSpendInput.value = state.textInputs.adSpend || "";
+  if (roasInput) roasInput.value = state.textInputs.roas || "";
+  if (vulInput) vulInput.value = state.textInputs.vulnerabilities || "";
+  if (actInput) actInput.value = state.textInputs.actions || "";
+}
+
 /* ── Boot ───────────────────────────────────────────────────── */
 
 document.addEventListener('DOMContentLoaded', () => {
   initState();
-  updateScoreCards();
-  renderSteps();
+  renderAll();
   attachEvents();
   startLabelRotation();
 });

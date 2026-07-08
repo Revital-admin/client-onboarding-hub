@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Paid Ads Audit Checklist</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+
+  <main class="container">
+
+    <!-- Brand Header -->
+    <div class="brand-bar">
+      <div class="brand-logo-container">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-accent);"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+          <span style="font-family: var(--font-heading); font-size:18px; font-weight:600; color:white; letter-spacing:1px; margin-top:2px;">REVITAL <span style="color:var(--color-accent); font-weight:400; font-family:var(--font-mono); font-size:14px;">HUB</span></span>
+        </div>
+      </div>
+      <button class="download-pdf-btn" id="downloadPdfBtn" aria-label="Download PDF Report">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <span>Download PDF</span>
+      </button>
+    </div>
+
+    <!-- Header -->
+    <header class="site-header">
+      <div class="header-eyebrow">
+        <span class="dot"></span>
+        <span>4-step audit</span>
+      </div>
+      <h1 class="site-title">Paid Ads<br /><em>Audit Checklist</em></h1>
+      <p class="site-subtitle">A comprehensive, heuristic checklist to audit the strategy, tracking, targeting, and ad creatives of your paid campaigns.</p>
+
+      <div class="audit-target-container">
+        <label for="targetUrlInput" class="audit-target-label">Target Client / Account</label>
+        <input type="text" id="targetUrlInput" class="audit-target-input" placeholder="e.g. Acme Corp Google Ads" />
+      </div>
+    </header>
+
+    <!-- Score Cards -->
+    <section class="score-section" aria-label="Progress summary">
+      <div class="score-grid">
+        <div class="score-card" id="card-steps">
+          <div class="score-label" id="label-steps">Steps complete</div>
+          <div class="score-value" id="val-steps">0/8</div>
+        </div>
+        <div class="score-card" id="card-tasks">
+          <div class="score-label" id="label-tasks">Tasks done</div>
+          <div class="score-value" id="val-tasks">0</div>
+        </div>
+        <div class="score-card" id="card-remaining">
+          <div class="score-label" id="label-remaining">Still to do</div>
+          <div class="score-value warning" id="val-remaining">0</div>
+        </div>
+        <div class="score-card accent" id="card-score">
+          <div class="score-label" id="label-score">Audit score</div>
+          <div class="score-value" id="val-score">0%</div>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-track">
+          <div class="progress-fill" id="progFill"></div>
+        </div>
+        <div class="progress-meta">
+          <span id="progText">0 of 0 tasks complete</span>
+          <span id="progPct">0%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Controls -->
+    <div class="controls-row">
+      <div class="filter-group">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="incomplete">To Do</button>
+        <button class="filter-btn" data-filter="complete">Passed</button>
+      </div>
+      <button class="reset-btn" id="resetBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+        Reset all
+      </button>
+    </div>
+    
+    <!-- Paid Ads Specific Inputs (Top) -->
+    <section class="step-card" style="margin-bottom: 24px; padding: 24px; border: 1px solid var(--color-border); border-radius: var(--radius-xl); background: var(--color-surface);">
+      <div style="display: flex; gap: 20px;">
+        <div style="flex: 1;">
+          <label style="display: block; font-family: var(--font-mono); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-secondary); margin-bottom: 8px;">Current Monthly Ad Spend</label>
+          <input type="text" id="paAdSpend" class="pa-input" data-key="adSpend" placeholder="e.g. $5,000" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-md); color: var(--color-text-primary); font-family: var(--font-body); font-size: 1rem;">
+        </div>
+        <div style="flex: 1;">
+          <label style="display: block; font-family: var(--font-mono); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-secondary); margin-bottom: 8px;">Target ROAS / CPA</label>
+          <input type="text" id="paTargetRoas" class="pa-input" data-key="roas" placeholder="e.g. 300% or $45 CPA" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-md); color: var(--color-text-primary); font-family: var(--font-body); font-size: 1rem;">
+        </div>
+      </div>
+    </section>
+
+    <!-- Steps -->
+    <section class="steps-list" id="stepsList" aria-label="Audit steps">
+      <!-- Generated by app.js -->
+    </section>
+    
+    <!-- Paid Ads Specific Inputs (Bottom) -->
+    <section class="step-card" style="margin-top: 24px; padding: 24px; border: 1px solid var(--color-border); border-radius: var(--radius-xl); background: var(--color-surface);">
+      <div style="margin-bottom: 24px;">
+        <label style="display: block; font-family: var(--font-mono); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-secondary); margin-bottom: 8px;">Key Vulnerabilities / Leaks</label>
+        <textarea id="paVulnerabilities" class="pa-input" data-key="vulnerabilities" placeholder="Where is budget currently being wasted?" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-md); color: var(--color-text-primary); font-family: var(--font-body); font-size: 1rem; min-height: 100px; resize: vertical;"></textarea>
+      </div>
+      <div>
+        <label style="display: block; font-family: var(--font-mono); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-secondary); margin-bottom: 8px;">Top 3 Immediate Actions</label>
+        <textarea id="paActions" class="pa-input" data-key="actions" placeholder="1. ...&#10;2. ...&#10;3. ..." style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-md); color: var(--color-text-primary); font-family: var(--font-body); font-size: 1rem; min-height: 100px; resize: vertical;"></textarea>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <p>Built for faster, more systematic Paid Ads audits. Check off tasks as you go — progress saves in your browser.</p>
+    </footer>
+
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="js/logo.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

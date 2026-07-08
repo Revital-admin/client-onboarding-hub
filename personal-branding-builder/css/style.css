@@ -1,37 +1,39 @@
 /* ============================================================
-   SEO AUDIT CHECKLIST — STYLESHEET
+   CONTENT STRATEGY GUIDE — STYLESHEET
    Fonts: Fraunces (display), DM Sans (body), DM Mono (labels)
    ============================================================ */
 
 /* ── CSS Variables ──────────────────────────────────────────── */
 :root {
-  --color-bg:         #0a0a0c;
-  --color-surface:    #131316;
-  --color-surface-2:  #1b1b20;
+  --color-bg:         #0a0c0a;
+  --color-surface:    #131613;
+  --color-surface-2:  #1b201b;
   --color-border:     rgba(255,255,255,0.06);
   --color-border-md:  rgba(255,255,255,0.11);
 
-  --color-text-primary:   #f3f0e9;
-  --color-text-secondary: #8e8b82;
-  --color-text-muted:     #575652;
+  --color-text-primary:   #f0eef3;
+  --color-text-secondary: #8b8e8b;
+  --color-text-muted:     #565756;
 
-  --color-accent:     #c084fc;
-  --color-accent-dim: rgba(192,132,252,0.12);
-  --color-accent-glow:rgba(192,132,252,0.05);
+  --color-accent:     #f59e0b;
+  --color-accent-dim: rgba(245,158,11,0.12);
+  --color-accent-glow:rgba(245,158,11,0.05);
 
   --color-warning:    #fb923c;
   --color-success:    #4ade80;
   --color-info:       #38bdf8;
 
   /* Step palette — one colour per step */
-  --step-1: #c084fc;
-  --step-2: #818cf8;
-  --step-3: #38bdf8;
-  --step-4: #2dd4bf;
-  --step-5: #34d399;
-  --step-6: #fb7185;
-  --step-7: #f472b6;
-  --step-8: #a1a1aa;
+  --step-1: #10b981;
+  --step-2: #0d9488;
+  --step-3: #3b82f6;
+  --step-4: #8b5cf6;
+  --step-5: #ec4899;
+  --step-6: #f59e0b;
+  --step-7: #f97316;
+  --step-8: #64748b;
+  --step-9: #0ea5e9;
+  --step-10: #f43f5e;
 
   --radius-sm:  6px;
   --radius-md:  10px;
@@ -66,8 +68,8 @@ body {
   pointer-events: none;
   z-index: 0;
   background-image:
-    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
@@ -117,13 +119,13 @@ body {
   cursor: pointer;
   letter-spacing: 0.03em;
   transition: all var(--transition);
-  box-shadow: 0 0 12px rgba(192, 132, 252, 0.05);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.05);
 }
 
 .download-pdf-btn:hover {
   background: var(--color-accent);
   color: var(--color-bg);
-  box-shadow: 0 0 16px rgba(192, 132, 252, 0.2);
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.2);
   transform: translateY(-1px);
 }
 
@@ -247,7 +249,7 @@ body {
 }
 
 .score-card.accent {
-  border-color: rgba(192,132,252,0.25);
+  border-color: rgba(245,158,11,0.25);
   background: var(--color-accent-glow);
 }
 
@@ -258,8 +260,6 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.07em;
   margin-bottom: 6px;
-
-  /* Flip animation */
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
@@ -298,7 +298,7 @@ body {
 .progress-fill {
   height: 100%;
   border-radius: 100px;
-  background: linear-gradient(90deg, var(--color-accent) 0%, #d4f77a 100%);
+  background: linear-gradient(90deg, var(--color-accent) 0%, #a3e635 100%);
   width: 0%;
   transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
 }
@@ -392,7 +392,7 @@ body {
 }
 
 .step-card.done-card {
-  border-color: rgba(74,240,160,0.2);
+  border-color: rgba(245,158,11,0.25);
 }
 
 @keyframes fadeSlideIn {
@@ -544,7 +544,14 @@ body {
 
 .sub-item:hover { background: var(--color-surface-2); }
 
-
+.sub-checkbox {
+  margin-top: 3px;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
 
 .sub-content { flex: 1; min-width: 0; }
 
@@ -590,84 +597,183 @@ body {
   /* controls-row no longer wraps to column on mobile */
 }
 
-/* Per-item Notes Textarea */
-.sub-notes-wrapper {
-  margin-top: 8px;
-  width: 100%;
+/* ── Form Styling for Strategy Template ─────────────────────── */
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
 }
 
-.sub-notes-input {
-  width: 100%;
-  min-height: 38px;
-  max-height: 120px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1.5px solid rgba(255, 255, 255, 0.25);
-  border-radius: 6px;
-  color: var(--color-text-primary);
-  font-family: inherit;
-  font-size: 0.8rem;
-  line-height: 1.4;
-  resize: vertical;
-  outline: none;
-  transition: all var(--transition);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.sub-notes-input:focus {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: var(--color-accent);
-  box-shadow: 0 0 10px rgba(192, 132, 252, 0.25), inset 0 1px 2px rgba(0, 0, 0, 0.2);
-  min-height: 60px;
-}
-
-.sub-notes-input::placeholder {
+.form-group label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--color-text-secondary);
-  opacity: 0.6;
 }
 
+.custom-input, .custom-textarea, .custom-select {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(25, 25, 30, 0.7);
+  border: 1px solid var(--color-border-md);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  transition: all var(--transition);
+}
 
-/* Overridden custom animated checkbox */
-.sub-checkbox {
-  appearance: none;
-  -webkit-appearance: none;
+.custom-textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.custom-input:focus, .custom-textarea:focus, .custom-select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  background: rgba(25, 25, 30, 0.95);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.08); /* Amber glow */
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+/* Checkbox Grid lists */
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13.5px;
+  color: var(--color-text-primary);
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.checkbox-item span {
+  transition: color var(--transition);
+}
+
+.checkbox-item input[type="checkbox"]:checked + span {
+  color: var(--color-accent);
+}
+
+.sub-header {
+  font-size: 13px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  color: var(--color-accent);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 6px;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.03em;
+}
+
+.sub-header:first-child {
+  margin-top: 0;
+}
+
+/* Checkbox Grid Styles */
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 6px;
+  margin-bottom: 16px;
+}
+
+.custom-checkbox {
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  font-size: 13px;
+  user-select: none;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  transition: all 0.2s ease;
+  color: var(--color-text);
+}
+
+.custom-checkbox:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.custom-checkbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  position: relative;
+  height: 18px;
+  width: 18px;
   background-color: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--color-border);
   border-radius: 4px;
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  position: relative;
+  margin-right: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  margin-top: 2px;
-  flex-shrink: 0;
 }
 
-.sub-checkbox:hover {
-  border-color: rgba(255,255,255,0.4);
-  background-color: rgba(0,0,0,0.5);
-}
-
-.sub-checkbox:checked {
+.custom-checkbox input:checked ~ .checkmark {
   background-color: var(--color-accent);
   border-color: var(--color-accent);
 }
 
-.sub-checkbox:checked::after {
+.checkmark:after {
   content: "";
   position: absolute;
-  width: 5px;
-  height: 10px;
+  display: none;
+}
+
+.custom-checkbox input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.custom-checkbox .checkmark:after {
+  width: 4px;
+  height: 8px;
   border: solid white;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
   margin-bottom: 2px;
 }
 
-.sub-item:has(.sub-checkbox:checked) {
-  background: rgba(244, 114, 182, 0.05);
+.custom-checkbox:has(input:checked) {
   border-color: var(--color-accent);
+  background: rgba(244, 114, 182, 0.05); /* very faint pink/accent tint */
 }

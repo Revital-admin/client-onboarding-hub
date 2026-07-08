@@ -352,7 +352,11 @@ function attachEvents() {
   // Reset button
   document.getElementById('resetBtn').addEventListener('click', () => {
     if (!confirm('Reset all checklist progress? This cannot be undone.')) return;
-    Object.keys(state.checked).forEach(k => (state.checked[k] = false));
+    state.checked = {};
+    state.notes = {};
+    if (state.textInputs) state.textInputs = {};
+    document.querySelectorAll('.step-notes').forEach(el => el.value = '');
+    document.querySelectorAll('.metric-input, .text-input').forEach(el => el.value = '');
     saveState();
     updateScoreCards();
     renderSteps();

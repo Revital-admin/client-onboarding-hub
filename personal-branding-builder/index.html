@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Branding Strategy Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+
+  <main class="container">
+
+    <!-- Brand Header -->
+    <div class="brand-bar">
+      <div class="brand-logo-container">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-accent);"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+          <span style="font-family: var(--font-heading); font-size:18px; font-weight:600; color:white; letter-spacing:1px; margin-top:2px;">REVITAL <span style="color:var(--color-accent); font-weight:400; font-family:var(--font-mono); font-size:14px;">HUB</span></span>
+        </div>
+      </div>
+      <button class="download-pdf-btn" id="downloadPdfBtn" aria-label="Download PDF Report">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <span>Download PDF</span>
+      </button>
+    </div>
+
+    <!-- Header -->
+    <header class="site-header">
+      <div class="header-eyebrow">
+        <span class="dot"></span>
+        <span>10-Step Strategy Builder</span>
+      </div>
+      <h1 class="site-title">Personal Branding<br /><em>Builder</em></h1>
+      <p class="site-subtitle">An interactive blueprint to research, define, and launch your personal brand. Fill out each step below. Your progress is automatically saved.</p>
+
+      <div class="audit-target-container">
+        <label for="targetUrlInput" class="audit-target-label">Target Name / Social Handle</label>
+        <input type="text" id="targetUrlInput" class="audit-target-input" placeholder="e.g. John Doe / @johndoe" />
+      </div>
+    </header>
+
+    <!-- Score Cards -->
+    <section class="score-section" aria-label="Progress summary">
+      <div class="score-grid">
+        <div class="score-card" id="card-active-step">
+          <div class="score-label">Active Section</div>
+          <div class="score-value" id="val-active">1/10</div>
+        </div>
+        <div class="score-card" id="card-fields">
+          <div class="score-label">Fields Filled</div>
+          <div class="score-value" id="val-fields">0 / 0</div>
+        </div>
+        <div class="score-card" id="card-remaining">
+          <div class="score-label">Sections Completed</div>
+          <div class="score-value warning" id="overallCompletedText">0 / 10</div>
+        </div>
+        <div class="score-card accent" id="card-score">
+          <div class="score-label">Brand Score</div>
+          <div class="score-value" id="val-score">0%</div>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-track">
+          <div class="progress-fill" id="overallProgressBar" style="width: 0%"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Controls -->
+    <div class="controls-row">
+      <div class="filter-group" role="group">
+        <button class="filter-btn active" data-filter="all">All sections</button>
+        <button class="filter-btn" data-filter="incomplete">Incomplete</button>
+        <button class="filter-btn" data-filter="complete">Complete</button>
+      </div>
+      <button class="reset-btn" id="resetBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 .49-3.51"></path></svg>
+        <span>Reset all</span>
+      </button>
+      
+    </div>
+
+    <!-- Accordion sections -->
+    <section class="steps-list" id="stepsList">
+
+      <!-- STEP 1 -->
+      <div class="step-card" id="step-1" data-step="1">
+        <div class="step-header">
+          <div class="step-num" style="background: var(--step-1);">1</div>
+          <div class="step-meta">
+            <div class="step-title">The Core Identity</div>
+          </div>
+          <div class="step-right">
+            <span class="step-progress" id="step-1-progress">0/4 filled</span>
+            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="form-section">
+            <div class="form-group">
+              <label>Origin Story</label>
+              <textarea id="field_originStory" class="custom-textarea" placeholder="How did you get started?"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Vision</label>
+              <textarea id="field_vision" class="custom-textarea" placeholder="What impact do you want to make?"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Core Values</label>
+              <input type="text" id="field_coreValues" class="custom-input" placeholder="e.g. Authenticity, Transparency, Innovation">
+            </div>
+            <div class="form-group">
+              <label>Superpower (Unique Value Proposition)</label>
+              <textarea id="field_superpower" class="custom-textarea" placeholder="What sets you apart from others in your space?"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step-card" id="step-2" data-step="2">
+        <div class="step-header">
+          <div class="step-num" style="background: var(--step-2);">2</div>
+          <div class="step-meta">
+            <div class="step-title">Target Audience</div>
+          </div>
+          <div class="step-right">
+            <span class="step-progress" id="step-2-progress">0/3 filled</span>
+            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="form-section">
+            <div class="form-group">
+              <label>Primary Audience</label>
+              <textarea id="field_primaryAudience" class="custom-textarea" placeholder="Who are you speaking to? e.g. Early stage startup founders"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Pain Points</label>
+              <textarea id="field_audiencePainPoints" class="custom-textarea" placeholder="What problems do they have?"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Desired Outcomes</label>
+              <textarea id="field_audienceOutcomes" class="custom-textarea" placeholder="What do they want to achieve?"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step-card" id="step-3" data-step="3">
+        <div class="step-header">
+          <div class="step-num" style="background: var(--step-3);">3</div>
+          <div class="step-meta">
+            <div class="step-title">The "Why"</div>
+          </div>
+          <div class="step-right">
+            <span class="step-progress" id="step-3-progress">0/2 filled</span>
+            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="form-section">
+            <div class="form-group">
+              <label>Personal Goals</label>
+              <textarea id="field_personalGoals" class="custom-textarea" placeholder="e.g. Become a recognized thought leader, speak at events"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Business Goals</label>
+              <textarea id="field_businessGoals" class="custom-textarea" placeholder="e.g. Generate $10k MRR, attract consulting clients"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="step-card" id="step-4" data-step="4">
+        <div class="step-header">
+          <div class="step-num" style="background: var(--step-4);">4</div>
+          <div class="step-meta">
+            <div class="step-title">Brand Voice & Archetype</div>
+          </div>
+          <div class="step-right">
+            <span class="step-progress" id="step-4-progress">0/3 filled</span>
+            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="form-section">
+            <div class="form-group">
+              <label>Brand Archetype</label>
+              <input type="text" id="field_archetype" class="custom-input" placeholder="e.g. The Creator, The Sage, The Rebel">
+            </div>
+            <div class="form-group">
+              <label>Tone of Voice</label>
+              <div class="checkbox-grid" id="group_toneOfVoice">
+                <label class="custom-checkbox"><input type="checkbox" name="toneOfVoice" value="Conversational"> <span class="checkmark"></span> Conversational</label>
+                <label class="custom-checkbox"><input type="checkbox" name="toneOfVoice" value="Authoritative"> <span class="checkmark"></span> Authoritative</label>
+                <label class="custom-checkbox"><input type="checkbox" name="toneOfVoice" value="Witty"> <span class="checkmark"></span> Witty</label>
+                <label class="custom-checkbox"><input type="checkbox" name="toneOfVoice" value="Inspiring"> <span class="checkmark"></span> Inspiring</label>
+                <label class="custom-checkbox"><input type="checkbox" name="toneOfVoice" value="Educational"> <span class="checkmark"></span> Educational</label>
+                <label class="custom-checkbox"><input type="checkbox" name="toneOfVoice" value="Direct"> <span class="checkmark"></span> Direct</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Visual Aesthetic</label>
+              <input type="text" id="field_visualAesthetic" class="custom-input" placeholder="e.g. Dark mode, minimalist, high contrast">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 5 -->
+      <div class="step-card" id="step-5" data-step="5">
+        <div class="step-header">
+          <div class="step-num" style="background: var(--step-5);">5</div>
+          <div class="step-meta">
+            <div class="step-title">Content Pillars</div>
+          </div>
+          <div class="step-right">
+            <span class="step-progress" id="step-5-progress">0/6 filled</span>
+            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="form-section">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Pillar 1 Name</label>
+                <input type="text" id="field_pillar1Name" class="custom-input" placeholder="e.g. Startup Growth">
+              </div>
+              <div class="form-group" style="flex: 2;">
+                <label>Pillar 1 Topics</label>
+                <input type="text" id="field_pillar1Topics" class="custom-input" placeholder="e.g. GTM strategies, scaling teams">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Pillar 2 Name</label>
+                <input type="text" id="field_pillar2Name" class="custom-input" placeholder="e.g. Personal Development">
+              </div>
+              <div class="form-group" style="flex: 2;">
+                <label>Pillar 2 Topics</label>
+                <input type="text" id="field_pillar2Topics" class="custom-input" placeholder="e.g. Habits, mental health, productivity">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Pillar 3 Name</label>
+                <input type="text" id="field_pillar3Name" class="custom-input" placeholder="e.g. Industry Trends">
+              </div>
+              <div class="form-group" style="flex: 2;">
+                <label>Pillar 3 Topics</label>
+                <input type="text" id="field_pillar3Topics" class="custom-input" placeholder="e.g. AI advancements, market shifts">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 6: Dynamic Platforms -->
+      <div class="step-card" id="step-6" data-step="6">
+        <div class="step-header">
+          <div class="step-num" style="background: var(--step-6);">6</div>
+          <div class="step-meta">
+            <div class="step-title">Platform Strategy</div>
+          </div>
+          <div class="step-right">
+            <span class="step-progress" id="step-6-progress">0 fields filled</span>
+            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="form-section">
+            <div class="form-group" style="padding-bottom: 1.25rem; border-bottom: 1px dashed var(--color-border); margin-bottom: 1.5rem;">
+              <label style="color: var(--color-accent); font-weight: 500;">Add Strategic Platform Channel</label>
+              <div class="form-row" style="grid-template-columns: 2fr 2fr 1fr; align-items: end; gap: 12px; margin-top: 6px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <select id="addPlatformSelect" class="custom-select">
+                    <option value="linkedin">LinkedIn</option>
+                    <option value="twitter">Twitter / X</option>
+                    <option value="newsletter">Newsletter</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="tiktok">TikTok</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="custom">Custom Platform...</option>
+                  </select>
+                </div>
+                <div class="form-group" id="customPlatformGroup" style="margin-bottom: 0; display: none;">
+                  <input type="text" id="customPlatformInput" class="custom-input" placeholder="e.g. Substack" />
+                </div>
+                <button type="button" class="download-pdf-btn" id="addPlatformBtn" style="padding: 10px 18px; border-radius: var(--radius-md); font-family: var(--font-body); font-size: 13px; height: 38px; justify-content: center; display: inline-flex; width: 100%; border: 1px solid var(--color-accent);">
+                  <span>Add Platform</span>
+                </button>
+              </div>
+            </div>
+            
+            <div id="dynamicPlatformsContainer">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 7 -->
+      <div class="step-card" id="step-7" data-step="7">
+        <div class="step-header">
+          <div class="step-num" style="background: var(--step-7);">7</div>
+          <div class="step-meta">
+            <div class="step-title">Content Production Workflow</div>
+          </div>
+          <div class="step-right">
+            <span class="step-progress" id="step-7-progress">0/2 filled</span>
+            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="form-section">
+            <div class="form-group">
+              <label>Ideation Process</label>
+              <textarea id="field_ideation" class="custom-textarea" placeholder="How do you capture ideas? (e.g. Notion, Apple Notes, Voice memos)"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Production Process</label>
+              <textarea id="field_production" class="custom-textarea" placeholder="When do you write/record? (e.g. Batching on Sundays)"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 8 -->
+      <div class="step-card" id="step-8" data-step="8">
+        <div class="step-header">
+          <div class="step-num" style="background: var(--step-8);">8</div>
+          <div class="step-meta">
+            <div class="step-title">Networking & Engagement</div>
+          </div>
+          <div class="step-right">
+            <span class="step-progress" id="step-8-progress">0/2 filled</span>
+            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="form-section">
+            <div class="form-group">
+              <label>Engagement Strategy</label>
+              <textarea id="field_engagement" class="custom-textarea" placeholder="e.g. Comment on 5 top creators' posts daily"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Key People / Communities</label>
+              <textarea id="field_communities" class="custom-textarea" placeholder="Who do you want to connect with?"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 9 -->
+      <div class="step-card" id="step-9" data-step="9">
+        <div class="step-header">
+          <div class="step-num" style="background: var(--step-9);">9</div>
+          <div class="step-meta">
+            <div class="step-title">Monetization / Conversion</div>
+          </div>
+          <div class="step-right">
+            <span class="step-progress" id="step-9-progress">0/2 filled</span>
+            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="form-section">
+            <div class="form-group">
+              <label>Call to Actions (CTAs)</label>
+              <textarea id="field_ctas" class="custom-textarea" placeholder="What are you asking the audience to do?"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Lead Magnets / Offers</label>
+              <textarea id="field_offers" class="custom-textarea" placeholder="e.g. Free ebook, consultation call link"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 10 -->
+      <div class="step-card" id="step-10" data-step="10">
+        <div class="step-header">
+          <div class="step-num" style="background: var(--step-10);">10</div>
+          <div class="step-meta">
+            <div class="step-title">Action Plan</div>
+          </div>
+          <div class="step-right">
+            <span class="step-progress" id="step-10-progress">0/2 filled</span>
+            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="form-section">
+            <div class="form-group">
+              <label>Immediate Next Steps</label>
+              <textarea id="field_nextSteps" class="custom-textarea" placeholder="What will you do this week?"></textarea>
+            </div>
+            <div class="form-group">
+              <label>30-Day KPIs</label>
+              <textarea id="field_kpis" class="custom-textarea" placeholder="e.g. 1,000 profile views, 5 inbound leads"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- PDF Exporter -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
