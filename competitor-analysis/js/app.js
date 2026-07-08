@@ -217,15 +217,25 @@ if (isEmbedded) {
       item.className = 'prompt-item';
       item.id = 'item-' + sw.key + '-' + idx;
 
+      const chkWrap = document.createElement('label');
+      chkWrap.className = 'custom-checkbox';
+      chkWrap.style.marginRight = '8px';
+
       const chk = document.createElement('input');
       chk.type = 'checkbox';
       chk.id = 'chk-' + sw.key + '-' + idx;
+      
+      const checkmark = document.createElement('span');
+      checkmark.className = 'checkmark';
+      
+      chkWrap.appendChild(chk);
+      chkWrap.appendChild(checkmark);
 
       const lbl = document.createElement('label');
       lbl.setAttribute('for', 'chk-' + sw.key + '-' + idx);
       lbl.textContent = promptText;
 
-      item.appendChild(chk);
+      item.appendChild(chkWrap);
       item.appendChild(lbl);
       panel.appendChild(item);
     });

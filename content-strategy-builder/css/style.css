@@ -592,7 +592,7 @@ body {
   .container { padding: 2rem 1rem 3rem; }
   .brand-bar { flex-direction: column; align-items: flex-start; gap: 15px; }
   .score-grid { grid-template-columns: 1fr 1fr; }
-  .controls-row { flex-direction: column; align-items: flex-start; }
+  /* controls-row no longer wraps to column on mobile */
 }
 
 /* ── Form Styling for Strategy Template ─────────────────────── */
@@ -655,30 +655,13 @@ body {
   margin-top: 0.25rem;
 }
 
-.checkbox-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  user-select: none;
-  font-size: 13.5px;
-  color: var(--color-text-primary);
-}
 
-.checkbox-item input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--color-accent);
-  cursor: pointer;
-}
 
-.checkbox-item span {
-  transition: color var(--transition);
-}
 
-.checkbox-item input[type="checkbox"]:checked + span {
-  color: var(--color-accent);
-}
+
+
+
+
 
 .sub-header {
   font-size: 13px;
@@ -694,4 +677,64 @@ body {
 
 .sub-header:first-child {
   margin-top: 0;
+}
+
+
+/* Overridden custom animated checkbox */
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  font-size: 13.5px;
+  user-select: none;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  transition: all 0.2s ease;
+  color: var(--color-text-primary);
+}
+
+.checkbox-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.checkbox-item input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin-right: 10px;
+}
+
+.checkbox-item input[type="checkbox"]:checked {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.checkbox-item input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin-bottom: 2px;
+}
+
+.checkbox-item:has(input[type="checkbox"]:checked) {
+  border-color: var(--color-accent);
+  background: rgba(244, 114, 182, 0.05); /* Accent tint */
 }

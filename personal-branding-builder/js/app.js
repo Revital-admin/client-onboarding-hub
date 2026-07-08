@@ -2,11 +2,15 @@
    PERSONAL BRANDING STRATEGY BUILDER — APP LOGIC
    ============================================================ */
 
-const isEmbedded = (window.parent && typeof window.parent.getActiveClient === 'function');
+let isEmbedded = false;
 let parentClient = null;
-
-if (isEmbedded) {
-  parentClient = window.parent.getActiveClient();
+try {
+  if (window.parent && typeof window.parent.getActiveClient === 'function') {
+    isEmbedded = true;
+    parentClient = window.parent.getActiveClient();
+  }
+} catch(e) {
+  console.warn("CORS prevented parent access:", e);
 }
 
 const state = {

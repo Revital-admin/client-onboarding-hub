@@ -13,6 +13,19 @@ const firebaseConfig = {
   appId: "1:501330884945:web:7f94e80c49036d9f2b3b70"
 };
 firebase.initializeApp(firebaseConfig);
+
+try {
+  if (typeof firebase.appCheck === 'function') {
+    const appCheck = firebase.appCheck();
+    appCheck.activate(
+      '6Leh2TItAAAAAIWxkC1Z93flfDJanjWKgkwT1Dvm',
+      true // isTokenAutoRefreshEnabled
+    );
+  }
+} catch (e) {
+  console.warn("Firebase AppCheck could not be initialized. It may be blocked by your browser extensions.", e);
+}
+
 const db = firebase.firestore();
 
 // ── Global Variables ──
@@ -23,6 +36,7 @@ let iframeNeedsReload = {
   "tab-seo": true,
   "tab-strategy": true,
   "tab-strategybuilder": true,
+  "tab-personalbrand": true,
   "tab-socialaudit": true,
   "tab-webcomp": true,
   "tab-socialcomp": true,
@@ -98,18 +112,67 @@ function createClientBlankState(name) {
   SOCIAL_COMPETITOR_ROWS.forEach(row => {
     socialCompRows[row.key] = ["", "", ""]; // Top, Mid, Low values
   });
+  
+  // Clone Paid Ads Audit
+  const paidAdsAudit = {
+    checked: {},
+    notes: {},
+    targetUrl: "",
+    textInputs: { adSpend: "", roas: "", vulnerabilities: "", actions: "" }
+  };
+  
+  // Clone Email Marketing Audit
+  const emailAudit = {
+    checked: {},
+    notes: {},
+    targetUrl: "",
+    textInputs: { listSize: "", openRate: "", opportunities: "", actions: "" }
+  };
 
   return {
     name: name,
     createdDate: today,
     targetUrl: "",
+    clickupUrl: "",
     onboardingDate: today,
     onboardingChecklist: onboarding,
     uxuiAudit: uxuiAudit,
     seoAudit: seoAudit,
+    paidAdsAudit: paidAdsAudit,
+    emailAudit: emailAudit,
+    competitorAnalysis: [],
     contentStrategy: contentStrategy,
     strategyBuilder: strategyBuilder,
     socialAudit: socialAudit,
+    brandVault: {
+      assets: {
+        logoUrl: "",
+        driveLink: "",
+        canvaLink: ""
+      },
+      colors: [
+        { hex: "#000000", name: "Primary" },
+        { hex: "#000000", name: "Secondary" },
+        { hex: "#000000", name: "Accent 1" },
+        { hex: "#000000", name: "Accent 2" },
+        { hex: "#000000", name: "Background" }
+      ],
+      typography: {
+        primaryFont: "",
+        secondaryFont: ""
+      },
+      brandVoice: {
+        adjectives: "",
+        missionStatement: ""
+      },
+      targetAudience: {
+        demographic: "",
+        painPoints: ""
+      }
+    },
+    paidAdsTracker: {},
+    emailStrategy: {},
+    contentAudit: {},
     webComp: {
       market: "",
       date: today,
@@ -136,6 +199,7 @@ function createClientBlankState(name) {
       platforms: DEFAULT_REPORT_PLATFORMS.map(p => ({ ...p })),
       cellData: {} // metricKey -> array of platform values
     },
+    campaignLaunch: { checked: {}, notes: {}, data: {} },
     copywriting: {
       activeFramework: "aida",
       notes: "",
@@ -220,6 +284,36 @@ function loadDatabase() {
       if (!client.seoAudit.checked) client.seoAudit.checked = {};
       if (!client.seoAudit.notes) client.seoAudit.notes = {};
       if (client.seoAudit.targetUrl === undefined) client.seoAudit.targetUrl = "";
+    }
+    
+    // Migrate or verify paidAdsAudit object structure
+    if (!client.paidAdsAudit || Array.isArray(client.paidAdsAudit) || typeof client.paidAdsAudit !== 'object') {
+      client.paidAdsAudit = {
+        checked: {},
+        notes: {},
+        targetUrl: "",
+        textInputs: { adSpend: "", roas: "", vulnerabilities: "", actions: "" }
+      };
+    } else {
+      if (!client.paidAdsAudit.checked) client.paidAdsAudit.checked = {};
+      if (!client.paidAdsAudit.notes) client.paidAdsAudit.notes = {};
+      if (client.paidAdsAudit.targetUrl === undefined) client.paidAdsAudit.targetUrl = "";
+      if (!client.paidAdsAudit.textInputs) client.paidAdsAudit.textInputs = { adSpend: "", roas: "", vulnerabilities: "", actions: "" };
+    }
+
+    // Migrate or verify emailAudit object structure
+    if (!client.emailAudit || Array.isArray(client.emailAudit) || typeof client.emailAudit !== 'object') {
+      client.emailAudit = {
+        checked: {},
+        notes: {},
+        targetUrl: "",
+        textInputs: { listSize: "", openRate: "", opportunities: "", actions: "" }
+      };
+    } else {
+      if (!client.emailAudit.checked) client.emailAudit.checked = {};
+      if (!client.emailAudit.notes) client.emailAudit.notes = {};
+      if (client.emailAudit.targetUrl === undefined) client.emailAudit.targetUrl = "";
+      if (!client.emailAudit.textInputs) client.emailAudit.textInputs = { listSize: "", openRate: "", opportunities: "", actions: "" };
     }
 
     // Migrate or verify contentStrategy object structure
@@ -469,6 +563,8 @@ function migrateSchemaAndDefaults() {
       }
     });
 
+    if (client.clickupUrl === undefined) client.clickupUrl = "";
+
     // Migrate onboarding list format (backward compat)
     if (client.onboarding && client.onboarding.length > 0 && !client.onboarding[0].category) {
       client.onboarding = blank.onboarding;
@@ -606,6 +702,9 @@ function refreshIframeTab(tabId) {
     case "tab-strategybuilder":
       renderStrategyBuilder();
       break;
+    case "tab-personalbrand":
+      renderPersonalBranding();
+      break;
     case "tab-socialaudit":
       renderSocialAudit();
       break;
@@ -681,9 +780,21 @@ function refreshAllViews() {
     }
   }
 
-  buildClientDropdown();
-  renderDashboard();
-  renderOnboardingChecklist();
+  try {
+    buildClientDropdown();
+  } catch(e) { document.getElementById("dashHeroClientName").textContent = "Error in buildClientDropdown: " + e.message; }
+  
+  try {
+    renderDashboard();
+  } catch(e) { document.getElementById("dashHeroClientName").textContent = "Error in renderDashboard: " + e.message; }
+  
+  try {
+    renderOnboardingChecklist();
+  } catch(e) { document.getElementById("dashHeroClientName").textContent = "Error in renderOnboardingChecklist: " + e.message; }
+  
+  try {
+    renderBrandVault();
+  } catch(e) { document.getElementById("dashHeroClientName").textContent = "Error in renderBrandVault: " + e.message; }
 
   // Mark all iframes as needing reload
   Object.keys(iframeNeedsReload).forEach(key => {
@@ -710,6 +821,18 @@ function renderDashboard() {
   document.getElementById("dashHeroTargetUrl").textContent = client.targetUrl || "No website logged yet";
   document.getElementById("dashHeroCreatedDate").textContent = client.createdDate || "N/A";
 
+  const dashClickupUrl = document.getElementById("dashClickupUrl");
+  const dashClickupBtn = document.getElementById("dashClickupBtn");
+  if (dashClickupUrl && dashClickupBtn) {
+    dashClickupUrl.value = client.clickupUrl || "";
+    if (client.clickupUrl) {
+      dashClickupBtn.href = client.clickupUrl;
+      dashClickupBtn.style.display = "flex";
+    } else {
+      dashClickupBtn.style.display = "none";
+    }
+  }
+
   // Calculate Onboarding completion %
   let totalOb = 0;
   let checkedOb = 0;
@@ -721,6 +844,7 @@ function renderDashboard() {
   });
   const obPct = totalOb > 0 ? Math.round((checkedOb / totalOb) * 100) : 0;
   document.getElementById("dashOnboardingVal").textContent = `${obPct}%`;
+  document.getElementById("dashOnboardingProgress").style.width = `${obPct}%`;
 
   // Calculate UX/UI Checklist progress (40 items total)
   let totalUx = 40;
@@ -735,22 +859,72 @@ function renderDashboard() {
   const uxPct = Math.round((checkedUx / totalUx) * 100);
   const uxGrade = calculateUxuiLetterGrade(uxPct);
   document.getElementById("dashUxuiVal").textContent = `${uxPct}% (${uxGrade})`;
+  document.getElementById("dashUxuiProgress").style.width = `${uxPct}%`;
 
-  // Calculate SEO checklist checked % (39 items total)
-  let totalSeo = 0;
-  DEFAULT_SEO_AUDIT.forEach(step => {
-    totalSeo += step.subs.length;
-  });
-  let checkedSeo = 0;
+  // Calculate SEO checklist checked % (23 items total)
+  const seoTotal = 23;
+  let seoFilled = 0;
   if (client.seoAudit && client.seoAudit.checked) {
     Object.keys(client.seoAudit.checked).forEach(k => {
       if (client.seoAudit.checked[k]) {
-        checkedSeo++;
+        seoFilled++;
       }
     });
   }
-  const seoPct = totalSeo > 0 ? Math.round((checkedSeo / totalSeo) * 100) : 0;
+  const seoPct = seoTotal > 0 ? Math.round((seoFilled / seoTotal) * 100) : 0;
   document.getElementById("dashSeoVal").textContent = `${seoPct}%`;
+  document.getElementById("dashSeoProgress").style.width = `${seoPct}%`;
+  
+
+  // Calculate Campaign Launch Checklist
+  let totalCampaignLaunch = 23; // 23 items total
+  let checkedCampaignLaunch = 0;
+  if (client.campaignLaunch && client.campaignLaunch.checked) {
+    Object.keys(client.campaignLaunch.checked).forEach(k => {
+      if (client.campaignLaunch.checked[k]) {
+        checkedCampaignLaunch++;
+      }
+    });
+  }
+  const campaignLaunchPct = Math.round((checkedCampaignLaunch / totalCampaignLaunch) * 100);
+  document.getElementById("dashCampaignLaunchVal").textContent = `${campaignLaunchPct}%`;
+  document.getElementById("dashCampaignLaunchProgress").style.width = `${campaignLaunchPct}%`;
+
+  // Calculate Paid Ads Audit (16 items total)
+  const paTotal = 16;
+  let paFilled = 0;
+  if (client.paidAdsAudit && client.paidAdsAudit.checked) {
+    Object.keys(client.paidAdsAudit.checked).forEach(k => {
+      if (client.paidAdsAudit.checked[k]) {
+        paFilled++;
+      }
+    });
+  }
+  const dashPaAuditFill = document.getElementById('dashPaAuditProgress');
+  const dashPaAuditVal = document.getElementById('dashPaAuditVal');
+  if (dashPaAuditFill && dashPaAuditVal) {
+    const paPct = paTotal > 0 ? Math.round((paFilled / paTotal) * 100) : 0;
+    dashPaAuditFill.style.width = paPct + '%';
+    dashPaAuditVal.textContent = paPct + '%';
+  }
+
+  // Calculate Email Audit (16 items total)
+  const emTotal = 16;
+  let emFilled = 0;
+  if (client.emailAudit && client.emailAudit.checked) {
+    Object.keys(client.emailAudit.checked).forEach(k => {
+      if (client.emailAudit.checked[k]) {
+        emFilled++;
+      }
+    });
+  }
+  const dashEmailAuditFill = document.getElementById('dashEmailStrategyProgress');
+  const dashEmailAuditVal = document.getElementById('dashEmailStrategyVal');
+  if (dashEmailAuditFill && dashEmailAuditVal) {
+    const emPct = emTotal > 0 ? Math.round((emFilled / emTotal) * 100) : 0;
+    dashEmailAuditFill.style.width = emPct + '%';
+    dashEmailAuditVal.textContent = emPct + '%';
+  }
 
   // Calculate Content Strategy checklist progress (40 items total)
   let totalStrategy = 40;
@@ -764,6 +938,7 @@ function renderDashboard() {
   }
   const strategyPct = Math.round((checkedStrategy / totalStrategy) * 100);
   document.getElementById("dashStrategyVal").textContent = `${strategyPct}%`;
+  document.getElementById("dashStrategyProgress").style.width = `${strategyPct}%`;
 
   // Calculate Strategy Builder progress (56 + 3 * N fields total)
   let strategyBuilderPct = 0;
@@ -818,6 +993,42 @@ function renderDashboard() {
     strategyBuilderPct = totalFields > 0 ? Math.round((filledFields / totalFields) * 100) : 0;
   }
   document.getElementById("dashStrategyBuilderVal").textContent = `${strategyBuilderPct}%`;
+  document.getElementById("dashStrategyBuilderProgress").style.width = `${strategyBuilderPct}%`;
+
+
+  // Calculate Personal Branding Builder progress (approx 29 fields total)
+  let personalBrandPct = 0;
+  if (client.personalBranding && client.personalBranding.data) {
+    let filledPbFields = 0;
+    let totalPbFields = 0;
+    
+    // Simplistic check: count all string properties that are not empty
+    const countFields = (obj) => {
+      if (typeof obj === 'string') {
+        totalPbFields++;
+        if (obj.trim() !== '') filledPbFields++;
+      } else if (Array.isArray(obj)) {
+        totalPbFields++;
+        if (obj.length > 0) filledPbFields++;
+      } else if (typeof obj === 'object' && obj !== null) {
+        Object.values(obj).forEach(countFields);
+      }
+    };
+    countFields(client.personalBranding.data);
+    
+    // Also add platforms manually like strategy builder
+    const pbPlatforms = client.personalBranding.data.platforms || [];
+    pbPlatforms.forEach(p => {
+      if (p.purpose && p.purpose.trim() !== '') filledPbFields++;
+      if (p.contentTypes && Array.isArray(p.contentTypes) && p.contentTypes.length > 0) filledPbFields++;
+    });
+    totalPbFields += pbPlatforms.length * 2;
+    
+    // In the actual builder it's out of ~29
+    personalBrandPct = totalPbFields > 0 ? Math.min(100, Math.round((filledPbFields / 29) * 100)) : 0;
+  }
+  document.getElementById("dashPersonalBrandVal").textContent = `${personalBrandPct}%`;
+  document.getElementById("dashPersonalBrandProgress").style.width = `${personalBrandPct}%`;
 
   // Calculate Social Media Audit checklist progress (40 items total)
   let totalSocialAudit = 40;
@@ -831,6 +1042,7 @@ function renderDashboard() {
   }
   const socialAuditPct = Math.round((checkedSocialAudit / totalSocialAudit) * 100);
   document.getElementById("dashSocialAuditVal").textContent = `${socialAuditPct}%`;
+  document.getElementById("dashSocialAuditProgress").style.width = `${socialAuditPct}%`;
 
   // Logged Website Competitors count
   let loggedWebComps = 0;
@@ -840,8 +1052,8 @@ function renderDashboard() {
     }
   });
   document.getElementById("dashWebCompetitorVal").textContent = `${loggedWebComps} / 3`;
+  document.getElementById("dashWebCompetitorProgress").style.width = `${(loggedWebComps / 3) * 100}%`;
 
-  // Logged Social Competitors count
   let loggedSocialComps = 0;
   client.socialComp.names.forEach(name => {
     if (name && name !== "Competitor A" && name !== "Competitor B" && name !== "Competitor C" && name.trim() !== "") {
@@ -849,6 +1061,7 @@ function renderDashboard() {
     }
   });
   document.getElementById("dashSocialCompetitorVal").textContent = `${loggedSocialComps} / 3`;
+  document.getElementById("dashSocialCompetitorProgress").style.width = `${(loggedSocialComps / 3) * 100}%`;
 
   // Calculate Copywriting Assistant stats
   let copyWords = 0;
@@ -857,6 +1070,48 @@ function renderDashboard() {
     copyWords = text === "" ? 0 : text.split(/\s+/).length;
   }
   document.getElementById("dashCopywritingVal").textContent = `${copyWords} words`;
+  
+  // Calculate Brand Vault completion
+  let bvTotal = 14; // 3 assets, 2 typo, 2 voice, 2 audience, 5 colors
+  let bvFilled = 0;
+  if (client.brandVault) {
+    const bv = client.brandVault;
+    if (bv.assets) {
+      if (bv.assets.logoUrl?.trim()) bvFilled++;
+      if (bv.assets.driveLink?.trim()) bvFilled++;
+      if (bv.assets.canvaLink?.trim()) bvFilled++;
+    }
+    if (bv.typography) {
+      if (bv.typography.primaryFont?.trim()) bvFilled++;
+      if (bv.typography.secondaryFont?.trim()) bvFilled++;
+    }
+    if (bv.brandVoice) {
+      if (bv.brandVoice.adjectives?.trim()) bvFilled++;
+      if (bv.brandVoice.missionStatement?.trim()) bvFilled++;
+    }
+    if (bv.targetAudience) {
+      if (bv.targetAudience.demographic?.trim()) bvFilled++;
+      if (bv.targetAudience.painPoints?.trim()) bvFilled++;
+    }
+    if (bv.colors && Array.isArray(bv.colors)) {
+      bv.colors.forEach(c => {
+        // Count a color as filled if it's not default black and has a name
+        if (c.hex && c.hex !== "#000000") bvFilled++;
+      });
+    }
+  }
+  const bvPct = Math.round((bvFilled / bvTotal) * 100);
+  document.getElementById("dashBrandVaultVal").textContent = `${bvPct}%`;
+  document.getElementById("dashBrandVaultProgress").style.width = `${bvPct > 100 ? 100 : bvPct}%`;
+  
+  document.getElementById("dashContentAuditVal").textContent = `0%`;
+  document.getElementById("dashContentAuditProgress").style.width = `0%`;
+  
+  document.getElementById("dashPaidAdsVal").textContent = `0%`;
+  document.getElementById("dashPaidAdsProgress").style.width = `0%`;
+  
+  document.getElementById("dashEmailStrategyVal").textContent = `0%`;
+  document.getElementById("dashEmailStrategyProgress").style.width = `0%`;
 }
 
 // Helper to determine letter grade
@@ -1009,7 +1264,10 @@ function setIframeAbsoluteSrc(iframeSelector, relativeFallbackPath) {
   const iframe = document.querySelector(iframeSelector);
   if (iframe) {
     const rawSrc = iframe.getAttribute('src') || relativeFallbackPath;
-    iframe.src = new URL(rawSrc, window.location.href).href;
+    const newSrc = new URL(rawSrc, window.location.href).href;
+    if (iframe.src !== newSrc) {
+      iframe.src = newSrc;
+    }
   }
 }
 
@@ -1031,6 +1289,11 @@ function renderContentStrategy() {
 // ── Content Strategy Builder Controller ──
 function renderStrategyBuilder() {
   setIframeAbsoluteSrc('#tab-strategybuilder iframe', "content-strategy-builder/index.html");
+}
+
+// ── Personal Branding Strategy Builder Controller ──
+function renderPersonalBranding() {
+  setIframeAbsoluteSrc('#tab-personalbrand iframe', "personal-branding-builder/index.html");
 }
 
 // ── Social Media Audit Controller ──
@@ -1197,6 +1460,24 @@ function initParentEventListeners() {
     });
   }
 
+  const dashClickupUrl = document.getElementById("dashClickupUrl");
+  if (dashClickupUrl) {
+    dashClickupUrl.addEventListener("input", (e) => {
+      const client = getActiveClient();
+      client.clickupUrl = e.target.value;
+      saveDatabase();
+      const btn = document.getElementById("dashClickupBtn");
+      if (btn) {
+        if (client.clickupUrl) {
+          btn.href = client.clickupUrl;
+          btn.style.display = "flex";
+        } else {
+          btn.style.display = "none";
+        }
+      }
+    });
+  }
+
   const obTargetDate = document.getElementById("obTargetDate");
   if (obTargetDate) {
     obTargetDate.addEventListener("input", (e) => {
@@ -1348,11 +1629,16 @@ function initParentEventListeners() {
 }
 
 // ── Application Bootstrapper ──
+window.onerror = function(msg, url, line) {
+  document.getElementById("dashHeroClientName").textContent = "Global Error: " + msg + " at line " + line;
+};
+
 document.addEventListener("DOMContentLoaded", () => {
-  initTabNavigation();
-  initMobileNavigation();
-  initParentEventListeners();
-  refreshAllViews();
+  try { initTabNavigation(); } catch(e) { console.error("TabNav Error:", e); }
+  try { initMobileNavigation(); } catch(e) { console.error("MobileNav Error:", e); }
+  try { initParentEventListeners(); } catch(e) { console.error("ParentListeners Error:", e); }
+  try { initQuickLinks(); } catch(e) { console.error("QuickLinks Error:", e); }
+  try { refreshAllViews(); } catch(e) { console.error("Refresh Error:", e); }
 
   // Reset Sandbox Button listener
   const resetSandboxBtn = document.getElementById("resetSandboxBtn");
@@ -1370,3 +1656,301 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Run database load immediately to populate state before child iframes execute their scripts
 loadDatabase();
+
+// ── Brand Vault Controllers ──
+function renderBrandVault() {
+  const client = getActiveClient();
+  if (!client || !client.brandVault) return;
+
+  const bv = client.brandVault;
+  
+  // Backwards compatibility for old clients without full structure
+  if (!bv.assets) bv.assets = { logoUrl: "", driveLink: "", canvaLink: "" };
+  if (!bv.colors) bv.colors = [
+    { hex: "#000000", name: "Primary" }, { hex: "#000000", name: "Secondary" },
+    { hex: "#000000", name: "Accent 1" }, { hex: "#000000", name: "Accent 2" }, { hex: "#000000", name: "Background" }
+  ];
+  if (!bv.typography) bv.typography = { primaryFont: "", secondaryFont: "" };
+  if (!bv.brandVoice) bv.brandVoice = { adjectives: "", missionStatement: "" };
+  if (!bv.targetAudience) bv.targetAudience = { demographic: "", painPoints: "" };
+
+  // Assets
+  document.getElementById("bvLogoUrl").value = bv.assets.logoUrl || "";
+  document.getElementById("bvDriveLink").value = bv.assets.driveLink || "";
+  document.getElementById("bvCanvaLink").value = bv.assets.canvaLink || "";
+
+  // Typography
+  document.getElementById("bvPrimaryFont").value = bv.typography.primaryFont || "";
+  document.getElementById("bvSecondaryFont").value = bv.typography.secondaryFont || "";
+  
+  // Voice
+  document.getElementById("bvAdjectives").value = bv.brandVoice.adjectives || "";
+  document.getElementById("bvMission").value = bv.brandVoice.missionStatement || "";
+
+  // Audience
+  document.getElementById("bvDemographic").value = bv.targetAudience.demographic || "";
+  document.getElementById("bvPainPoints").value = bv.targetAudience.painPoints || "";
+
+  // Colors
+  const colorsContainer = document.getElementById("bvColorsContainer");
+  if (colorsContainer) {
+    colorsContainer.innerHTML = "";
+    bv.colors.forEach((color, index) => {
+      const item = document.createElement("div");
+      item.className = "bv-color-item";
+      item.innerHTML = `
+        <input type="color" class="bv-color-picker" id="bvColorHex_${index}" value="${color.hex || '#000000'}" onchange="saveBrandVault()">
+        <div class="bv-color-inputs">
+          <input type="text" class="bv-input" style="padding: 4px 8px; font-size: 0.8rem;" id="bvColorName_${index}" value="${color.name || ''}" placeholder="Color Name" onchange="saveBrandVault()">
+          <input type="text" class="bv-input" style="padding: 4px 8px; font-size: 0.8rem;" id="bvColorText_${index}" value="${color.hex || '#000000'}" placeholder="#HEX" onchange="document.getElementById('bvColorHex_${index}').value = this.value; saveBrandVault()">
+        </div>
+      `;
+      colorsContainer.appendChild(item);
+    });
+  }
+
+  // Update Scorecards
+  updateBrandVaultScorecards();
+}
+
+function updateBrandVaultScorecards() {
+  const client = getActiveClient();
+  if (!client || !client.brandVault) return;
+  const bv = client.brandVault;
+
+  const totalFields = 9; 
+  let filledFields = 0;
+  
+  if (bv.assets && bv.assets.logoUrl) filledFields++;
+  if (bv.assets && bv.assets.driveLink) filledFields++;
+  if (bv.assets && bv.assets.canvaLink) filledFields++;
+  if (bv.typography && bv.typography.primaryFont) filledFields++;
+  if (bv.typography && bv.typography.secondaryFont) filledFields++;
+  if (bv.brandVoice && bv.brandVoice.adjectives) filledFields++;
+  if (bv.brandVoice && bv.brandVoice.missionStatement) filledFields++;
+  if (bv.targetAudience && bv.targetAudience.demographic) filledFields++;
+  if (bv.targetAudience && bv.targetAudience.painPoints) filledFields++;
+  
+  const pct = Math.round((filledFields / totalFields) * 100);
+  
+  const elTotal = document.getElementById("bvCardTotal");
+  const elFilled = document.getElementById("bvCardFilled");
+  const elRemaining = document.getElementById("bvCardRemaining");
+  const elPct = document.getElementById("bvCardPct");
+  const progressFill = document.getElementById("bvProgressFill");
+  const progressText = document.getElementById("bvProgressText");
+  const progressPctText = document.getElementById("bvProgressPct");
+  
+  if (elFilled) {
+    elTotal.textContent = totalFields;
+    elFilled.textContent = filledFields;
+    elRemaining.textContent = totalFields - filledFields;
+    if (filledFields === totalFields) {
+      elRemaining.classList.remove('warning');
+    } else {
+      elRemaining.classList.add('warning');
+    }
+    elPct.textContent = pct + "%";
+    progressFill.style.width = pct + "%";
+    progressText.textContent = `${filledFields} of ${totalFields} fields complete`;
+    progressPctText.textContent = pct + "%";
+  }
+}
+
+function saveBrandVault() {
+  const client = getActiveClient();
+  if (!client) return;
+  if (!client.brandVault) client.brandVault = {};
+  
+  const bv = client.brandVault;
+  
+  // Assets
+  if (!bv.assets) bv.assets = {};
+  bv.assets.logoUrl = document.getElementById("bvLogoUrl").value;
+  bv.assets.driveLink = document.getElementById("bvDriveLink").value;
+  bv.assets.canvaLink = document.getElementById("bvCanvaLink").value;
+
+  // Typography
+  if (!bv.typography) bv.typography = {};
+  bv.typography.primaryFont = document.getElementById("bvPrimaryFont").value;
+  bv.typography.secondaryFont = document.getElementById("bvSecondaryFont").value;
+
+  // Voice
+  if (!bv.brandVoice) bv.brandVoice = {};
+  bv.brandVoice.adjectives = document.getElementById("bvAdjectives").value;
+  bv.brandVoice.missionStatement = document.getElementById("bvMission").value;
+
+  // Audience
+  if (!bv.targetAudience) bv.targetAudience = {};
+  bv.targetAudience.demographic = document.getElementById("bvDemographic").value;
+  bv.targetAudience.painPoints = document.getElementById("bvPainPoints")?.value || "";
+
+  // Colors
+  if (!bv.colors) bv.colors = [];
+  for (let i = 0; i < 5; i++) {
+    const hexInput = document.getElementById(`bvColorHex_${i}`);
+    const nameInput = document.getElementById(`bvColorName_${i}`);
+    if (hexInput && nameInput) {
+      if (!bv.colors[i]) bv.colors[i] = {};
+      bv.colors[i].hex = hexInput.value;
+      bv.colors[i].name = nameInput.value;
+    }
+  }
+
+  // Update UI scorecards instantly without redrawing the whole form
+  updateBrandVaultScorecards();
+
+  saveDatabase();
+  renderDashboard();
+}
+
+
+// ── Team Quick Links Logic ──
+function initQuickLinks() {
+  const defaultLinks = [
+    { id: 'sop', name: 'Master SOP Index', url: '', icon: '📋' },
+    { id: 'drive', name: 'Google Drive', url: '', icon: '📁' },
+    { id: 'intake', name: 'Client Intake Form', url: '', icon: '📝' },
+    { id: 'handoff', name: 'Onboarding Handoff', url: '', icon: '🔄' },
+    { id: 'tracker', name: 'Shared Links Tracker', url: '', icon: '🔗' }
+  ];
+  
+  let savedLinks = defaultLinks;
+  try {
+    const saved = localStorage.getItem('revital-team-links-array');
+    if (saved) {
+      savedLinks = JSON.parse(saved);
+      if (!Array.isArray(savedLinks)) savedLinks = defaultLinks;
+    } else {
+      const oldSaved = localStorage.getItem('revital-team-links');
+      if (oldSaved) {
+        const parsedOld = JSON.parse(oldSaved);
+        savedLinks.forEach(link => {
+          if (parsedOld[link.id] && parsedOld[link.id] !== '#') {
+            link.url = parsedOld[link.id];
+          }
+        });
+        localStorage.setItem('revital-team-links-array', JSON.stringify(savedLinks));
+      }
+    }
+  } catch(e) {}
+
+  const listEl = document.getElementById('dynamicQuickLinksList');
+  const addBtn = document.getElementById('addQuickLinkBtn');
+  const inlineForm = document.getElementById('inlineAddLinkForm');
+  const nameInput = document.getElementById('newLinkName');
+  const urlInput = document.getElementById('newLinkUrl');
+  const saveBtn = document.getElementById('saveNewLinkBtn');
+  const cancelBtn = document.getElementById('cancelNewLinkBtn');
+
+  function renderLinks() {
+    listEl.innerHTML = '';
+    savedLinks.forEach((link, index) => {
+      const li = document.createElement('li');
+      li.className = 'quick-link-li';
+      li.style.position = 'relative';
+      li.style.display = 'flex';
+      li.style.alignItems = 'center';
+      li.style.justifyContent = 'space-between';
+      li.style.marginBottom = '8px';
+      
+      const isMissingUrl = !link.url || link.url.trim() === '';
+      const hrefAttr = isMissingUrl ? '#' : link.url;
+      const targetAttr = isMissingUrl ? '' : 'target="_blank"';
+      const opacity = isMissingUrl ? '0.5' : '1';
+
+      li.innerHTML = `
+        <a href="${hrefAttr}" ${targetAttr} class="quick-link-item" style="opacity: ${opacity}; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color 0.2s;">
+          <span class="icon">${link.icon || '🔗'}</span> ${link.name}
+        </a>
+        <div class="quick-link-actions" style="display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s;">
+          <button class="edit-ql-btn" data-index="${index}" style="background: none; border: none; color: var(--color-text-secondary); cursor: pointer; padding: 2px;" title="Edit">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"></path></svg>
+          </button>
+          <button class="del-ql-btn" data-index="${index}" style="background: none; border: none; color: #f87171; cursor: pointer; padding: 2px;" title="Delete">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+      `;
+
+      li.addEventListener('mouseenter', () => li.querySelector('.quick-link-actions').style.opacity = '1');
+      li.addEventListener('mouseleave', () => li.querySelector('.quick-link-actions').style.opacity = '0');
+
+      if (isMissingUrl) {
+        li.querySelector('a').addEventListener('click', (e) => {
+          e.preventDefault();
+          const newUrl = prompt(`Enter the URL for ${link.name}:`, '');
+          if (newUrl !== null) {
+            savedLinks[index].url = newUrl.trim();
+            localStorage.setItem('revital-team-links-array', JSON.stringify(savedLinks));
+            renderLinks();
+          }
+        });
+      }
+
+      listEl.appendChild(li);
+    });
+
+    document.querySelectorAll('.del-ql-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = e.currentTarget.getAttribute('data-index');
+        if (confirm(`Remove "${savedLinks[idx].name}"?`)) {
+          savedLinks.splice(idx, 1);
+          localStorage.setItem('revital-team-links-array', JSON.stringify(savedLinks));
+          renderLinks();
+        }
+      });
+    });
+
+    document.querySelectorAll('.edit-ql-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = e.currentTarget.getAttribute('data-index');
+        const link = savedLinks[idx];
+        const newName = prompt('Edit Link Name:', link.name);
+        if (newName === null) return;
+        const newUrl = prompt('Edit URL (include https://):', link.url || '');
+        if (newUrl === null) return;
+
+        savedLinks[idx].name = newName.trim() || 'Unnamed Link';
+        savedLinks[idx].url = newUrl.trim();
+        localStorage.setItem('revital-team-links-array', JSON.stringify(savedLinks));
+        renderLinks();
+      });
+    });
+  }
+
+  if (addBtn && inlineForm) {
+    addBtn.addEventListener('click', () => {
+      addBtn.style.display = 'none';
+      inlineForm.style.display = 'flex';
+      nameInput.value = '';
+      urlInput.value = '';
+      nameInput.focus();
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      inlineForm.style.display = 'none';
+      addBtn.style.display = 'flex';
+    });
+
+    saveBtn.addEventListener('click', () => {
+      const name = nameInput.value.trim();
+      const url = urlInput.value.trim();
+      if (!name) { alert('Please enter a name.'); return; }
+      
+      savedLinks.push({
+        id: 'custom_' + Date.now(),
+        name: name,
+        url: url,
+        icon: '🔗'
+      });
+      localStorage.setItem('revital-team-links-array', JSON.stringify(savedLinks));
+      
+      inlineForm.style.display = 'none';
+      addBtn.style.display = 'flex';
+      renderLinks();
+    });
+  }
+
+  renderLinks();
+}

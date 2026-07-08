@@ -5,11 +5,15 @@
    ============================================================ */
 
 /* ── Check if embedded in parent Revital Hub ── */
-const isEmbedded = (window.parent && typeof window.parent.getActiveClient === 'function');
+let isEmbedded = false;
 let parentClient = null;
-
-if (isEmbedded) {
-  parentClient = window.parent.getActiveClient();
+try {
+  if (window.parent && typeof window.parent.getActiveClient === 'function') {
+    isEmbedded = true;
+    parentClient = window.parent.getActiveClient();
+  }
+} catch(e) {
+  console.warn("CORS prevented parent access:", e);
 }
 
 /* ── State Definition ────────────────────────────────────────── */
@@ -284,8 +288,9 @@ function renderDynamicPlatforms() {
     contentTypesList.forEach(ct => {
       const isChecked = p.contentTypes && p.contentTypes.includes(ct.value);
       checkboxesHtml += `
-        <label class="checkbox-item">
+        <label class="custom-checkbox" style="margin-right: 8px;">
           <input type="checkbox" class="platform-ct-checkbox" data-platform-id="${p.id}" value="${ct.value}" ${isChecked ? 'checked' : ''} />
+          <span class="checkmark"></span>
           <span>${ct.label}</span>
         </label>
       `;
