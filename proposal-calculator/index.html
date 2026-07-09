@@ -23,6 +23,45 @@
       </div>
 
 
+
+      <!-- PROPOSAL DETAILS -->
+      <div class="input-section" style="border: 1px solid var(--border-focus); background: rgba(99, 102, 241, 0.05); padding: 16px; border-radius: var(--radius-md); margin-bottom: 24px;">
+        <h3 style="margin-top: 0; display: flex; align-items: center; gap: 8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          Proposal Details
+        </h3>
+        <p class="section-desc" style="margin-bottom: 16px;">Fill these out to populate the PDF template.</p>
+        
+        <label>Client Company Name</label>
+        <input type="text" id="propClientName" class="num-input" placeholder="e.g. Acme Corp" style="margin-bottom: 12px;">
+        
+        <label>Contact Name</label>
+        <input type="text" id="propContactName" class="num-input" placeholder="e.g. John Doe" style="margin-bottom: 12px;">
+        
+        <label>A Note From Us</label>
+        <textarea id="propNote" class="num-input" placeholder="Thank you for taking the time to connect with us..." style="min-height: 80px; resize: vertical; margin-bottom: 12px;"></textarea>
+
+        <label>Current Situation: What's Working</label>
+        <textarea id="propWorking" class="num-input" placeholder="1-2 things they are already doing well..." style="min-height: 60px; resize: vertical; margin-bottom: 12px;"></textarea>
+        
+        <label>Current Situation: Opportunities</label>
+        <textarea id="propOpps" class="num-input" placeholder="2-4 specific gaps or areas for improvement..." style="min-height: 80px; resize: vertical; margin-bottom: 12px;"></textarea>
+
+        <label>Stripe Payment Link URL</label>
+        <input type="url" id="propStripeUrl" class="num-input" placeholder="https://buy.stripe.com/..." style="margin-bottom: 12px;">
+
+        <div style="display: flex; gap: 12px;">
+          <div style="flex: 1;">
+            <label>Current AOV ($)</label>
+            <input type="number" id="propAov" class="num-input" placeholder="500">
+          </div>
+          <div style="flex: 1;">
+            <label>Current Conv Rate (%)</label>
+            <input type="number" id="propConvRate" class="num-input" placeholder="2.5">
+          </div>
+        </div>
+      </div>
+
       <div class="input-section" style="background: var(--bg-card); padding: 16px; border-radius: var(--radius-md); margin-bottom: 24px; border: 1px solid var(--border-color);">
         <h3 style="margin-top: 0;">⚡ Package Presets</h3>
         <p class="section-desc" style="margin-bottom: 12px;">Instantly load common scope combinations.</p>
@@ -488,6 +527,20 @@
           </ul>
         </div>
       <br>
+
+      <!-- Admin Controls -->
+      <div class="input-section" id="adminControlsPanel" style="display: none; border: 1px solid var(--warning); background: rgba(245, 158, 11, 0.05); padding: 16px; border-radius: var(--radius-md); margin-top: 32px;">
+        <h3 style="margin-top: 0; color: var(--warning); display: flex; align-items: center; gap: 8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          Admin Controls
+        </h3>
+        <label class="cb-label" style="font-weight: 500; color: var(--text-title); margin-bottom: 0;">
+          <input type="checkbox" id="toggleMargin" class="service-cb" style="margin-right: 8px;">
+          Show Internal Profit Margin
+        </label>
+      </div>
+
+      <br>
       <button id="resetBtn" class="btn-reset">Reset Calculator</button>
     </aside>
 
@@ -508,6 +561,13 @@
             <span class="price-label">One-Time Setup Fee</span>
             <span class="price-value" id="totalSetup">$0</span>
           </div>
+
+          <div class="price-box outline" id="marginBox" style="display: none; border-color: var(--warning);">
+            <span class="price-label" style="color: var(--warning);">Est. Hard Costs</span>
+            <span class="price-value" id="totalHardCosts" style="color: var(--warning);">$0</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 4px;">Margin: <span id="profitMarginPercent">0%</span></span>
+          </div>
+
         </div>
 
         <div class="sow-container">

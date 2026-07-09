@@ -738,3 +738,15 @@ body {
   border-color: var(--color-accent);
   background: rgba(244, 114, 182, 0.05); /* Accent tint */
 }
+
+/* ── Dynamic Checkbox Fix ── */
+.custom-checkbox input:checked + .check-icon {
+  opacity: 1 !important;
+}
+.custom-checkbox input:not(:checked) + .check-icon {
+  opacity: 0 !important;
+}
+.custom-checkbox:has(input:checked) {
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+}

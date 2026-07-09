@@ -288,10 +288,14 @@ function renderDynamicPlatforms() {
     contentTypesList.forEach(ct => {
       const isChecked = p.contentTypes && p.contentTypes.includes(ct.value);
       checkboxesHtml += `
-        <label class="custom-checkbox" style="margin-right: 8px;">
-          <input type="checkbox" class="platform-ct-checkbox" data-platform-id="${p.id}" value="${ct.value}" ${isChecked ? 'checked' : ''} />
-          <span class="checkmark"></span>
-          <span>${ct.label}</span>
+        <label class="checkbox-item" style="margin-right: 12px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+          <div class="custom-checkbox" style="position: relative; width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--color-border); display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2);">
+            <input type="checkbox" class="platform-ct-checkbox" style="position: absolute; opacity: 0; cursor: pointer; height: 100%; width: 100%; z-index: 2;" data-platform-id="${p.id}" value="${ct.value}" ${isChecked ? 'checked' : ''} />
+            <svg class="check-icon" style="width: 12px; height: 12px; color: white; opacity: ${isChecked ? '1' : '0'}; transition: opacity 0.2s;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <span style="font-size: 13px; color: var(--color-text);">${ct.label}</span>
         </label>
       `;
     });
