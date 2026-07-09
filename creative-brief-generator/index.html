@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creative Brief Generator</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Use marked to compile the preview visually -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <div class="logo">REVITAL HUB</div>
+        <h1>Creative Brief Generator</h1>
+      </div>
+      <div class="top-bar-right">
+        <button id="copyBtn" class="btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          Copy Markdown for ClickUp
+        </button>
+      </div>
+    </header>
+
+    <div class="main-content">
+      <div class="form-panel">
+        <div class="panel-header">
+          <h2>Brief Details</h2>
+          <p>Fill out the fields below. The generated markdown is designed to be pasted directly into a ClickUp task description.</p>
+        </div>
+        
+        <div class="form-group">
+          <label for="campaignName">Campaign Name</label>
+          <input type="text" id="campaignName" placeholder="e.g. Summer Sale 2026">
+        </div>
+        
+        <div class="form-group">
+          <label for="clientName">Client / Brand</label>
+          <input type="text" id="clientName" placeholder="e.g. Acme Corp">
+        </div>
+
+        <div class="form-group">
+          <label for="objective">Primary Objective</label>
+          <select id="objective">
+            <option value="Brand Awareness">Brand Awareness</option>
+            <option value="Lead Generation">Lead Generation</option>
+            <option value="Direct Sales / Conversion">Direct Sales / Conversion</option>
+            <option value="Audience Engagement">Audience Engagement</option>
+            <option value="Education / Information">Education / Information</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="targetAudience">Target Audience</label>
+          <textarea id="targetAudience" rows="2" placeholder="e.g. Homeowners aged 35-55 looking for premium landscaping."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="keyMessage">Key Message / Value Prop</label>
+          <textarea id="keyMessage" rows="2" placeholder="e.g. Get your lawn summer-ready in 24 hours without lifting a finger."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="toneOfVoice">Tone of Voice</label>
+          <select id="toneOfVoice">
+            <option value="Professional & Authoritative">Professional & Authoritative</option>
+            <option value="Casual & Relatable">Casual & Relatable</option>
+            <option value="Urgent & Action-Oriented">Urgent & Action-Oriented</option>
+            <option value="Educational & Helpful">Educational & Helpful</option>
+            <option value="Humorous & Playful">Humorous & Playful</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="deliverables">Required Deliverables</label>
+          <textarea id="deliverables" rows="3" placeholder="e.g. - 3x 15s TikTok videos&#10;- 2x Static FB Ads&#10;- 1x Email Broadcast"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="references">Inspiration / References (Links)</label>
+          <textarea id="references" rows="2" placeholder="e.g. Paste links to mood boards, competitor examples, or assets here."></textarea>
+        </div>
+
+      </div>
+      
+      <div class="preview-panel">
+        <div class="panel-header">
+          <h2>Markdown Preview</h2>
+        </div>
+        <div class="preview-scroll">
+          <div class="markdown-preview" id="previewContainer">
+            <!-- Populated by JS -->
+          </div>
+          <textarea id="markdownRaw" style="display:none;"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

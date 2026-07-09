@@ -325,8 +325,76 @@ function clearForm() {
 
 /* ── Print / Save as PDF ── */
 function downloadPDF() {
-  window.print();
+  const container = document.querySelector('main.container') || document.querySelector('.page');
+  if (!container) {
+    window.print();
+    return;
+  }
+
+  const pdfBtn = document.querySelector('.download-pdf-btn');
+  const origText = pdfBtn ? pdfBtn.innerHTML : '';
+  if (pdfBtn) {
+    pdfBtn.disabled = true;
+    pdfBtn.innerHTML = "⏳ Generating...";
+  }
+
+  // Hide UI elements
+  const hides = container.querySelectorAll('.action-row, .controls-row, .prompt-toggle, .prompt-panel, button');
+  hides.forEach(el => el.style.display = 'none');
+
+  // Replace inputs/textareas with their text values temporarily
+  const inputs = container.querySelectorAll('input, textarea');
+  const replacements = [];
+  inputs.forEach(el => {
+    const span = document.createElement('span');
+    span.style.whiteSpace = 'pre-wrap';
+    span.style.fontFamily = 'inherit';
+    span.style.fontSize = 'inherit';
+    span.style.display = 'inline-block';
+    span.style.width = '100%';
+    let val = (el.value || '').trim();
+    if (!val) {
+      span.innerHTML = '<span style="color: #94a3b8; font-style: italic;">N/A</span>';
+    } else {
+      span.innerHTML = val.replace(/
+/g, '<br>');
+    }
+    
+    // For date or company inputs at top
+    if (el.type === 'date' || el.id === 'company') {
+      span.style.fontWeight = 'bold';
+    }
+
+    el.parentNode.insertBefore(span, el);
+    el.style.display = 'none';
+    replacements.push({ el, span });
+  });
+
+  const opt = {
+    margin:       0.5,
+    filename:     'Competitor_Analysis.pdf',
+    image:        { type: 'png' },
+    html2canvas:  { scale: 4, letterRendering: true, useCORS: true },
+    jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
+  };
+  
+  // Wait a tick for DOM to update
+  setTimeout(() => {
+    html2pdf().set(opt).from(container).save().then(() => {
+      // Restore UI
+      hides.forEach(el => el.style.display = '');
+      replacements.forEach(r => {
+        r.span.remove();
+        r.el.style.display = '';
+      });
+      if (pdfBtn) {
+        pdfBtn.disabled = false;
+        pdfBtn.innerHTML = origText;
+      }
+    });
+  }, 200);
 }
+
 
 /* ── Event Listeners ── */
 document.addEventListener('DOMContentLoaded', function() {

@@ -419,12 +419,112 @@ function attachEvents() {
   }
 
   // Download PDF report button
+  
   const downloadBtn = document.getElementById('downloadPdfBtn');
   if (downloadBtn) {
-    downloadBtn.addEventListener('click', () => {
-      downloadPdfReport();
+    downloadBtn.addEventListener('click', async () => {
+      downloadBtn.disabled = true;
+      const origText = downloadBtn.innerHTML;
+      downloadBtn.innerHTML = "⏳ Generating...";
+
+      const stats = getStats();
+      const targetTitle = state.targetUrl ? state.targetUrl : "Client Website / Project";
+
+      let stepsHtml = '';
+      STEPS.forEach((step, idx) => {
+        let tasksHtml = '';
+        step.subs.forEach(sub => {
+          const isChecked = state.checked[sub.id];
+          const note = state.notes[sub.id];
+          
+          let statusHtml = isChecked 
+            ? '<span style="color:#10b981; font-weight:bold;">[PASS]</span>' 
+            : '<span style="color:#ef4444; font-weight:bold;">[ACTION REQUIRED]</span>';
+            
+          let noteHtml = note ? `<div style="background:#f1f5f9; padding:10px; margin-top:5px; border-left:3px solid #3b82f6; font-size:12px; color:#475569;"><strong>Notes:</strong> ${note}</div>` : '';
+
+          tasksHtml += `
+            <div style="border-bottom:1px solid #e2e8f0; padding:12px 0;">
+              <div style="display:flex; justify-content:space-between;">
+                <div style="font-size:14px; font-weight:500; color:#1e293b;">${sub.text}</div>
+                <div style="font-size:12px;">${statusHtml}</div>
+              </div>
+              ${noteHtml}
+            </div>
+          `;
+        });
+
+        stepsHtml += `
+          <div style="margin-bottom:30px;">
+            <h2 style="font-size:18px; color:#0f172a; border-bottom:2px solid #e2e8f0; padding-bottom:8px; margin-bottom:10px;">Step ${idx+1}: ${step.title}</h2>
+            ${tasksHtml}
+          </div>
+        `;
+      });
+
+      const container = document.createElement('div');
+      container.style.fontFamily = "'Inter', sans-serif, Arial";
+      container.style.color = "#1e293b";
+      container.style.fontSize = "14px";
+      container.style.lineHeight = "1.6";
+      container.style.width = "100%";
+
+      const style = `
+        <style>
+          .box, .col, .score-box, tr, td, h2, h3 { page-break-inside: avoid; }
+
+          .page { padding: 40px; box-sizing: border-box; background: white; page-break-after: always; position: relative; }
+          .page:last-child { page-break-after: auto; }
+          h1 { font-size: 28px; font-weight: 700; margin-bottom: 5px; color: #0f172a; border-bottom: 4px solid #f59e0b; padding-bottom: 20px;}
+          p { margin-bottom: 15px; color:#475569; }
+          .logo { height: 50px; margin-bottom: 40px;  }
+          .score-box { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:20px; margin-bottom:30px; text-align:center;}
+          .score-val { font-size:36px; font-weight:bold; color:#3b82f6; }
+        </style>
+      `;
+
+      container.innerHTML = `
+        ${style}
+        <div class="page">
+          <img src="assets/logo.png" onerror="this.src='../logo.png'" alt="Revital Hub" class="logo">
+          <h1>Audit Report: ${document.title.split('—')[0].trim() || 'Checklist'}</h1>
+          <p><strong>Target:</strong> ${targetTitle}</p>
+          <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+          
+          <div class="score-box">
+            <div style="font-size:14px; text-transform:uppercase; font-weight:600; color:#64748b; margin-bottom:5px;">Overall Score</div>
+            <div class="score-val">${stats.pct}%</div>
+            <div style="font-size:13px; color:#475569; margin-top:5px;">${stats.doneTasks} of ${stats.totalTasks} items completed</div>
+          </div>
+
+          ${stepsHtml}
+        </div>
+      `;
+
+      try {
+        const opt = {
+          margin:       0,
+          filename:     `Audit_Report_${new Date().toISOString().split('T')[0]}.pdf`,
+          image:        { type: 'png' },
+          html2canvas:  { scale: 4, letterRendering: true, useCORS: true },
+          jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+        
+        if (typeof html2pdf !== 'undefined') {
+          await html2pdf().set(opt).from(container).save();
+        } else {
+          alert("PDF library failed to load.");
+        }
+      } catch(e) {
+        console.error("PDF Error:", e);
+        alert("An error occurred generating the PDF.");
+      }
+
+      downloadBtn.disabled = false;
+      downloadBtn.innerHTML = origText;
     });
   }
+
 }
 
 function toggleStepBody(stepId) {
@@ -478,358 +578,3 @@ function drawCrossmark(doc, x, y) {
   doc.line(x + 8, y + 3, x + 2, y + 9);
 }
 
-function downloadPdfReport() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'pt',
-    format: 'a4'
-  });
-
-  const { totalTasks, doneTasks, pct } = getStats();
-  const targetHost = state.targetUrl || 'Not specified';
-  const currentDate = new Date().toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-
-  // Keep track of current y position
-  let y = 50;
-
-  function checkPageOverflow(heightNeeded) {
-    if (y + heightNeeded > 780) {
-      doc.addPage();
-      y = 60;
-    }
-  }
-
-  // Draw header block
-  checkPageOverflow(50);
-  if (typeof LOGO_BASE64 !== 'undefined' && LOGO_BASE64) {
-    try {
-      doc.addImage(LOGO_BASE64, 'PNG', 40, 42, 110, 33);
-    } catch (e) {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(14);
-      doc.setTextColor(139, 92, 246);
-      doc.text('REVITAL PRODUCTIONS', 40, 60);
-    }
-  } else {
-    doc.text('Paid Ads Audit Report', 40, 60);
-  }
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Client/Project: ${targetHost || 'N/A'}`, 40, 80);
-  
-  // Add performance & strategy inputs to PDF
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Performance & Strategy Overview:', 40, 110);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Monthly Ad Spend: ${state.textInputs.adSpend || 'N/A'}`, 40, 130);
-  doc.text(`Target ROAS/CPA: ${state.textInputs.roas || 'N/A'}`, 40, 150);
-
-  // Score summary
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Audit Summary', 40, 180);
-  doc.setTextColor(26, 26, 23); // #1a1a17
-  doc.text('SEO AUDIT REPORT', 555, 50, { align: 'right' });
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-  doc.setTextColor(85, 84, 80); // #555450
-  doc.text(`Target: ${targetHost}`, 555, 63, { align: 'right' });
-  doc.text(`Date: ${currentDate}`, 555, 75, { align: 'right' });
-
-  y = 95;
-
-  // Draw progress scorecard
-  checkPageOverflow(65);
-  doc.setFillColor(248, 248, 246); // #f8f8f6
-  doc.rect(40, y, 515, 65, 'F');
-  doc.setDrawColor(229, 229, 224); // #e5e5e0
-  doc.setLineWidth(1);
-  doc.rect(40, y, 515, 65, 'D');
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(85, 84, 80);
-  doc.text('AUDIT HEALTH SCORE', 55, y + 20);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(26);
-  doc.setTextColor(245, 115, 90); // Revital Coral
-  doc.text(`${pct}%`, 55, y + 50);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9.5);
-  doc.setTextColor(26, 26, 23);
-  doc.text(`Tasks Completed: ${doneTasks} / ${totalTasks}`, 180, y + 28);
-  doc.text(`Tasks Remaining: ${totalTasks - doneTasks}`, 180, y + 44);
-
-  y += 90;
-
-  // Split tasks into passed and failed
-  const failedItems = [];
-  const passedItems = [];
-
-  STEPS.forEach(step => {
-    const failedSubs = step.subs.filter(sub => !state.checked[sub.id]);
-    const passedSubs = step.subs.filter(sub => state.checked[sub.id]);
-
-    if (failedSubs.length > 0) {
-      failedItems.push({
-        stepNum: step.num,
-        stepTitle: step.title,
-        tools: step.tools,
-        subs: failedSubs
-      });
-    }
-    if (passedSubs.length > 0) {
-      passedItems.push({
-        stepNum: step.num,
-        stepTitle: step.title,
-        tools: step.tools,
-        subs: passedSubs
-      });
-    }
-  });
-
-  // Section 1: Incomplete Items (Things that failed the audit)
-  if (failedItems.length > 0) {
-    checkPageOverflow(40);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.setTextColor(245, 115, 90); // Coral
-    doc.text('ACTION REQUIRED — INCOMPLETE AUDIT ITEMS', 40, y);
-    doc.setDrawColor(245, 115, 90);
-    doc.setLineWidth(1);
-    doc.line(40, y + 6, 555, y + 6);
-    y += 24;
-
-    failedItems.forEach(item => {
-      checkPageOverflow(40);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.setTextColor(26, 26, 23);
-      doc.text(`Step ${item.stepNum}: ${item.stepTitle}`, 40, y);
-      y += 14;
-
-      doc.setFont('helvetica', 'italic');
-      doc.setFontSize(8);
-      doc.setTextColor(85, 84, 80);
-      doc.text(`Tools: ${item.tools.join(', ')}`, 40, y);
-      y += 12;
-
-      item.subs.forEach(sub => {
-        const labelLines = doc.splitTextToSize(sub.label, 480);
-        const descLines = doc.splitTextToSize(sub.desc, 480);
-        
-        const notesText = state.notes[sub.id] ? state.notes[sub.id].trim() : '';
-        let notesLines = [];
-        let noteBlockHeight = 0;
-        if (notesText) {
-          notesLines = doc.splitTextToSize(notesText, 465);
-          noteBlockHeight = (notesLines.length * 10) + 12;
-        }
-
-        const textHeight = (labelLines.length * 12) + (descLines.length * 10) + noteBlockHeight + 6;
-
-        checkPageOverflow(textHeight + 10);
-        drawCrossmark(doc, 40, y);
-
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(9);
-        doc.setTextColor(26, 26, 23);
-        let currY = y + 8;
-        labelLines.forEach(lineText => {
-          doc.text(lineText, 56, currY);
-          currY += 12;
-        });
-
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(85, 84, 80);
-        descLines.forEach(lineText => {
-          doc.text(lineText, 56, currY);
-          currY += 10;
-        });
-
-        if (notesText) {
-          doc.setDrawColor(245, 115, 90);
-          doc.setLineWidth(1.5);
-          doc.line(56, currY + 2, 56, currY + 2 + noteBlockHeight - 8);
-          
-          doc.setFont('helvetica', 'italic');
-          doc.setFontSize(8);
-          doc.setTextColor(110, 110, 105);
-          
-          let notesY = currY + 9;
-          notesLines.forEach(lineText => {
-            doc.text(lineText, 64, notesY);
-            notesY += 10;
-          });
-          currY = notesY + 4;
-        }
-
-        y = currY + 6;
-      });
-      y += 6;
-    });
-    y += 10;
-  }
-
-  // Section 2: Completed Items (Things that passed the audit)
-  if (passedItems.length > 0) {
-    checkPageOverflow(50);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.setTextColor(43, 138, 93); // Green
-    doc.text('PASSED AUDIT ITEMS', 40, y);
-    doc.setDrawColor(43, 138, 93);
-    doc.setLineWidth(1);
-    doc.line(40, y + 6, 555, y + 6);
-    y += 24;
-
-    passedItems.forEach(item => {
-      checkPageOverflow(40);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.setTextColor(26, 26, 23);
-      doc.text(`Step ${item.stepNum}: ${item.stepTitle}`, 40, y);
-      y += 14;
-
-      doc.setFont('helvetica', 'italic');
-      doc.setFontSize(8);
-      doc.setTextColor(85, 84, 80);
-      doc.text(`Tools: ${item.tools.join(', ')}`, 40, y);
-      y += 12;
-
-      item.subs.forEach(sub => {
-        const labelLines = doc.splitTextToSize(sub.label, 480);
-        const descLines = doc.splitTextToSize(sub.desc, 480);
-        
-        const notesText = state.notes[sub.id] ? state.notes[sub.id].trim() : '';
-        let notesLines = [];
-        let noteBlockHeight = 0;
-        if (notesText) {
-          notesLines = doc.splitTextToSize(notesText, 465);
-          noteBlockHeight = (notesLines.length * 10) + 12;
-        }
-
-        const textHeight = (labelLines.length * 12) + (descLines.length * 10) + noteBlockHeight + 6;
-
-        checkPageOverflow(textHeight + 10);
-        drawCheckmark(doc, 40, y);
-
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(9);
-        doc.setTextColor(26, 26, 23);
-        let currY = y + 8;
-        labelLines.forEach(lineText => {
-          doc.text(lineText, 56, currY);
-          currY += 12;
-        });
-
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(85, 84, 80);
-        descLines.forEach(lineText => {
-          doc.text(lineText, 56, currY);
-          currY += 10;
-        });
-
-        if (notesText) {
-          doc.setDrawColor(43, 138, 93);
-          doc.setLineWidth(1.5);
-          doc.line(56, currY + 2, 56, currY + 2 + noteBlockHeight - 8);
-          
-          doc.setFont('helvetica', 'italic');
-          doc.setFontSize(8);
-          doc.setTextColor(110, 110, 105);
-          
-          let notesY = currY + 9;
-          notesLines.forEach(lineText => {
-            doc.text(lineText, 64, notesY);
-            notesY += 10;
-          });
-          currY = notesY + 4;
-        }
-
-        y = currY + 6;
-      });
-      y += 6;
-    });
-  }
-
-  // Draw Page numbers & Footer on all pages
-  const totalPages = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++) {
-    doc.setPage(i);
-
-    // Accent line at the very top of each page
-    doc.setFillColor(139, 92, 246);
-    doc.rect(40, 20, 515, 3, 'F');
-
-    // Bottom divider
-    doc.setDrawColor(229, 229, 224);
-    doc.setLineWidth(0.5);
-    doc.line(40, 800, 555, 800);
-
-    // Footer text
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(140, 140, 135);
-    doc.text('Prepared by Revital Hub Paid Ads Audit', 40, 814);
-    doc.text(`Page ${i} of ${totalPages}`, 555, 814, { align: 'right' });
-  }
-
-  const safeFilename = `seo-audit-report-${targetHost.replace(/[^a-z0-9.-]/gi, '_')}.pdf`;
-  doc.save(safeFilename);
-}
-
-/* ── Utilities ──────────────────────────────────────────────── */
-
-function escHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(new RegExp('"', 'g'), '&quot;');
-}
-
-function hexToRgba(hex, alpha) {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) return hex;
-  const r = parseInt(result[1], 16);
-  const g = parseInt(result[2], 16);
-  const b = parseInt(result[3], 16);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
-
-function renderAll() {
-  updateScoreCards();
-  renderSteps();
-  
-  // Render Text Inputs
-  const adSpendInput = document.getElementById("paAdSpend");
-  const roasInput = document.getElementById("paTargetRoas");
-  const vulInput = document.getElementById("paVulnerabilities");
-  const actInput = document.getElementById("paActions");
-  
-  if (adSpendInput) adSpendInput.value = state.textInputs.adSpend || "";
-  if (roasInput) roasInput.value = state.textInputs.roas || "";
-  if (vulInput) vulInput.value = state.textInputs.vulnerabilities || "";
-  if (actInput) actInput.value = state.textInputs.actions || "";
-}
-
-/* ── Boot ───────────────────────────────────────────────────── */
-
-document.addEventListener('DOMContentLoaded', () => {
-  initState();
-  renderAll();
-  attachEvents();
-  startLabelRotation();
-});

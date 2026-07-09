@@ -708,244 +708,204 @@ function setupEventHandlers() {
   });
 
   // Download PDF Button
-  const pdfBtn = document.getElementById('downloadPdfBtn');
-  pdfBtn.addEventListener('click', downloadPdfReport);
-}
+  
+  const downloadBtn = document.getElementById('downloadPdfBtn');
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', async () => {
+      downloadBtn.disabled = true;
+      const origText = downloadBtn.innerHTML;
+      downloadBtn.innerHTML = "⏳ Generating...";
 
-/* ── PDF Generator ────────────────────────────────────────── */
-function downloadPdfReport() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'pt',
-    format: 'a4'
-  });
+      const d = state.data;
+      
+      const formatText = (txt) => {
+        if (!txt) return '<span style="color: #94a3b8; font-style: italic;">Not provided</span>';
+        return txt.replace(/
+/g, '<br>');
+      };
+      
+      const formatArray = (arr) => {
+        if (!arr || arr.length === 0) return '<span style="color: #94a3b8; font-style: italic;">None selected</span>';
+        return '<ul style="margin-top:0;">' + arr.map(i => `<li>${i}</li>`).join('') + '</ul>';
+      };
 
-  const targetHost = state.targetUrl || 'Not specified';
-  const clientName = (isEmbedded && parentClient) ? (window.parent.activeClientName || 'Nexus Productions') : 'Nexus Productions';
-  const currentDate = new Date().toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+      let platformsHtml = '';
+      if (d.platforms && d.platforms.length > 0) {
+        platformsHtml = d.platforms.map(p => `
+          <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+            <h4 style="margin: 0 0 10px 0; color: #3b82f6;">${p.name}</h4>
+            <p style="margin: 0 0 5px 0;"><strong>Purpose:</strong> ${formatText(p.purpose)}</p>
+            <p style="margin: 0 0 5px 0;"><strong>Frequency:</strong> ${formatText(p.frequency)}</p>
+            <div><strong>Content Types:</strong> ${formatArray(p.contentTypes)}</div>
+          </div>
+        `).join('');
+      } else {
+        platformsHtml = '<p style="color: #94a3b8; font-style: italic;">No platform strategy defined.</p>';
+      }
 
-  let y = 50;
-  const bottomMargin = 780;
+      const container = document.createElement('div');
+      container.style.fontFamily = "'Inter', sans-serif, Arial";
+      container.style.color = "#1e293b";
+      container.style.fontSize = "14px";
+      container.style.lineHeight = "1.6";
+      container.style.width = "100%";
 
-  function checkPageOverflow(heightNeeded) {
-    if (y + heightNeeded > bottomMargin) {
-      doc.addPage();
-      y = 60;
-    }
-  }
+      const style = `
+        <style>
+          .box, .col, .score-box, tr, td, h2, h3 { page-break-inside: avoid; }
 
-  function addWrappedText(text, x, maxW, lineH) {
-    const lines = doc.splitTextToSize(text, maxW);
-    lines.forEach(line => {
-      checkPageOverflow(lineH);
-      doc.text(line, x, y);
-      y += lineH;
+          .page { padding: 40px; box-sizing: border-box; page-break-after: always; position: relative; background: white; }
+          .page:last-child { page-break-after: auto; }
+          h1 { font-size: 32px; font-weight: 700; margin-bottom: 10px; color: #0f172a; border-bottom: 4px solid #f59e0b; padding-bottom: 20px;}
+          h2 { font-size: 20px; font-weight: 600; margin-bottom: 15px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-top: 30px; }
+          h3 { font-size: 16px; font-weight: 600; margin-bottom: 10px; color: #334155; margin-top: 20px;}
+          p { margin-bottom: 15px; }
+          .logo { height: 50px; margin-bottom: 40px;  }
+          .grid { display: flex; flex-wrap: wrap; gap: 20px; }
+          .col { flex: 1; min-width: 300px; }
+          .box { background:#f8fafc; padding:15px; border-radius:8px; margin-bottom:15px; }
+        </style>
+      `;
+
+      container.innerHTML = `
+        ${style}
+        <div class="page">
+          <img src="assets/logo.png" onerror="this.src='../logo.png'" alt="Revital Hub" class="logo">
+          <h1>Content Strategy Builder</h1>
+          <p><strong>Target URL / Project:</strong> ${formatText(state.targetUrl)}</p>
+          
+          <div class="grid">
+            <div class="col">
+              <h2>1. Company Overview</h2>
+              <h3>Business Name</h3><p>${formatText(d.businessName)}</p>
+              <h3>Industry</h3><p>${formatText(d.industry)}</p>
+              <h3>Primary Services/Products</h3><p>${formatText(d.primaryServices)}</p>
+              <h3>Brand Mission</h3><p>${formatText(d.brandMission)}</p>
+              <h3>Core Values</h3><p>${formatText(d.coreValues)}</p>
+              <h3>Unique Selling Proposition (USP)</h3><p>${formatText(d.usp)}</p>
+            </div>
+            <div class="col">
+              <h2>2. Business Goals</h2>
+              <h3>Short-Term Goals</h3><p>${formatText(d.goalsShortTerm)}</p>
+              <h3>Long-Term Goals</h3><p>${formatText(d.goalsLongTerm)}</p>
+              <h3>Primary Objectives</h3>${formatArray(d.primaryGoals)}
+              
+              <h2>3. Target Audience</h2>
+              <h3>Demographics</h3><p>${formatText(d.audienceAge)} | ${formatText(d.audienceLocation)} | ${formatText(d.audienceIndustry)}</p>
+              <h3>Pain Points</h3><p>${formatText(d.audiencePainPoints)}</p>
+              <h3>Desired Outcomes</h3><p>${formatText(d.audienceDesires)}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="page">
+          <div class="grid">
+            <div class="col">
+              <h2>4. Brand Identity</h2>
+              <h3>Brand Personality</h3>${formatArray(d.brandPersonality)}
+              <h3>Brand Voice</h3><p>${formatText(d.brandVoice)}</p>
+              <h3>Visual Assets</h3>${formatArray(d.existingAssets)}
+              
+              <h2>5. Competitor Analysis</h2>
+              <h3>Main Competitors</h3><p>${formatText(d.mainCompetitors)}</p>
+              <h3>What They Do Well</h3><p>${formatText(d.competitorStrengths)}</p>
+              <h3>Our Differentiator</h3><p>${formatText(d.competitorDifferentiate)}</p>
+            </div>
+            
+            <div class="col">
+              <h2>6. Content Strategy</h2>
+              <div class="box">
+                <h3 style="margin-top:0;">Pillar 1: ${formatText(d.pillar1Name)}</h3>
+                <p>${formatText(d.pillar1Topics)}</p>
+              </div>
+              <div class="box">
+                <h3 style="margin-top:0;">Pillar 2: ${formatText(d.pillar2Name)}</h3>
+                <p>${formatText(d.pillar2Topics)}</p>
+              </div>
+              <div class="box">
+                <h3 style="margin-top:0;">Pillar 3: ${formatText(d.pillar3Name)}</h3>
+                <p>${formatText(d.pillar3Topics)}</p>
+              </div>
+              <div class="box">
+                <h3 style="margin-top:0;">Pillar 4: ${formatText(d.pillar4Name)}</h3>
+                <p>${formatText(d.pillar4Topics)}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="page">
+          <h2>7. Platform Strategy</h2>
+          ${platformsHtml}
+
+          <div class="grid">
+            <div class="col">
+              <h2>8. Workflow & Production</h2>
+              <h3>Pre-Production</h3>${formatArray(d.workflowPre)}
+              <h3>Production</h3>${formatArray(d.workflowProd)}
+              <h3>Post-Production</h3>${formatArray(d.workflowPost)}
+              <h3>Publishing</h3>${formatArray(d.workflowPub)}
+            </div>
+            <div class="col">
+              <h2>9. Content Ideas</h2>
+              <h3>Educational</h3><p>${formatText(d.ideasEducational)}</p>
+              <h3>Promotional</h3><p>${formatText(d.ideasPromotional)}</p>
+              <h3>Social Proof</h3><p>${formatText(d.ideasSocialProof)}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="page">
+          <div class="grid">
+            <div class="col">
+              <h2>10. KPI & Tracking</h2>
+              <h3>Metrics to Track</h3>${formatArray(d.kpisMetrics)}
+              <h3>Reporting Frequency</h3>${formatArray(d.kpisFrequency)}
+              <h3>Benchmarks</h3><p>${formatText(d.kpisBenchmarks)}</p>
+
+              <h2>11. Client Communication</h2>
+              <h3>Methods</h3>${formatArray(d.commMethods)}
+              <h3>Timeline Expectations</h3><p>${formatText(d.commTimeline)}</p>
+            </div>
+            <div class="col">
+              <h2>12. Action Plan</h2>
+              <h3>Action Items</h3>
+              <ul style="margin-top:0;">
+                <li>${formatText(d.action1)}</li>
+                <li>${formatText(d.action2)}</li>
+                <li>${formatText(d.action3)}</li>
+                <li>${formatText(d.action4)}</li>
+              </ul>
+              <h3>Next Steps</h3>${formatArray(d.nextSteps)}
+              <h3>Notes</h3><p>${formatText(d.notesSection)}</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      try {
+        const opt = {
+          margin:       0,
+          filename:     'Content_Strategy_Builder.pdf',
+          image:        { type: 'png' },
+          html2canvas:  { scale: 4, letterRendering: true, useCORS: true },
+          jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+        
+        if (typeof html2pdf !== 'undefined') {
+          await html2pdf().set(opt).from(container).save();
+        } else {
+          alert("PDF library failed to load.");
+        }
+      } catch(e) {
+        console.error("PDF Error:", e);
+        alert("An error occurred generating the PDF.");
+      }
+
+      downloadBtn.disabled = false;
+      downloadBtn.innerHTML = origText;
     });
   }
 
-  // Draw Header Logo
-  checkPageOverflow(50);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
-  doc.setTextColor(245, 158, 11); // Amber
-  doc.text('REVITAL PRODUCTIONS', 40, 60);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.setTextColor(26, 26, 23);
-  doc.text('CONTENT STRATEGY PROFILE', 555, 50, { align: 'right' });
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-  doc.setTextColor(85, 84, 80);
-  doc.text(`Client Workspace: ${clientName}`, 555, 63, { align: 'right' });
-  doc.text(`Target URL: ${targetHost}`, 555, 75, { align: 'right' });
-  doc.text(`Date Exported: ${currentDate}`, 555, 87, { align: 'right' });
-
-  y = 110;
-
-  // Draw Title
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
-  doc.setTextColor(26, 26, 23);
-  doc.text('12-Section Content Strategy Report', 40, y);
-  y += 25;
-
-  // Let's count filled fields
-  let totalFields = 0;
-  let filledFields = 0;
-  for (let s = 1; s <= 12; s++) {
-    const { filled, total } = getSectionStats(s);
-    totalFields += total;
-    filledFields += filled;
-  }
-  const scorePct = totalFields ? Math.round((filledFields / totalFields) * 100) : 0;
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(85, 84, 80);
-  doc.text(`Progress: ${filledFields} of ${totalFields} fields filled (${scorePct}% Complete)`, 40, y);
-  y += 30;
-
-  // Loop through all 12 sections and output filled inputs
-  for (let s = 1; s <= 12; s++) {
-    const config = SECTIONS_CONFIG[s];
-    const { filled, total } = getSectionStats(s);
-
-    if (filled === 0) continue; // Skip empty sections in export to keep it clean
-
-    checkPageOverflow(40);
-    // Draw Section Header
-    doc.setFillColor(245, 158, 11); // Amber background
-    doc.rect(40, y, 515, 20, 'F');
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.setTextColor(255, 255, 255);
-    doc.text(`Section ${s}: ${config.title.toUpperCase()}`, 48, y + 13);
-    y += 32;
-
-    if (config.dynamicPlatforms) {
-      // Print dynamic platforms
-      const platforms = state.data.platforms || [];
-      platforms.forEach(p => {
-        const isPRefilled = (p.purpose && p.purpose.trim() !== '') || (p.frequency && p.frequency.trim() !== '') || (p.contentTypes && p.contentTypes.length > 0);
-        if (isPRefilled) {
-          checkPageOverflow(20);
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(10);
-          doc.setTextColor(245, 158, 11);
-          doc.text(`${p.name} Channel Strategy`, 45, y);
-          y += 14;
-
-          if (p.purpose && p.purpose.trim() !== '') {
-            checkPageOverflow(25);
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(9);
-            doc.setTextColor(26, 26, 23);
-            doc.text('Purpose', 45, y);
-            y += 11;
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(9);
-            doc.setTextColor(60, 60, 55);
-            addWrappedText(p.purpose, 45, 500, 12);
-            y += 8;
-          }
-
-          if (p.contentTypes && Array.isArray(p.contentTypes) && p.contentTypes.length > 0) {
-            checkPageOverflow(25);
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(9);
-            doc.setTextColor(26, 26, 23);
-            doc.text('Content Types Focus', 45, y);
-            y += 11;
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(9);
-            doc.setTextColor(60, 60, 55);
-            const displayVal = p.contentTypes.map(v => v.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())).join(', ');
-            addWrappedText(displayVal, 45, 500, 12);
-            y += 8;
-          }
-
-          if (p.frequency && p.frequency.trim() !== '') {
-            checkPageOverflow(25);
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(9);
-            doc.setTextColor(26, 26, 23);
-            doc.text('Posting Frequency', 45, y);
-            y += 11;
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(9);
-            doc.setTextColor(60, 60, 55);
-            addWrappedText(p.frequency, 45, 500, 12);
-            y += 8;
-          }
-
-          y += 10;
-        }
-      });
-    } else {
-      // Output Section Text/Textarea fields
-      config.text.forEach(key => {
-        if (isFieldFilled(key, 'text')) {
-          const val = state.data[key];
-          const label = document.querySelector(`label[for="field_${key}"]`)?.textContent || key;
-
-          checkPageOverflow(28);
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(9.5);
-          doc.setTextColor(26, 26, 23);
-          doc.text(label, 45, y);
-          y += 13;
-
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(9);
-          doc.setTextColor(60, 60, 55);
-          addWrappedText(val, 45, 500, 12);
-          y += 10;
-        }
-      });
-
-      // Output Section Checkbox fields
-      config.checkboxes.forEach(key => {
-        if (isFieldFilled(key, 'checkbox')) {
-          const val = state.data[key];
-          const label = document.querySelector(`input[name="field_${key}"]`)?.closest('.form-group')?.querySelector('label')?.textContent || key;
-
-          checkPageOverflow(28);
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(9.5);
-          doc.setTextColor(26, 26, 23);
-          doc.text(label, 45, y);
-          y += 13;
-
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(9);
-          doc.setTextColor(60, 60, 55);
-          const displayVal = val.map(v => v.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())).join(', ');
-          addWrappedText(displayVal, 45, 500, 12);
-          y += 10;
-        }
-      });
-
-      // Output Section Custom fields (Action Items)
-      if (config.custom && config.custom.includes('actionItems') && isFieldFilled('actionItems', 'custom')) {
-        checkPageOverflow(28);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(9.5);
-        doc.setTextColor(26, 26, 23);
-        doc.text('Immediate Action Items', 45, y);
-        y += 13;
-
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9);
-        doc.setTextColor(60, 60, 55);
-        for (let i = 1; i <= 4; i++) {
-          const itemVal = state.data[`action${i}`] || '';
-          if (itemVal.trim() !== '') {
-            checkPageOverflow(15);
-            doc.text(`• ${itemVal}`, 50, y);
-            y += 12;
-          }
-        }
-        y += 10;
-      }
-    }
-
-    y += 15; // Gap between sections
-  }
-
-  // Save the PDF
-  doc.save(`content_strategy_builder_${clientName.toLowerCase().replace(/\s+/g, '_')}.pdf`);
 }
 
-/* ── Init ───────────────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', () => {
-  initState();
-  setupEventHandlers();
-});

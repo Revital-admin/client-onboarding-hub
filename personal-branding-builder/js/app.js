@@ -489,24 +489,175 @@ function setupEventHandlers() {
     });
   }
 
+  
   const pdfBtn = document.getElementById('downloadPdfBtn');
   if (pdfBtn) {
-    pdfBtn.addEventListener('click', () => {
-      const element = document.querySelector('main.container');
-      const opt = {
-        margin:       10,
-        filename:     'personal_branding_strategy.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    pdfBtn.addEventListener('click', async () => {
+      pdfBtn.disabled = true;
+      const origText = pdfBtn.innerHTML;
+      pdfBtn.innerHTML = "⏳ Generating...";
+
+      const d = state.data;
+      
+      const formatText = (txt) => {
+        if (!txt) return '<span style="color: #94a3b8; font-style: italic;">Not provided</span>';
+        return txt.replace(/\n/g, '<br>');
       };
       
-      document.querySelectorAll('.step-body').forEach(b => b.classList.add('open'));
-      setTimeout(() => {
-        html2pdf().set(opt).from(element).save().then(() => {
-          document.querySelectorAll('.step-body').forEach(b => b.classList.remove('open'));
-        });
-      }, 500);
+      const formatArray = (arr) => {
+        if (!arr || arr.length === 0) return '<span style="color: #94a3b8; font-style: italic;">None selected</span>';
+        return '<ul style="margin-top:0;">' + arr.map(i => `<li>${i}</li>`).join('') + '</ul>';
+      };
+
+      let platformsHtml = '';
+      if (d.platforms && d.platforms.length > 0) {
+        platformsHtml = d.platforms.map(p => `
+          <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+            <h4 style="margin: 0 0 10px 0; color: #3b82f6;">${p.name}</h4>
+            <p style="margin: 0 0 5px 0;"><strong>Purpose:</strong> ${formatText(p.purpose)}</p>
+            <p style="margin: 0 0 5px 0;"><strong>Frequency:</strong> ${formatText(p.frequency)}</p>
+            <div><strong>Content Types:</strong> ${formatArray(p.contentTypes)}</div>
+          </div>
+        `).join('');
+      } else {
+        platformsHtml = '<p style="color: #94a3b8; font-style: italic;">No platform strategy defined.</p>';
+      }
+
+      const container = document.createElement('div');
+      container.style.fontFamily = "'Inter', sans-serif, Arial";
+      container.style.color = "#1e293b";
+      container.style.fontSize = "14px";
+      container.style.lineHeight = "1.6";
+      container.style.width = "100%";
+
+      const style = `
+        <style>
+          .box, .col, .score-box, tr, td, h2, h3 { page-break-inside: avoid; }
+
+          .page { padding: 40px; box-sizing: border-box; page-break-after: always; position: relative; background: white; }
+          .page:last-child { page-break-after: auto; }
+          h1 { font-size: 32px; font-weight: 700; margin-bottom: 10px; color: #0f172a; border-bottom: 4px solid #f59e0b; padding-bottom: 20px;}
+          h2 { font-size: 20px; font-weight: 600; margin-bottom: 15px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-top: 30px; }
+          h3 { font-size: 16px; font-weight: 600; margin-bottom: 10px; color: #334155; margin-top: 20px;}
+          p { margin-bottom: 15px; }
+          .logo { height: 50px; margin-bottom: 40px;  }
+          .grid { display: flex; flex-wrap: wrap; gap: 20px; }
+          .col { flex: 1; min-width: 300px; }
+        </style>
+      `;
+
+      container.innerHTML = `
+        ${style}
+        <div class="page">
+          <img src="assets/logo.png" onerror="this.src='../logo.png'" alt="Revital Hub" class="logo">
+          <h1>Personal Branding Strategy</h1>
+          <p><strong>Target URL / Handle:</strong> ${formatText(state.targetUrl)}</p>
+          
+          <div class="grid">
+            <div class="col">
+              <h2>1. Core Identity</h2>
+              <h3>Origin Story</h3><p>${formatText(d.originStory)}</p>
+              <h3>Vision & Mission</h3><p>${formatText(d.vision)}</p>
+              <h3>Core Values</h3><p>${formatText(d.coreValues)}</p>
+              <h3>Superpower</h3><p>${formatText(d.superpower)}</p>
+            </div>
+            <div class="col">
+              <h2>2. Target Audience</h2>
+              <h3>Primary Audience</h3><p>${formatText(d.primaryAudience)}</p>
+              <h3>Pain Points</h3><p>${formatText(d.audiencePainPoints)}</p>
+              <h3>Desired Outcomes</h3><p>${formatText(d.audienceOutcomes)}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="page">
+          <div class="grid">
+            <div class="col">
+              <h2>3. Goals & "Why"</h2>
+              <h3>Personal Goals</h3><p>${formatText(d.personalGoals)}</p>
+              <h3>Business Goals</h3><p>${formatText(d.businessGoals)}</p>
+
+              <h2>4. Brand Voice</h2>
+              <h3>Archetype</h3>${formatArray(d.archetype)}
+              <h3>Tone of Voice</h3>${formatArray(d.toneOfVoice)}
+              <h3>Visual Aesthetic</h3><p>${formatText(d.visualAesthetic)}</p>
+            </div>
+            
+            <div class="col">
+              <h2>5. Content Pillars</h2>
+              <div style="background:#f8fafc; padding:15px; border-radius:8px; margin-bottom:15px;">
+                <h3 style="margin-top:0;">Pillar 1: ${formatText(d.pillar1Name)}</h3>
+                <p>${formatText(d.pillar1Topics)}</p>
+              </div>
+              <div style="background:#f8fafc; padding:15px; border-radius:8px; margin-bottom:15px;">
+                <h3 style="margin-top:0;">Pillar 2: ${formatText(d.pillar2Name)}</h3>
+                <p>${formatText(d.pillar2Topics)}</p>
+              </div>
+              <div style="background:#f8fafc; padding:15px; border-radius:8px;">
+                <h3 style="margin-top:0;">Pillar 3: ${formatText(d.pillar3Name)}</h3>
+                <p>${formatText(d.pillar3Topics)}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="page">
+          <h2>6. Platform Strategy</h2>
+          ${platformsHtml}
+
+          <div class="grid">
+            <div class="col">
+              <h2>7. Production Workflow</h2>
+              <h3>Ideation</h3><p>${formatText(d.ideation)}</p>
+              <h3>Production</h3><p>${formatText(d.production)}</p>
+            </div>
+            <div class="col">
+              <h2>8. Engagement</h2>
+              <h3>Networking Strategy</h3><p>${formatText(d.engagement)}</p>
+              <h3>Target Communities</h3><p>${formatText(d.communities)}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="page">
+          <div class="grid">
+            <div class="col">
+              <h2>9. Monetization</h2>
+              <h3>Core Offers</h3><p>${formatText(d.offers)}</p>
+              <h3>Primary Calls-to-Action</h3>${formatArray(d.ctas)}
+            </div>
+            <div class="col">
+              <h2>10. Action Plan</h2>
+              <h3>Immediate Next Steps</h3><p>${formatText(d.nextSteps)}</p>
+              <h3>KPIs / Success Metrics</h3><p>${formatText(d.kpis)}</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      try {
+        const opt = {
+          margin:       0,
+          filename:     'Personal_Branding_Strategy.pdf',
+          image:        { type: 'png' },
+          html2canvas:  { scale: 4, letterRendering: true, useCORS: true },
+          jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+        
+        if (typeof html2pdf !== 'undefined') {
+          await html2pdf().set(opt).from(container).save();
+        } else {
+          alert("PDF library failed to load.");
+        }
+      } catch(e) {
+        console.error("PDF Error:", e);
+        alert("An error occurred generating the PDF.");
+      }
+
+      pdfBtn.disabled = false;
+      pdfBtn.innerHTML = origText;
+    });
+  }, 500);
     });
   }
 }

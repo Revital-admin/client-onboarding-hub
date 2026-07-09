@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Welcome Guide Generator</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <div class="logo">REVITAL HUB</div>
+        <h1>Welcome Guide Generator</h1>
+      </div>
+      <div class="top-bar-right">
+        <button id="generatePdfBtn" class="btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Download PDF
+        </button>
+      </div>
+    </header>
+
+    <div class="main-content">
+      <div class="form-panel">
+        <div class="panel-header">
+          <h2>Input Details</h2>
+          <p>Generate a universal welcome PDF for a new client.</p>
+        </div>
+        
+        <div class="form-group">
+          <label for="clientName">Client Name</label>
+          <input type="text" id="clientName" placeholder="e.g. Acme Corp">
+        </div>
+        
+        <div class="form-group">
+          <label for="intakeLink">Intake Form Link (Google Forms)</label>
+          <input type="text" id="intakeLink" placeholder="e.g. https://forms.gle/..." value="https://docs.google.com/forms/d/e/1FAIpQLSfqqW-FYskJX0MDToCjTAZJq4iQrj8ATMSrC7Ev33sW0Xlj8g/viewform?usp=dialog">
+        </div>
+
+        <div class="form-group">
+          <label for="amName">Account Manager Name</label>
+          <input type="text" id="amName" placeholder="e.g. Jane Doe">
+        </div>
+
+        <div class="form-group">
+          <label for="amEmail">Account Manager Email</label>
+          <input type="email" id="amEmail" placeholder="e.g. jane@revitalproductions.com">
+        </div>
+
+        <div class="form-group">
+          <label for="welcomeNote">Custom Welcome Note (1-2 sentences)</label>
+          <textarea id="welcomeNote" rows="3" placeholder="e.g. We are so excited to help Acme Corp hit your $10k MRR goal!"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Included Services</label>
+          <div class="checkbox-grid">
+            <label><input type="checkbox" name="services" value="Content Strategy"> Content Strategy</label>
+            <label><input type="checkbox" name="services" value="Paid Ads Management"> Paid Ads</label>
+            <label><input type="checkbox" name="services" value="SEO Optimization"> SEO Optimization</label>
+            <label><input type="checkbox" name="services" value="Social Media Management"> Social Media</label>
+            <label><input type="checkbox" name="services" value="Email Marketing"> Email Marketing</label>
+            <label><input type="checkbox" name="services" value="Website Development"> Website Dev</label>
+          </div>
+        </div>
+        
+        <div class="alert-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <div>The 30-Day Roadmap, Communication Policies, and Approval Guidelines are automatically baked into the PDF.</div>
+        </div>
+      </div>
+      
+      <div class="preview-panel">
+        <div class="panel-header">
+          <h2>PDF Live Preview</h2>
+        </div>
+        <div class="preview-scroll" id="pdfContainer">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

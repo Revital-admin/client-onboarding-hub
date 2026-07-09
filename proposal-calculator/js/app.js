@@ -472,6 +472,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // CSS for PDF
     const style = `
       <style>
+          .box, .col, .score-box, tr, td, h2, h3 { page-break-inside: avoid; }
+
         .page { padding: 40px; box-sizing: border-box; page-break-after: always; position: relative; min-height: 1050px; background: white; }
         .page:last-child { page-break-after: auto; }
         h1 { font-size: 32px; font-weight: 700; margin-bottom: 10px; color: #0f172a; }
@@ -618,8 +620,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const opt = {
         margin:       0,
         filename:     `${clientName.replace(/\s+/g, '_')}_Proposal_${new Date().toISOString().split('T')[0]}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
+        image:        { type: 'png' },
+        html2canvas:  { scale: 4, letterRendering: true, useCORS: true },
         jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
       };
       
