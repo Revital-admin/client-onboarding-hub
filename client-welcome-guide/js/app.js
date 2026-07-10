@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const amEmail = document.getElementById('amEmail').value || 'jane@revitalproductions.com';
     const welcomeNote = document.getElementById('welcomeNote').value || `We are thrilled to partner with ${clientName} and can't wait to get started!`;
     
-    const checkboxes = document.querySelectorAll('input[name="services"]:checked');
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
     let servicesHtml = '';
     if (checkboxes.length === 0) {
       servicesHtml = `

@@ -40,6 +40,16 @@ let reportState = null;
 if (isEmbedded) {
   parentClient = window.parent.getActiveClient();
   if (parentClient) {
+    if (!parentClient.report) {
+      parentClient.report = {
+        date: "",
+        preparedBy: "",
+        focus: "",
+        wins: "",
+        platforms: [],
+        cellData: {}
+      };
+    }
     reportState = parentClient.report;
   }
 }

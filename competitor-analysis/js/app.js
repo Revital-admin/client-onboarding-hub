@@ -11,8 +11,8 @@ let socialComp = null;
 if (isEmbedded) {
   parentClient = window.parent.getActiveClient();
   if (parentClient) {
+    if (!parentClient.socialComp) { parentClient.socialComp = { stars: [0,0,0], names: ["","",""], rows: {}, swot: {}, insight: "" }; }
     socialComp = parentClient.socialComp;
-    // Initialize stars key in schema if it doesn't exist
     if (!socialComp.stars) {
       socialComp.stars = [0, 0, 0];
     }

@@ -1,11 +1,9 @@
 const fs = require('fs');
-
 try {
-  const data = fs.readFileSync('sop-wiki/js/data.js', 'utf8');
-  eval(data);
-  const app = fs.readFileSync('sop-wiki/js/app.js', 'utf8');
-  eval(app);
-  console.log("Syntax is OK");
-} catch(e) {
-  console.error(e);
+  const code = fs.readFileSync(process.argv[2], 'utf8');
+  new Function(code);
+  console.log("Syntax OK");
+} catch (e) {
+  console.error("Syntax Error:", e);
+  process.exit(1);
 }

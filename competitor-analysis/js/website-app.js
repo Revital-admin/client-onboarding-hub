@@ -11,8 +11,8 @@ let webComp = null;
 if (isEmbedded) {
   parentClient = window.parent.getActiveClient();
   if (parentClient) {
+    if (!parentClient.webComp) { parentClient.webComp = { stars: [0,0,0], names: ["","",""], rows: {}, swot: {}, insight: "" }; }
     webComp = parentClient.webComp;
-    // Initialize stars key in schema if it doesn't exist
     if (!webComp.stars) {
       webComp.stars = [0, 0, 0];
     }
