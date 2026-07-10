@@ -1937,7 +1937,9 @@ function saveDatabase() {
   // 3. Save to Firebase
   if (window.firebaseSetDoc && window.firebaseDoc && window.firebaseDb) {
     const docRef = window.firebaseDoc(window.firebaseDb, "agency", "clientsDb");
-    window.firebaseSetDoc(docRef, clientsDb).then(() => {
+    // Parse/stringify to clean iframe prototypes so Firebase doesn't crash on "custom Object"
+    const cleanDb = JSON.parse(JSON.stringify(clientsDb));
+    window.firebaseSetDoc(docRef, cleanDb).then(() => {
       if (indicator) {
         indicator.innerHTML = "Saved to Cloud ✅";
         setTimeout(() => { indicator.style.opacity = "0"; }, 2000);
