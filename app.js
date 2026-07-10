@@ -388,359 +388,22 @@ function createClientBlankState(name) {
       cellData: {} // metricKey -> array of platform values
     },
     campaignLaunch: { checked: {}, notes: {}, data: {} },
-    copywriting: {
+copywriting: {
       activeFramework: "aida",
       notes: "",
       inputs: { product: "", audience: "", benefit: "", cta: "", tone: "persuasive" },
       targetUrl: ""
-    }
+    },
+    proposal: {},
+    roi: {},
+    signature: {},
+    creativeBrief: {}
   };
 }
 
 // ── Local Storage Management ──
-function loadDatabase() {
-  const stored = localStorage.getItem("REVITAL_HUB_CLIENTS");
-  if (stored) {
-    try {
-      clientsDb = JSON.parse(stored);
-    } catch (e) {
-      console.error("Error parsing localStorage database, resetting.");
-      clientsDb = {};
-    }
-  }
-
-  // If database is empty, seed a default client workspace
-  if (Object.keys(clientsDb).length === 0) {
-    const defaultName = "Nexus Productions";
-    clientsDb[defaultName] = createClientBlankState(defaultName);
-    saveDatabase();
-  }
-
-  // Ensure Quick Sandbox workspace is seeded
-  const sandboxName = "Quick Sandbox (One-Offs)";
-  if (!clientsDb[sandboxName]) {
-    clientsDb[sandboxName] = createClientBlankState(sandboxName);
-    saveDatabase();
-  }
-
-  // Schema migration and verification loop to protect against legacy localStorage data
-  Object.keys(clientsDb).forEach(name => {
-    const client = clientsDb[name];
-    const blank = createClientBlankState(name);
-
-    // Verify top-level keys
-    Object.keys(blank).forEach(key => {
-      if (client[key] === undefined) {
-        client[key] = blank[key];
-      }
-    });
-
-    // Ensure notes exist on onboarding checklist items
-    if (client.onboardingChecklist && Array.isArray(client.onboardingChecklist)) {
-      client.onboardingChecklist.forEach(cat => {
-        if (cat.items && Array.isArray(cat.items)) {
-          cat.items.forEach(item => {
-            if (item.notes === undefined) {
-              item.notes = "";
-            }
-          });
-        }
-      });
-    }
-
-    // Migrate or verify uxuiAudit object structure
-    if (!client.uxuiAudit || Array.isArray(client.uxuiAudit) || typeof client.uxuiAudit !== 'object') {
-      client.uxuiAudit = {
-        checked: {},
-        notes: {},
-        targetUrl: ""
-      };
-    } else {
-      if (!client.uxuiAudit.checked) client.uxuiAudit.checked = {};
-      if (!client.uxuiAudit.notes) client.uxuiAudit.notes = {};
-      if (client.uxuiAudit.targetUrl === undefined) client.uxuiAudit.targetUrl = "";
-    }
-
-    // Migrate or verify seoAudit object structure
-    if (!client.seoAudit || Array.isArray(client.seoAudit) || typeof client.seoAudit !== 'object') {
-      client.seoAudit = {
-        checked: {},
-        notes: {},
-        targetUrl: ""
-      };
-    } else {
-      if (!client.seoAudit.checked) client.seoAudit.checked = {};
-      if (!client.seoAudit.notes) client.seoAudit.notes = {};
-      if (client.seoAudit.targetUrl === undefined) client.seoAudit.targetUrl = "";
-    }
-    
-    // Migrate or verify paidAdsAudit object structure
-    if (!client.paidAdsAudit || Array.isArray(client.paidAdsAudit) || typeof client.paidAdsAudit !== 'object') {
-      client.paidAdsAudit = {
-        checked: {},
-        notes: {},
-        targetUrl: "",
-        textInputs: { adSpend: "", roas: "", vulnerabilities: "", actions: "" }
-      };
-    } else {
-      if (!client.paidAdsAudit.checked) client.paidAdsAudit.checked = {};
-      if (!client.paidAdsAudit.notes) client.paidAdsAudit.notes = {};
-      if (client.paidAdsAudit.targetUrl === undefined) client.paidAdsAudit.targetUrl = "";
-      if (!client.paidAdsAudit.textInputs) client.paidAdsAudit.textInputs = { adSpend: "", roas: "", vulnerabilities: "", actions: "" };
-    }
-
-    // Migrate or verify emailAudit object structure
-    if (!client.emailAudit || Array.isArray(client.emailAudit) || typeof client.emailAudit !== 'object') {
-      client.emailAudit = {
-        checked: {},
-        notes: {},
-        targetUrl: "",
-        textInputs: { listSize: "", openRate: "", opportunities: "", actions: "" }
-      };
-    } else {
-      if (!client.emailAudit.checked) client.emailAudit.checked = {};
-      if (!client.emailAudit.notes) client.emailAudit.notes = {};
-      if (client.emailAudit.targetUrl === undefined) client.emailAudit.targetUrl = "";
-      if (!client.emailAudit.textInputs) client.emailAudit.textInputs = { listSize: "", openRate: "", opportunities: "", actions: "" };
-    }
-
-    // Migrate or verify contentStrategy object structure
-    if (!client.contentStrategy || Array.isArray(client.contentStrategy) || typeof client.contentStrategy !== 'object') {
-      client.contentStrategy = {
-        checked: {},
-        notes: {},
-        targetUrl: ""
-      };
-    } else {
-      if (!client.contentStrategy.checked) client.contentStrategy.checked = {};
-      if (!client.contentStrategy.notes) client.contentStrategy.notes = {};
-      if (client.contentStrategy.targetUrl === undefined) client.contentStrategy.targetUrl = "";
-    }
-
-    // Migrate or verify strategyBuilder object structure
-    if (!client.strategyBuilder || Array.isArray(client.strategyBuilder) || typeof client.strategyBuilder !== 'object') {
-      client.strategyBuilder = {
-        targetUrl: "",
-        data: {
-          platforms: [
-            { id: 'instagram', name: 'Instagram', purpose: '', contentTypes: [], frequency: '' },
-            { id: 'tiktok', name: 'TikTok', purpose: '', contentTypes: [], frequency: '' },
-            { id: 'youtube', name: 'YouTube', purpose: '', contentTypes: [], frequency: '' },
-            { id: 'linkedin', name: 'LinkedIn', purpose: '', contentTypes: [], frequency: '' }
-          ]
-        }
-      };
-    } else {
-      if (!client.strategyBuilder.data) {
-        client.strategyBuilder.data = {};
-      }
-      if (client.strategyBuilder.targetUrl === undefined) {
-        client.strategyBuilder.targetUrl = "";
-      }
-      if (!client.strategyBuilder.data.platforms || !Array.isArray(client.strategyBuilder.data.platforms)) {
-        const d = client.strategyBuilder.data;
-        const legacyPlatforms = [];
-        
-        if (d.igPurpose !== undefined || d.igFrequency !== undefined || d.igContentTypes !== undefined) {
-          legacyPlatforms.push({
-            id: 'instagram',
-            name: 'Instagram',
-            purpose: d.igPurpose || '',
-            contentTypes: Array.isArray(d.igContentTypes) ? d.igContentTypes : [],
-            frequency: d.igFrequency || ''
-          });
-        } else {
-          legacyPlatforms.push({ id: 'instagram', name: 'Instagram', purpose: '', contentTypes: [], frequency: '' });
-        }
-
-        if (d.ttPurpose !== undefined || d.ttFrequency !== undefined || d.ttContentTypes !== undefined) {
-          legacyPlatforms.push({
-            id: 'tiktok',
-            name: 'TikTok',
-            purpose: d.ttPurpose || '',
-            contentTypes: Array.isArray(d.ttContentTypes) ? d.ttContentTypes : [],
-            frequency: d.ttFrequency || ''
-          });
-        } else {
-          legacyPlatforms.push({ id: 'tiktok', name: 'TikTok', purpose: '', contentTypes: [], frequency: '' });
-        }
-
-        if (d.ytPurpose !== undefined || d.ytFrequency !== undefined || d.ytContentTypes !== undefined) {
-          legacyPlatforms.push({
-            id: 'youtube',
-            name: 'YouTube',
-            purpose: d.ytPurpose || '',
-            contentTypes: Array.isArray(d.ytContentTypes) ? d.ytContentTypes : [],
-            frequency: d.ytFrequency || ''
-          });
-        } else {
-          legacyPlatforms.push({ id: 'youtube', name: 'YouTube', purpose: '', contentTypes: [], frequency: '' });
-        }
-
-        if (d.liPurpose !== undefined || d.liFrequency !== undefined || d.liContentTypes !== undefined) {
-          legacyPlatforms.push({
-            id: 'linkedin',
-            name: 'LinkedIn',
-            purpose: d.liPurpose || '',
-            contentTypes: Array.isArray(d.liContentTypes) ? d.liContentTypes : [],
-            frequency: d.liFrequency || ''
-          });
-        } else {
-          legacyPlatforms.push({ id: 'linkedin', name: 'LinkedIn', purpose: '', contentTypes: [], frequency: '' });
-        }
-
-        client.strategyBuilder.data.platforms = legacyPlatforms;
-
-        const oldKeys = [
-          'igPurpose', 'igFrequency', 'igContentTypes',
-          'ttPurpose', 'ttFrequency', 'ttContentTypes',
-          'ytPurpose', 'ytFrequency', 'ytContentTypes',
-          'liPurpose', 'liFrequency', 'liContentTypes'
-        ];
-        oldKeys.forEach(k => { delete d[k]; });
-      }
-    }
-
-    // Migrate or verify socialAudit object structure
-    if (!client.socialAudit || Array.isArray(client.socialAudit) || typeof client.socialAudit !== 'object') {
-      client.socialAudit = {
-        checked: {},
-        notes: {},
-        targetUrl: ""
-      };
-    } else {
-      if (!client.socialAudit.checked) client.socialAudit.checked = {};
-      if (!client.socialAudit.notes) client.socialAudit.notes = {};
-      if (client.socialAudit.targetUrl === undefined) client.socialAudit.targetUrl = "";
-    }
-
-    // Verify webComp sub-keys
-    if (client.webComp && typeof client.webComp === 'object') {
-      Object.keys(blank.webComp).forEach(k => {
-        if (client.webComp[k] === undefined) {
-          client.webComp[k] = blank.webComp[k];
-        }
-      });
-    }
-
-    // Verify socialComp sub-keys
-    if (client.socialComp && typeof client.socialComp === 'object') {
-      Object.keys(blank.socialComp).forEach(k => {
-        if (client.socialComp[k] === undefined) {
-          client.socialComp[k] = blank.socialComp[k];
-        }
-      });
-    }
-
-    // Verify report sub-keys
-    if (client.report && typeof client.report === 'object') {
-      Object.keys(blank.report).forEach(k => {
-        if (client.report[k] === undefined) {
-          client.report[k] = blank.report[k];
-        }
-      });
-    }
-
-    // Migrate or verify copywriting object structure
-    if (!client.copywriting || Array.isArray(client.copywriting) || typeof client.copywriting !== 'object') {
-      client.copywriting = {
-        activeFramework: "aida",
-        notes: "",
-        inputs: { product: "", audience: "", benefit: "", cta: "", tone: "persuasive" },
-        targetUrl: ""
-      };
-    } else {
-      if (!client.copywriting.inputs) {
-        client.copywriting.inputs = { product: "", audience: "", benefit: "", cta: "", tone: "persuasive" };
-      }
-      if (client.copywriting.activeFramework === undefined) client.copywriting.activeFramework = "aida";
-      if (client.copywriting.notes === undefined) client.copywriting.notes = "";
-      if (client.copywriting.targetUrl === undefined) client.copywriting.targetUrl = "";
-    }
-  });
-  saveDatabase();
-
-  // Load last active client name
-  const storedActive = localStorage.getItem("REVITAL_HUB_ACTIVE_CLIENT");
-  if (storedActive && clientsDb[storedActive]) {
-    activeClientName = storedActive;
-  } else {
-    activeClientName = Object.keys(clientsDb)[0];
-    localStorage.setItem("REVITAL_HUB_ACTIVE_CLIENT", activeClientName);
-  }
-}
-
 // ── Database Management (Firebase + Local Storage) ──
 let isFirestoreLoaded = false;
-
-function loadDatabase() {
-  // 1. Instant boot from LocalStorage cache
-  const stored = localStorage.getItem("REVITAL_HUB_CLIENTS");
-  if (stored) {
-    try {
-      clientsDb = JSON.parse(stored);
-    } catch (e) {
-      console.error("Error parsing localStorage database, resetting.");
-      clientsDb = {};
-    }
-  }
-
-  // Run schema migration for local cache (to render immediately)
-  migrateSchemaAndDefaults();
-
-  // Load last active client name
-  const storedActive = localStorage.getItem("REVITAL_HUB_ACTIVE_CLIENT");
-  if (storedActive && clientsDb[storedActive]) {
-    activeClientName = storedActive;
-  } else if (Object.keys(clientsDb).length > 0) {
-    activeClientName = Object.keys(clientsDb)[0];
-    localStorage.setItem("REVITAL_HUB_ACTIVE_CLIENT", activeClientName);
-  }
-
-  // Setup settings sync
-  db.collection("hub").doc("settings").onSnapshot((doc) => {
-    if (doc.exists) {
-      const data = doc.data();
-      if (data && Array.isArray(data.admins)) {
-        globalAdmins = data.admins.map(e => e.toLowerCase());
-      }
-    } else {
-      globalAdmins = ["admin@revitalproductions.com"];
-      db.collection("hub").doc("settings").set({ admins: globalAdmins });
-    }
-    verifyAdminStatus();
-  });
-  
-  checkIdentity();
-
-  // 2. Real-time Firebase Sync
-  db.collection("hub").doc("clients").onSnapshot((doc) => {
-    isFirestoreLoaded = true;
-    if (doc.exists) {
-      clientsDb = doc.data() || {};
-      
-      // Update local cache
-      localStorage.setItem("REVITAL_HUB_CLIENTS", JSON.stringify(clientsDb));
-      
-      migrateSchemaAndDefaults();
-      
-      // Ensure active client still exists
-      if (!clientsDb[activeClientName] && Object.keys(clientsDb).length > 0) {
-        activeClientName = Object.keys(clientsDb)[0];
-        localStorage.setItem("REVITAL_HUB_ACTIVE_CLIENT", activeClientName);
-      }
-      
-      // Re-render UI now that fresh cloud data arrived
-      refreshAllViews();
-    } else {
-      // Document doesn't exist yet, push the local state to create it
-      saveDatabase();
-    }
-  }, (error) => {
-    console.error("Error listening to Firestore:", error);
-    showBanner("error", "Database connection lost. Changes saving locally.");
-  });
-}
 
 function migrateSchemaAndDefaults() {
   // If database is empty, seed a default client workspace
@@ -791,20 +454,6 @@ function migrateSchemaAndDefaults() {
       if (client.copywriting.targetUrl === undefined) client.copywriting.targetUrl = "";
     }
   });
-}
-
-function saveDatabase() {
-  // Always update local cache first for instant feedback
-  localStorage.setItem("REVITAL_HUB_CLIENTS", JSON.stringify(clientsDb));
-  
-  // Push to Firebase
-  if (db && db.collection) {
-    db.collection("hub").doc("clients").set(clientsDb)
-      .catch((error) => {
-        console.error("Error saving to Firestore:", error);
-        showBanner("error", "Failed to sync to cloud. Retrying in background.");
-      });
-  }
 }
 
 function getActiveClient() {
@@ -1787,6 +1436,77 @@ function initParentEventListeners() {
     });
   }
 
+  
+  const exportDossierBtn = document.getElementById("exportDossierBtn");
+  if (exportDossierBtn) {
+    exportDossierBtn.addEventListener("click", async () => {
+      if (typeof JSZip === 'undefined') {
+        alert("JSZip library failed to load. Please check your connection.");
+        return;
+      }
+      
+      const client = clientsDb[activeClientName];
+      if (!client) {
+        alert("No active client found.");
+        return;
+      }
+
+      const origText = exportDossierBtn.innerHTML;
+      exportDossierBtn.innerHTML = "⏳ Zipping Dossier...";
+      exportDossierBtn.disabled = true;
+
+      try {
+        const zip = new JSZip();
+        
+        // 1. Raw JSON Backup
+        zip.file(`Raw_Data_${activeClientName.replace(/\s+/g, '_')}.json`, JSON.stringify(client, null, 2));
+
+        // 2. Comprehensive Text Dossier (Markdown)
+        let md = `# Client Dossier: ${client.name}\n\n`;
+        md += `**Created Date:** ${client.createdDate || 'N/A'}\n`;
+        md += `**Target URL:** ${client.targetUrl || 'N/A'}\n\n`;
+        
+        // Onboarding
+        if (client.onboardingChecklist) {
+          md += `## Onboarding Checklist\n`;
+          client.onboardingChecklist.forEach(cat => {
+            md += `### ${cat.category}\n`;
+            cat.items.forEach(item => {
+              md += `- [${item.checked ? 'X' : ' '}] ${item.label}\n`;
+              if (item.notes) md += `  - *Notes: ${item.notes}*\n`;
+            });
+          });
+          md += `\n`;
+        }
+
+        // Add to ZIP
+        zip.file(`Dossier_${activeClientName.replace(/\s+/g, '_')}.md`, md);
+
+        // Generate Zip
+        const content = await zip.generateAsync({type: "blob"});
+        
+        // Trigger Download
+        const url = URL.createObjectURL(content);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Revital_Dossier_${activeClientName.replace(/\s+/g, '_')}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showBanner("success", "Client Dossier (ZIP) exported successfully!");
+      } catch (err) {
+        console.error(err);
+        alert("Failed to generate ZIP dossier.");
+      } finally {
+        exportDossierBtn.innerHTML = origText;
+        exportDossierBtn.disabled = false;
+      }
+    });
+  }
+
+
   const importFileInput = document.getElementById("importFileInput");
   if (importFileInput) {
     importFileInput.addEventListener("change", (e) => {
@@ -2188,3 +1908,284 @@ function initQuickLinks() {
 
   renderLinks();
 }
+
+
+// ── Firebase Cloud Sync ──
+let isInitialLoad = true;
+
+function saveDatabase() {
+  // 1. Save locally as fallback
+  localStorage.setItem("REVITAL_HUB_CLIENTS", JSON.stringify(clientsDb));
+  
+  // 2. Trigger Autosave UI indicator
+  const indicator = document.getElementById("autosaveIndicator");
+  if (indicator) {
+    indicator.innerHTML = "Syncing... 🔄";
+    indicator.style.opacity = "1";
+  }
+
+  // 3. Save to Firebase
+  if (window.firebaseSetDoc && window.firebaseDoc && window.firebaseDb) {
+    const docRef = window.firebaseDoc(window.firebaseDb, "agency", "clientsDb");
+    window.firebaseSetDoc(docRef, clientsDb).then(() => {
+      if (indicator) {
+        indicator.innerHTML = "Saved to Cloud ✅";
+        setTimeout(() => { indicator.style.opacity = "0"; }, 2000);
+      }
+    }).catch(err => {
+      console.error("Firebase save failed:", err);
+      if (indicator) {
+        indicator.innerHTML = "Cloud Error ❌";
+        setTimeout(() => { indicator.style.opacity = "0"; }, 3000);
+      }
+    });
+  }
+}
+
+function loadDatabase() {
+  // 1. Instant boot from LocalStorage cache (offline support / immediate render)
+  const stored = localStorage.getItem("REVITAL_HUB_CLIENTS");
+  if (stored) {
+    try {
+      clientsDb = JSON.parse(stored);
+    } catch (e) {
+      clientsDb = {};
+    }
+  }
+
+  // Set active client
+  const storedActive = localStorage.getItem("REVITAL_HUB_ACTIVE_CLIENT");
+  if (storedActive && clientsDb[storedActive]) {
+    activeClientName = storedActive;
+  } else if (Object.keys(clientsDb).length > 0) {
+    activeClientName = Object.keys(clientsDb)[0];
+  } else {
+    // Seed default if empty
+    const defaultName = "Nexus Productions";
+    clientsDb[defaultName] = createClientBlankState(defaultName);
+    activeClientName = defaultName;
+  }
+
+  // 2. Setup Firebase real-time listener
+  if (window.firebaseOnSnapshot && window.firebaseDoc && window.firebaseDb) {
+    const docRef = window.firebaseDoc(window.firebaseDb, "agency", "clientsDb");
+    window.firebaseOnSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const cloudData = docSnap.data();
+        // Prevent local overwrites from triggering a full re-render loop if we just saved it
+        // However, if a teammate saves it, we DO want to pull their changes and re-render.
+        // For now, we'll sync the database and render if it's the initial load or if a change occurred.
+        clientsDb = cloudData;
+        localStorage.setItem("REVITAL_HUB_CLIENTS", JSON.stringify(clientsDb));
+        
+        if (!clientsDb[activeClientName]) {
+          activeClientName = Object.keys(clientsDb)[0] || "";
+        }
+        
+        // Refresh the UI to reflect new data from cloud
+        populateClientDropdown();
+        refreshAllViews();
+        renderDashboard();
+      } else {
+        // Doc doesn't exist yet, we push our local DB to seed it
+        saveDatabase();
+      }
+    });
+  } else {
+    // No firebase, just render
+    populateClientDropdown();
+    refreshAllViews();
+    renderDashboard();
+  }
+}
+
+// ── Global Command Palette (Cmd+K) ──
+document.addEventListener('DOMContentLoaded', () => {
+  const overlay = document.getElementById('cmdkOverlay');
+  const input = document.getElementById('cmdkInput');
+  const resultsEl = document.getElementById('cmdkResults');
+  let selectedIndex = 0;
+  let currentResults = [];
+
+  const tools = [
+    { id: 'tab-dashboard', title: 'Overview Dashboard', icon: 'M3 3h7v9H3z M14 3h7v5h-7z M14 12h7v9h-7z M3 16h7v5H3z' },
+    { id: 'tab-onboarding', title: 'Client Onboarding', icon: 'M22 11.08V12a10 10 0 1 1-5.93-9.14 M22 4L12 14.01l-3-3' },
+    { id: 'tab-brandvault', title: 'Brand Vault', icon: 'M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z' },
+    { id: 'tab-uxui', title: 'UX/UI Audit', icon: 'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z' },
+    { id: 'tab-seo', title: 'SEO Audit', icon: 'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z' },
+    { id: 'tab-paidads', title: 'Paid Ads Audit', icon: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' },
+    { id: 'tab-creativebrief', title: 'Creative Brief', icon: 'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7 M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z' },
+    { id: 'tab-proposal', title: 'Proposal Calculator', icon: 'M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6' },
+    { id: 'tab-emailsig', title: 'Email Signature', icon: 'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6' },
+    { id: 'tab-sopwiki', title: 'SOP Wiki', icon: 'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z' }
+  ];
+
+  function openCmdK() {
+    overlay.style.display = 'flex';
+    input.value = '';
+    renderResults('');
+    setTimeout(() => input.focus(), 50);
+  }
+
+  function closeCmdK() {
+    overlay.style.display = 'none';
+  }
+
+  function renderResults(query) {
+    const q = query.toLowerCase();
+    currentResults = tools.filter(t => t.title.toLowerCase().includes(q) || t.id.toLowerCase().includes(q));
+    selectedIndex = 0;
+    
+    if (currentResults.length === 0) {
+      resultsEl.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--color-text-secondary);">No matches found.</div>';
+      return;
+    }
+
+    resultsEl.innerHTML = currentResults.map((item, idx) => `
+      <div class="cmdk-item ${idx === 0 ? 'active' : ''}" data-index="${idx}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="${item.icon}"></path></svg>
+        <div>
+          <div class="cmdk-item-title">${item.title}</div>
+          <div class="cmdk-item-subtitle">Navigation</div>
+        </div>
+      </div>
+    `).join('');
+
+    resultsEl.querySelectorAll('.cmdk-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const idx = parseInt(el.getAttribute('data-index'));
+        executeResult(currentResults[idx]);
+      });
+      el.addEventListener('mouseenter', () => {
+        resultsEl.querySelectorAll('.cmdk-item').forEach(e => e.classList.remove('active'));
+        el.classList.add('active');
+        selectedIndex = parseInt(el.getAttribute('data-index'));
+      });
+    });
+  }
+
+  function executeResult(item) {
+    if (!item) return;
+    closeCmdK();
+    // Simulate clicking the corresponding sidebar button
+    const btn = document.querySelector(`.nav-item-btn[data-tab="${item.id}"]`);
+    if (btn) btn.click();
+  }
+
+  window.addEventListener('keydown', (e) => {
+    // Cmd+K or Ctrl+K
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      overlay.style.display === 'flex' ? closeCmdK() : openCmdK();
+    }
+    
+    // Esc
+    if (e.key === 'Escape' && overlay.style.display === 'flex') {
+      closeCmdK();
+    }
+    
+    // Navigation
+    if (overlay.style.display === 'flex') {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        selectedIndex = Math.min(selectedIndex + 1, currentResults.length - 1);
+        updateSelection();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectedIndex = Math.max(selectedIndex - 1, 0);
+        updateSelection();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        executeResult(currentResults[selectedIndex]);
+      }
+    }
+  });
+
+  function updateSelection() {
+    const items = resultsEl.querySelectorAll('.cmdk-item');
+    items.forEach((item, idx) => {
+      if (idx === selectedIndex) {
+        item.classList.add('active');
+        item.scrollIntoView({ block: 'nearest' });
+      } else {
+        item.classList.remove('active');
+      }
+    });
+  }
+
+  if(input) {
+    input.addEventListener('input', (e) => {
+      renderResults(e.target.value);
+    });
+  }
+});
+
+// ── Activity Feed Logic ──
+window.addActivityLog = function(action, clientName) {
+  if (window.firebaseSetDoc && window.firebaseDoc && window.firebaseDb) {
+    const log = {
+      action: action,
+      client: clientName || activeClientName,
+      timestamp: Date.now()
+    };
+    
+    // We store an array of the last 50 logs in a separate document
+    const docRef = window.firebaseDoc(window.firebaseDb, "agency", "activityLog");
+    
+    // Read current first, then append. To prevent race conditions in a real production app we'd use arrayUnion, 
+    // but for this MVP we'll just push locally and save, because we have a snapshot listener anyway.
+    
+    if (!window.agencyActivityLogs) window.agencyActivityLogs = [];
+    window.agencyActivityLogs.unshift(log);
+    if (window.agencyActivityLogs.length > 50) window.agencyActivityLogs.pop();
+    
+    window.firebaseSetDoc(docRef, { logs: window.agencyActivityLogs }).catch(err => console.error("Log error", err));
+  }
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Listen to Activity Feed
+  setTimeout(() => {
+    if (window.firebaseOnSnapshot && window.firebaseDoc && window.firebaseDb) {
+      const docRef = window.firebaseDoc(window.firebaseDb, "agency", "activityLog");
+      window.firebaseOnSnapshot(docRef, (docSnap) => {
+        const listEl = document.getElementById('activityFeedList');
+        if (!listEl) return;
+        
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          window.agencyActivityLogs = data.logs || [];
+          
+          if (window.agencyActivityLogs.length === 0) {
+            listEl.innerHTML = '<div style="color: var(--color-text-secondary); font-size: 0.9rem;">No recent activity.</div>';
+            return;
+          }
+          
+          listEl.innerHTML = window.agencyActivityLogs.map(log => {
+            const timeStr = new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            return `
+              <div style="display: flex; gap: 12px; align-items: flex-start; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-primary); margin-top: 6px;"></div>
+                <div style="flex: 1;">
+                  <div style="color: var(--color-text); font-size: 0.95rem;">${log.action}</div>
+                  <div style="color: var(--color-text-secondary); font-size: 0.8rem; margin-top: 4px;">
+                    <span style="color: var(--color-primary);">${log.client}</span> &bull; ${timeStr}
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        } else {
+          listEl.innerHTML = '<div style="color: var(--color-text-secondary); font-size: 0.9rem;">No recent activity.</div>';
+        }
+      });
+    }
+  }, 2000); // slight delay to wait for Firebase init
+});
+
+// Hook into critical actions
+const originalCreateClient = window.createClientBlankState;
+window.createClientBlankState = function(name) {
+  if (window.addActivityLog) window.addActivityLog("Created new client workspace", name);
+  return originalCreateClient(name);
+};

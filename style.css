@@ -2625,3 +2625,28 @@ textarea {
   word-wrap: break-word;
   overflow: hidden;
 }
+/* Cmd+K Palette Styles */
+.cmdk-item {
+  padding: 12px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-text);
+  border-left: 3px solid transparent;
+}
+.cmdk-item:hover, .cmdk-item.active {
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 3px solid var(--color-primary);
+}
+.cmdk-item svg {
+  color: var(--color-text-secondary);
+}
+.cmdk-item-title {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+.cmdk-item-subtitle {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}

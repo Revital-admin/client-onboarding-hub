@@ -1,3 +1,10 @@
+
+let isEmbedded = (window.parent && typeof window.parent.getActiveClient === 'function');
+let parentClient = null;
+if (isEmbedded) {
+  parentClient = window.parent.getActiveClient();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Inputs
   const baseFee = document.getElementById('baseFee');
@@ -386,11 +393,11 @@ document.addEventListener('DOMContentLoaded', () => {
       aov: propAov ? propAov.value : "",
       convRate: propConvRate ? propConvRate.value : ""
     };
-    localStorage.setItem('proposal-calc-state-v2', JSON.stringify(state));
+    if (isEmbedded && parentClient) { parentClient.proposal = state; window.parent.saveDatabase(); window.parent.renderDashboard(); } else { localStorage.setItem('proposal-calc-state-v2', JSON.stringify(state)); }
   }
 
   function loadState() {
-    const saved = localStorage.getItem('proposal-calc-state-v2');
+    let saved = null; if (isEmbedded && parentClient && parentClient.proposal && Object.keys(parentClient.proposal).length > 0) { saved = JSON.stringify(parentClient.proposal); } else { saved = localStorage.getItem('proposal-calc-state-v2'); }
     if (saved) {
       try {
         const state = JSON.parse(saved);

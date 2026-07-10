@@ -17,6 +17,32 @@
   <script src="data-store.js?v=3"></script>
   <script src="app.js?v=3"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <!-- Firebase SDK (v9 compat for simpler migration, or v9 modular if we want, but since it's a static HTML file without a bundler, we use ES modules) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDszpFkygCjr8ktkPe0ILxbLNHxRkb0bIY",
+      authDomain: "revitalhub-895c1.firebaseapp.com",
+      projectId: "revitalhub-895c1",
+      storageBucket: "revitalhub-895c1.firebasestorage.app",
+      messagingSenderId: "501330884945",
+      appId: "1:501330884945:web:7f94e80c49036d9f2b3b70",
+      measurementId: "G-8SLZMJG18S"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    window.firebaseDb = db;
+    window.firebaseSetDoc = setDoc;
+    window.firebaseDoc = doc;
+    window.firebaseOnSnapshot = onSnapshot;
+    window.firebaseGetDoc = getDoc;
+  </script>
+
 </head>
 <body>
 
@@ -348,6 +374,18 @@
                   </a>
                 </div>
               </div>
+            </div>
+          </div>
+
+
+          <!-- Activity Feed -->
+          <div class="dashboard-hero-card" style="grid-column: 1 / -1; margin-top: 20px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+              <h3 style="margin:0; font-size: 1.1rem;">Live Activity Feed</h3>
+              <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem;">Cloud Synced</span>
+            </div>
+            <div id="activityFeedList" style="max-height: 250px; overflow-y: auto; padding-right: 10px; display: flex; flex-direction: column; gap: 12px;">
+              <div style="color: var(--color-text-secondary); font-size: 0.9rem;">Connecting to activity stream...</div>
             </div>
           </div>
 
@@ -1029,6 +1067,27 @@
         <button class="btn btn-secondary" onclick="closeAdminSettings()">Close</button>
       </div>
     </div>
+  </div>
+
+
+  <!-- Cmd+K Command Palette -->
+  <div id="cmdkOverlay" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); z-index: 10000; align-items: flex-start; justify-content: center; padding-top: 15vh;">
+    <div id="cmdkModal" style="background: var(--bg-card); width: 600px; max-width: 90%; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 20px 40px rgba(0,0,0,0.5); overflow: hidden; display: flex; flex-direction: column;">
+      <div style="padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 12px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-text-secondary);"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="cmdkInput" placeholder="Jump to... (e.g. 'SEO', 'Proposal')" style="flex: 1; background: transparent; border: none; outline: none; color: var(--color-text); font-size: 1.1rem;">
+        <span style="font-size: 10px; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; color: var(--color-text-secondary);">ESC to close</span>
+      </div>
+      <div id="cmdkResults" style="max-height: 400px; overflow-y: auto; padding: 8px 0;">
+        <!-- Results injected here -->
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Autosave Indicator -->
+  <div id="autosaveIndicator" style="position: fixed; top: 20px; right: 20px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--color-text); padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; opacity: 0; transition: opacity 0.3s ease; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.2); pointer-events: none;">
+    Saved to Cloud ✅
   </div>
 
 </body>

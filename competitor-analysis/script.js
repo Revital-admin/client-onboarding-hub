@@ -390,6 +390,12 @@ function downloadPDF() {
   
   // Wait a tick for DOM to update
   setTimeout(() => {
+    if (typeof html2pdf === 'undefined') {
+      alert('PDF generator library failed to load. Please check your internet connection or disable ad-blockers.');
+      if (pdfBtn) { pdfBtn.disabled = false; pdfBtn.innerHTML = origText || 'Download PDF'; }
+      if (generateBtn) { generateBtn.disabled = false; generateBtn.innerHTML = 'Download PDF'; }
+      return;
+    }
     html2pdf().set(opt).from(container).save().then(() => {
       // Restore UI
       hides.forEach(el => el.style.display = '');

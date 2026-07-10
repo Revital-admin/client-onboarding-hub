@@ -1,5 +1,28 @@
+
+let isEmbedded = (window.parent && typeof window.parent.getActiveClient === 'function');
+let parentClient = null;
+if (isEmbedded) {
+  parentClient = window.parent.getActiveClient();
+}
 document.addEventListener('DOMContentLoaded', () => {
   const inputs = document.querySelectorAll('input, select, textarea');
+
+  // Load state from parent
+  if (isEmbedded && parentClient && parentClient.creativeBrief) {
+    const state = parentClient.creativeBrief;
+    if (state.campaignName) document.getElementById('campaignName').value = state.campaignName;
+    if (state.objective) document.getElementById('objective').value = state.objective;
+    if (state.targetAudience) document.getElementById('targetAudience').value = state.targetAudience;
+    if (state.keyMessage) document.getElementById('keyMessage').value = state.keyMessage;
+    if (state.toneOfVoice) document.getElementById('toneOfVoice').value = state.toneOfVoice;
+    if (state.deliverables) document.getElementById('deliverables').value = state.deliverables;
+    if (state.references) document.getElementById('references').value = state.references;
+  }
+  // Force sync client name from parent if embedded
+  if (isEmbedded && parentClient) {
+    document.getElementById('clientName').value = parentClient.name || '';
+  }
+
   const previewContainer = document.getElementById('previewContainer');
   const copyBtn = document.getElementById('copyBtn');
   let currentMarkdown = '';
@@ -43,6 +66,20 @@ ${references}
     
     // Render HTML preview using marked.js
     previewContainer.innerHTML = marked.parse(md);
+
+    // Save to parent
+    if (isEmbedded && parentClient) {
+      parentClient.creativeBrief = {
+        campaignName: document.getElementById('campaignName').value,
+        objective: document.getElementById('objective').value,
+        targetAudience: document.getElementById('targetAudience').value,
+        keyMessage: document.getElementById('keyMessage').value,
+        toneOfVoice: document.getElementById('toneOfVoice').value,
+        deliverables: document.getElementById('deliverables').value,
+        references: document.getElementById('references').value
+      };
+      window.parent.saveDatabase();
+    }
   }
 
   // Update preview on any input change

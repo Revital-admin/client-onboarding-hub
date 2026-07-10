@@ -1,3 +1,10 @@
+
+let isEmbedded = (window.parent && typeof window.parent.getActiveClient === 'function');
+let parentClient = null;
+if (isEmbedded) {
+  parentClient = window.parent.getActiveClient();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Inputs
   const clientNameIn = document.getElementById('clientName');
@@ -102,6 +109,12 @@ document.addEventListener('DOMContentLoaded', () => {
       html2canvas:  { scale: 2 },
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
+    if (typeof html2pdf === 'undefined') {
+      alert('PDF generator library failed to load. Please check your internet connection or disable ad-blockers.');
+      if (pdfBtn) { pdfBtn.disabled = false; pdfBtn.innerHTML = origText || 'Download PDF'; }
+      if (generateBtn) { generateBtn.disabled = false; generateBtn.innerHTML = 'Download PDF'; }
+      return;
+    }
     html2pdf().set(opt).from(element).save();
   });
 });
