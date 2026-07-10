@@ -79,7 +79,7 @@ function init() {
   const config = client.portalConfig;
 
   // Load Magic Link
-  const baseUrl = window.location.origin + "/portal/index.html";
+  const baseUrl = window.location.origin + "/portal";
   const token = config.magicToken;
   const clientNameRaw = window.parent.activeClientName || "Client";
   magicLinkInput.value = `${baseUrl}?c=${encodeURIComponent(clientNameRaw)}&t=${token}`;
@@ -247,12 +247,28 @@ function init() {
 
   copyLinkBtn.addEventListener("click", () => {
     magicLinkInput.select();
-    document.execCommand("copy");
-    const originalText = copyLinkBtn.textContent;
-    copyLinkBtn.textContent = "Copied!";
-    setTimeout(() => {
-      copyLinkBtn.textContent = originalText;
-    }, 2000);
+    
+    // Modern clipboard API fallback to execCommand
+    const copyToClipboard = async () => {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(magicLinkInput.value);
+        } else {
+          document.execCommand("copy");
+        }
+        
+        const originalText = copyLinkBtn.textContent;
+        copyLinkBtn.textContent = "Copied!";
+        setTimeout(() => {
+          copyLinkBtn.textContent = originalText;
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy', err);
+        alert('Failed to copy. Please manually select and copy the link.');
+      }
+    };
+    
+    copyToClipboard();
   });
 }
 
