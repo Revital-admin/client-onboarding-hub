@@ -1,0 +1,85 @@
+/* Client Portal Manager Specific Styles */
+.step-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  color: var(--color-text);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  transition: all 0.2s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+input[type="color"]::-webkit-color-swatch {
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+}
+
+/* Drag and Drop Zone */
+.drop-zone {
+  width: 100%;
+  border: 2px dashed var(--border-color);
+  border-radius: 8px;
+  padding: 24px 12px;
+  text-align: center;
+  color: var(--color-text-secondary);
+  background: rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.drop-zone:hover, .drop-zone.dragover {
+  border-color: var(--color-primary);
+  background: rgba(16, 185, 129, 0.1);
+}
+.drop-zone small {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+/* Extra Color Pop for Portal Manager */
+.step-card {
+  position: relative;
+  overflow: hidden;
+}
+.step-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-accent, #f68d5f), transparent);
+  opacity: 0.5;
+}

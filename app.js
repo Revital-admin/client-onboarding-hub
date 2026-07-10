@@ -397,7 +397,27 @@ copywriting: {
     proposal: {},
     roi: {},
     signature: {},
-    creativeBrief: {}
+    creativeBrief: {},
+    portalConfig: {
+      accountManagerName: "",
+      accountManagerEmail: "",
+      accountManagerPhone: "",
+      calendlyLink: "",
+      projectsEmbedUrl: "",
+      calendarEmbedUrl: "",
+      campaignBriefUrl: "",
+      completedWorkUrl: "",
+      feedbackFormUrl: "",
+      revisionFormUrl: "",
+      contentRequestFormUrl: "",
+      brandAssetsUrl: "",
+      liveAnalyticsUrl: "",
+      clientLogoUrl: "",
+      clientContactName: "",
+      primaryColor: "#10b981",
+      secondaryColor: "#6366f1",
+      magicToken: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    }
   };
 }
 
@@ -1773,7 +1793,7 @@ function initQuickLinks() {
 
   // Function to save to both LocalStorage and Firebase
   function saveQuickLinks() {
-    saveQuickLinks();
+    localStorage.setItem('revital-team-links-array', JSON.stringify(savedLinks));
     if (db && db.collection) {
       db.collection("hub").doc("quickLinks").set({ links: savedLinks })
         .catch(err => console.error("Error saving Quick Links to Firebase:", err));
@@ -1787,7 +1807,7 @@ function initQuickLinks() {
         const data = doc.data();
         if (data && Array.isArray(data.links)) {
           savedLinks = data.links;
-          saveQuickLinks();
+          localStorage.setItem('revital-team-links-array', JSON.stringify(savedLinks));
           if (typeof renderLinks === 'function') {
             renderLinks();
           }

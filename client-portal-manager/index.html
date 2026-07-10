@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Portal Manager</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../forms.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <main class="container" style="max-width: 800px;">
+    <header class="site-header">
+      <div class="header-eyebrow">
+        <span class="dot"></span>
+        <span>Settings</span>
+      </div>
+      <h1 class="site-title">Portal <em>Manager</em></h1>
+      <p class="site-subtitle">Configure the custom Client Portal for the active workspace.</p>
+    </header>
+
+    <div class="step-card">
+      <div class="section-title" style="margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+        <h2 style="font-family: var(--font-heading); color: var(--color-primary);">Client Access</h2>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="form-group">
+          <label for="clientContactName">Client Contact Name (e.g. Sarah)</label>
+          <input type="text" id="clientContactName" placeholder="Welcome back, Sarah!">
+        </div>
+        <div class="form-group">
+          <label>Client Logo (Drag & Drop)</label>
+          <div id="logoDropZone" class="drop-zone">
+            <div id="dropZoneText">Drop transparent PNG here<br><small>or click to upload</small></div>
+            <img id="logoPreview" src="" alt="Logo Preview" style="display:none; max-width: 100%; max-height: 80px; pointer-events: none;">
+            <input type="file" id="logoFileInput" accept="image/png, image/jpeg, image/webp" style="display:none;">
+          </div>
+          <button id="btnEyedropper" class="btn-secondary" style="margin-top: 12px; width: 100%; display:none; justify-content: center; align-items: center; gap: 6px; padding: 10px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+            Pick Primary Color
+          </button>
+          <button id="btnEyedropperSec" class="btn-secondary" style="margin-top: 8px; width: 100%; display:none; justify-content: center; align-items: center; gap: 6px; padding: 10px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+            Pick Secondary Color
+          </button>
+          <input type="hidden" id="clientLogoUrl">
+        </div>
+      </div>
+
+
+      <div class="form-group">
+        <label>Magic Login Link (Send this to the client)</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="magicLink" readonly style="background: rgba(255,255,255,0.02); color: var(--color-text-secondary);">
+          <button class="download-pdf-btn" id="copyLinkBtn" style="padding: 0 16px; white-space: nowrap;">Copy Link</button>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--color-text-secondary); margin-top: 8px;">
+          This link securely logs the client into their isolated portal workspace.
+        </p>
+      </div>
+
+      <div class="form-group">
+        <label for="primaryColor">Client Brand Primary Color</label>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <input type="color" id="primaryColor" value="#10b981" style="width: 50px; height: 40px; padding: 0; border: none; border-radius: 8px; cursor: pointer; background: transparent;">
+          <span id="colorHex" style="font-family: var(--font-mono); color: var(--color-text-secondary);">#10b981</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card" style="margin-top: 24px;">
+      <div class="section-title" style="margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+        <h2 style="font-family: var(--font-heading); color: var(--color-primary);">Embed Links</h2>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="form-group">
+          <label for="projectsEmbedUrl">Active Projects (ClickUp Embed)</label>
+          <input type="text" id="projectsEmbedUrl" placeholder="https://sharing.clickup.com/.../">
+        </div>
+
+        <div class="form-group">
+          <label for="calendarEmbedUrl">Content Calendar (ClickUp Embed)</label>
+          <input type="text" id="calendarEmbedUrl" placeholder="https://sharing.clickup.com/.../">
+        </div>
+
+        <div class="form-group">
+          <label for="campaignBriefUrl">Campaign Briefs (ClickUp/GDoc Embed)</label>
+          <input type="text" id="campaignBriefUrl" placeholder="https://sharing.clickup.com/.../">
+        </div>
+
+        <div class="form-group">
+          <label for="completedWorkUrl">Completed Work (ClickUp/GDoc Embed)</label>
+          <input type="text" id="completedWorkUrl" placeholder="https://sharing.clickup.com/.../">
+        </div>
+
+        <div class="form-group">
+          <label for="liveAnalyticsUrl">Live Analytics (Data Studio Embed)</label>
+          <input type="text" id="liveAnalyticsUrl" placeholder="https://lookerstudio.google.com/embed/...">
+        </div>
+
+        <div class="form-group">
+          <label for="feedbackFormUrl">Feedback Form (ClickUp Form)</label>
+          <input type="text" id="feedbackFormUrl" placeholder="https://forms.clickup.com/.../">
+        </div>
+        
+        <div class="form-group">
+          <label for="revisionFormUrl">Submit a Revision Form (ClickUp Form)</label>
+          <input type="text" id="revisionFormUrl" placeholder="https://forms.clickup.com/.../">
+        </div>
+
+        <div class="form-group">
+          <label for="contentRequestFormUrl">Content Request Form (ClickUp Form)</label>
+          <input type="text" id="contentRequestFormUrl" placeholder="https://forms.clickup.com/.../">
+        </div>
+        
+        <div class="form-group">
+          <label for="brandAssetsUrl">Brand Assets Folder (Google Drive)</label>
+          <input type="text" id="brandAssetsUrl" placeholder="https://drive.google.com/drive/folders/...">
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card" style="margin-top: 24px;">
+      <div class="section-title" style="margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+        <h2 style="font-family: var(--font-heading); color: var(--color-primary);">Account Manager</h2>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="form-group">
+          <label for="accountManagerName">Name</label>
+          <input type="text" id="accountManagerName" placeholder="e.g. Jane Doe">
+        </div>
+        <div class="form-group">
+          <label for="accountManagerEmail">Email</label>
+          <input type="email" id="accountManagerEmail" placeholder="jane@revitalproductions.com">
+        </div>
+        <div class="form-group">
+          <label for="accountManagerPhone">Phone / Text</label>
+          <input type="text" id="accountManagerPhone" placeholder="555-0199">
+        </div>
+        <div class="form-group">
+          <label for="calendlyLink">Calendly Link</label>
+          <input type="text" id="calendlyLink" placeholder="https://calendly.com/jane-doe">
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

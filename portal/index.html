@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <!-- Loading State -->
+  <div id="loader" class="loader-overlay">
+    <div class="spinner"></div>
+    <p>Authenticating Workspace...</p>
+  </div>
+
+  <!-- Background Effect -->
+  <div class="portal-bg-gradient"></div>
+
+  <!-- Main App (Hidden until loaded) -->
+  <div id="app" class="app-layout" style="display: none;">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <img id="brandLogo" src="" alt="Client Logo" style="display:none; max-width: 100%; max-height: 40px; margin-bottom: 32px;"><h1 id="brandName">Client Portal</h1>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" data-target="view-dashboard">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          Dashboard
+        </button>
+        <button class="nav-btn" data-target="view-projects" id="navProjects" style="display:none;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+          Active Projects
+        </button>
+        <button class="nav-btn" data-target="view-calendar" id="navCalendar" style="display:none;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          Content Calendar
+        </button>
+        <button class="nav-btn" data-target="view-campaign" id="navCampaign" style="display:none;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          Campaign Briefs
+        </button>
+        <button class="nav-btn" data-target="view-assets" id="navAssets" style="display:none;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          Brand Assets
+        </button>
+        <button class="nav-btn" data-target="view-completed" id="navCompleted" style="display:none;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          Completed Work
+        </button>
+      </nav>
+
+      <!-- First Week Checklist Widget -->
+      <div class="sidebar-widget">
+        <h3>Onboarding Checklist</h3>
+        <div id="checklistContainer" class="checklist-items">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Quick Actions Widget -->
+      <div class="sidebar-widget" id="quickActionsWidget" style="display:none;">
+        <h3>Quick Actions</h3>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+          <a href="#" id="btnRevision" class="btn-secondary" target="_blank" style="display:none; text-align:left; justify-content: flex-start; gap: 8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            Submit a Revision
+          </a>
+          <a href="#" id="btnContentRequest" class="btn-secondary" target="_blank" style="display:none; text-align:left; justify-content: flex-start; gap: 8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+            Submit Content Request
+          </a>
+        </div>
+      </div>
+
+      <!-- Account Manager Widget -->
+      <div class="sidebar-widget am-widget">
+        <h3>Your Account Manager</h3>
+        <div class="am-info">
+          <div class="am-avatar" id="amInitial">A</div>
+          <div>
+            <strong id="amName">Account Manager</strong>
+            <a href="#" id="amEmail">Email Support</a>
+          </div>
+        </div>
+        <a href="#" id="btnBookCall" class="btn-primary" target="_blank" style="display:none;">Book a Call</a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- DASHBOARD VIEW -->
+      <section id="view-dashboard" class="view-section active">
+        <header class="view-header">
+          <h2 id="welcomeHeader">Welcome back!</h2>
+          <p>Here is a live snapshot of your performance.</p>
+        </header>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h4>Website Traffic</h4>
+            <div class="stat-number">24,592 <span class="trend up">↑ 12%</span></div>
+            <div class="chart-mockup traffic-chart">
+              <svg viewBox="0 0 100 30" preserveAspectRatio="none">
+                <path d="M0,25 C20,25 30,15 40,20 C50,25 60,10 70,15 C80,20 90,5 100,10 L100,30 L0,30 Z" fill="url(#trafficGradient)" />
+                <path d="M0,25 C20,25 30,15 40,20 C50,25 60,10 70,15 C80,20 90,5 100,10" fill="none" stroke="var(--color-primary)" stroke-width="2" />
+                <defs>
+                  <linearGradient id="trafficGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--color-primary)" stop-opacity="0.3" />
+                    <stop offset="100%" stop-color="var(--color-primary)" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <h4>Social Growth</h4>
+            <div class="stat-number">+1,204 <span class="trend up">↑ 8%</span></div>
+            <div class="chart-mockup social-chart">
+              <div class="bar" style="height: 40%"></div>
+              <div class="bar" style="height: 60%"></div>
+              <div class="bar" style="height: 45%"></div>
+              <div class="bar" style="height: 80%"></div>
+              <div class="bar" style="height: 70%"></div>
+              <div class="bar" style="height: 90%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="analyticsEmbedContainer" style="margin-top: 32px; display: none;">
+          <h3>Live Analytics Report</h3>
+          <div class="iframe-wrapper">
+            <iframe id="analyticsIframe" src="" frameborder="0" allowfullscreen></iframe>
+          </div>
+        </div>
+      </section>
+
+      <!-- PROJECTS VIEW -->
+      <section id="view-projects" class="view-section">
+        <header class="view-header">
+          <h2>Active Projects</h2>
+          <div class="actions">
+            <a href="#" id="btnFeedback" class="btn-secondary" target="_blank" style="display:none;">Submit Feedback</a>
+          </div>
+        </header>
+        <div class="iframe-wrapper full-height">
+          <iframe id="projectsIframe" src="" frameborder="0"></iframe>
+        </div>
+      </section>
+
+      <!-- CALENDAR VIEW -->
+      <section id="view-calendar" class="view-section">
+        <header class="view-header">
+          <h2>Content Calendar</h2>
+        </header>
+        <div class="iframe-wrapper full-height">
+          <iframe id="calendarIframe" src="" frameborder="0"></iframe>
+        </div>
+      </section>
+      
+      <!-- CAMPAIGN VIEW -->
+      <section id="view-campaign" class="view-section">
+        <header class="view-header">
+          <h2>Campaign Briefs</h2>
+          <p>Review and approve the active strategy briefs.</p>
+        </header>
+        <div class="iframe-wrapper full-height">
+          <iframe id="campaignIframe" src="" frameborder="0"></iframe>
+        </div>
+      </section>
+
+      <!-- COMPLETED WORK VIEW -->
+      <section id="view-completed" class="view-section">
+        <header class="view-header">
+          <h2>Completed Work</h2>
+          <p>An archive of final deliverables and completed tasks.</p>
+        </header>
+        <div class="iframe-wrapper full-height">
+          <iframe id="completedIframe" src="" frameborder="0"></iframe>
+        </div>
+      </section>
+
+      <!-- ASSETS VIEW -->
+      <section id="view-assets" class="view-section">
+        <header class="view-header">
+          <h2>Brand Assets</h2>
+          <p>Access your logos, guidelines, and final deliverables.</p>
+        </header>
+        <div class="iframe-wrapper full-height">
+          <iframe id="assetsIframe" src="" frameborder="0"></iframe>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
