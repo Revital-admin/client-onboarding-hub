@@ -3,30 +3,6 @@
    Application state controller, Event Handlers & View Renderer
    ============================================================ */
 
-// ── Firebase Configuration ──
-const firebaseConfig = {
-  apiKey: "AIzaSyDszpFkygCjr8ktkPe0ILxbLNHxRkb0bIY",
-  authDomain: "revitalhub-895c1.firebaseapp.com",
-  projectId: "revitalhub-895c1",
-  storageBucket: "revitalhub-895c1.firebasestorage.app",
-  messagingSenderId: "501330884945",
-  appId: "1:501330884945:web:7f94e80c49036d9f2b3b70"
-};
-firebase.initializeApp(firebaseConfig);
-
-try {
-  if (typeof firebase.appCheck === 'function') {
-    const appCheck = firebase.appCheck();
-    appCheck.activate(
-      '6Leh2TItAAAAAIWxkC1Z93flfDJanjWKgkwT1Dvm',
-      true // isTokenAutoRefreshEnabled
-    );
-  }
-} catch (e) {
-  console.warn("Firebase AppCheck could not be initialized. It may be blocked by your browser extensions.", e);
-}
-
-const db = firebase.firestore();
 
 // ── Auth & Identity ──
 let currentUserEmail = null;
