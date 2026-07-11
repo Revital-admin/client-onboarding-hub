@@ -667,8 +667,8 @@ function renderDashboard() {
 
   // Active client summary details
   const hero = document.getElementById("dashHeroClientName"); if (hero) hero.textContent = client.name;
-  document.getElementById("dashHeroTargetUrl").textContent = client.targetUrl || "No website logged yet";
-  document.getElementById("dashHeroCreatedDate").textContent = client.createdDate || "N/A";
+  const heroUrl = document.getElementById("dashHeroTargetUrl"); if (heroUrl) heroUrl.textContent = client.targetUrl || "No website logged yet";
+  const heroDate = document.getElementById("dashHeroCreatedDate"); if (heroDate) heroDate.textContent = client.createdDate || "N/A";
 
   const dashClickupUrl = document.getElementById("dashClickupUrl");
   const dashClickupBtn = document.getElementById("dashClickupBtn");
@@ -1614,10 +1614,10 @@ document.addEventListener("DOMContentLoaded", () => {
       showBanner("success", "Quick Sandbox data cleared and reset successfully!");
     });
   }
+  
+  // Call loadDatabase AFTER DOM is ready and Module scripts are loaded
+  loadDatabase();
 });
-
-// Run database load immediately to populate state before child iframes execute their scripts
-loadDatabase();
 
 // ── Brand Vault Controllers ──
 function renderBrandVault() {
