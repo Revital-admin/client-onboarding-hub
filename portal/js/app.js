@@ -180,10 +180,10 @@ function setupIframe(navId, iframeId, url) {
 
 function renderChecklist() {
   checklistContainer.innerHTML = "";
-  if (!clientData.onboarding || clientData.onboarding.length === 0) return;
+  if (!clientData.onboardingChecklist || clientData.onboardingChecklist.length === 0) return;
   
   let allItems = [];
-  clientData.onboarding.forEach(cat => {
+  clientData.onboardingChecklist.forEach(cat => {
     cat.items.forEach(item => {
       // Only show items that start with "Client:" or we can just show all phase 1.
       // For now, let's show all items in the first category ("Phase 1: Setup") to the client.
@@ -195,7 +195,7 @@ function renderChecklist() {
 
   // If we couldn't filter easily, just grab the first 4 tasks.
   if (allItems.length === 0) {
-    allItems = clientData.onboarding[0].items.slice(0, 4);
+    allItems = clientData.onboardingChecklist[0].items.slice(0, 4);
   }
 
   let completedCount = 0;

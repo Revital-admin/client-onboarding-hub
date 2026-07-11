@@ -8,20 +8,11 @@
   <meta http-equiv="Expires" content="0">
   <title>Client Onboarding & Audit Hub</title>
   <link rel="stylesheet" href="style.css?v=3">
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK Compat (Synchronous loading so app.js can use it immediately) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-  <!-- Central references and Application State Controller -->
-  <script src="data-store.js?v=3"></script>
-  <script src="app.js?v=62"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-  <!-- Firebase SDK (v9 compat for simpler migration, or v9 modular if we want, but since it's a static HTML file without a bundler, we use ES modules) -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    
-
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDszpFkygCjr8ktkPe0ILxbLNHxRkb0bIY",
       authDomain: "revitalhub-895c1.firebaseapp.com",
@@ -32,14 +23,21 @@
       measurementId: "G-8SLZMJG18S"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    
+    // Map compat functions to window for app.js to use synchronously
     window.firebaseDb = db;
-    window.firebaseSetDoc = setDoc;
-    window.firebaseDoc = doc;
-    window.firebaseOnSnapshot = onSnapshot;
-    window.firebaseGetDoc = getDoc;
+    window.firebaseSetDoc = function(docRef, data) { return docRef.set(data); };
+    window.firebaseDoc = function(db, collectionPath, docPath) { return db.collection(collectionPath).doc(docPath); };
+    window.firebaseOnSnapshot = function(docRef, callback) { return docRef.onSnapshot(callback); };
+    window.firebaseGetDoc = function(docRef) { return docRef.get(); };
   </script>
+
+  <!-- Central references and Application State Controller -->
+  <script src="data-store.js?v=3"></script>
+  <script src="app.js?v=66"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 </head>
 <body>
@@ -272,25 +270,7 @@
           </li>
           </ul>
 
-      <!-- Team Quick Links -->
-      <div class="sidebar-quick-links">
-        <h3 class="quick-links-title">Team Quick Links</h3>
-        <ul class="quick-links-list" id="dynamicQuickLinksList">
-          <!-- Rendered via JS -->
-        </ul>
-        <button id="addQuickLinkBtn" style="background: none; border: 1px dashed var(--color-border); color: var(--color-text-secondary); width: 100%; border-radius: var(--radius-sm); padding: 8px; font-size: 11px; cursor: pointer; margin-top: 10px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 4px;">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          Add Link
-        </button>
-        <div id="inlineAddLinkForm" style="display: none; flex-direction: column; gap: 6px; margin-top: 10px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
-          <input type="text" id="newLinkName" class="custom-input" placeholder="Name (e.g. Google Drive)" style="padding: 6px; font-size: 12px; height: 28px;">
-          <input type="text" id="newLinkUrl" class="custom-input" placeholder="URL (https://...)" style="padding: 6px; font-size: 12px; height: 28px;">
-          <div style="display: flex; gap: 6px; margin-top: 4px;">
-            <button id="saveNewLinkBtn" class="btn-primary" style="flex: 1; padding: 4px; height: 24px; font-size: 10px;">Save</button>
-            <button id="cancelNewLinkBtn" class="btn-secondary-outline" style="flex: 1; padding: 4px; height: 24px; font-size: 10px;">Cancel</button>
-          </div>
-        </div>
-      </div>
+
     </nav>
 
     <!-- Sidebar Utility Footer -->
@@ -318,19 +298,13 @@
       <!-- TOP UTILITIES BAR -->
       <div class="top-utils-bar" style="display: flex; justify-content: flex-end; align-items: center; gap: 16px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 30px;">
         
-        
-
-        <button class="btn btn-secondary" id="adminSettingsBtn" onclick="openAdminSettings()" style="display: none; background: #374151; color: white; border: none;">
-          <span class="icon">⚙️</span> Admin
-        </button>
-        
         <button id="exportPdfBtn" class="btn btn-primary" onclick="generateClientPDF()" style="background: var(--primary); color: white; border: none;">
           <span class="icon">📥</span> Export PDF Report
         </button>
 
         <div id="userProfileUI" style="display: flex; align-items: center; gap: 8px; margin-left: 8px; border-left: 1px solid var(--border-color); padding-left: 16px;">
-          <div id="userAvatar" style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">?</div>
-          <span id="userEmail" style="font-size: 13px; color: var(--text-muted);">Guest</span>
+          <div id="userAvatar" style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">R</div>
+          <span id="userEmail" style="font-size: 13px; color: var(--text-muted);">Ronald</span>
         </div>
       </div>
 
@@ -1049,33 +1023,6 @@
   <div id="errorBanner" class="banner banner-error" role="alert">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
     <span id="errorBannerMsg" class="banner-msg">An error occurred!</span>
-  </div>
-
-
-  
-
-
-  <!-- Admin Settings Modal -->
-  <div class="modal-overlay" id="adminModal" style="display: none;">
-    <div class="modal-content" style="max-width: 400px; padding: 20px;">
-      <h2 style="margin-top:0; font-size: 18px;">Admin Settings</h2>
-      <p style="color: var(--color-text-secondary); font-size: 13px; margin-bottom: 20px;">
-        Manage who has permission to edit Quick Links and access Admin features.
-      </p>
-      
-      <div style="margin-bottom: 15px; display: flex; gap: 8px;">
-        <input type="email" id="newAdminEmail" class="custom-input" placeholder="employee@example.com" style="flex: 1;" />
-        <button class="btn btn-primary" onclick="addAdminEmail()">Add</button>
-      </div>
-
-      <ul id="adminEmailsList" style="list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto;">
-        <!-- Admin items injected here -->
-      </ul>
-
-      <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
-        <button class="btn btn-secondary" onclick="closeAdminSettings()">Close</button>
-      </div>
-    </div>
   </div>
 
 

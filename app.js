@@ -6,7 +6,6 @@
 
 // ── Auth & Identity ──
 let currentUserEmail = null;
-let isAdmin = false;
 let globalAdmins = [];
 
 async function checkIdentity() {
@@ -56,32 +55,6 @@ function updateAdminUI() {
 }
 
 // ── Admin Modal Functions ──
-function openAdminSettings() {
-  document.getElementById("adminModal").style.display = "flex";
-  renderAdminList();
-}
-function closeAdminSettings() {
-  document.getElementById("adminModal").style.display = "none";
-}
-function renderAdminList() {
-  const listEl = document.getElementById("adminEmailsList");
-  if (!listEl) return;
-  listEl.innerHTML = "";
-  globalAdmins.forEach(email => {
-    const li = document.createElement("li");
-    li.style.display = "flex";
-    li.style.justifyContent = "space-between";
-    li.style.padding = "8px 0";
-    li.style.borderBottom = "1px solid var(--color-border)";
-    
-    const isMaster = email === "admin@revitalproductions.com";
-    li.innerHTML = `
-      <span style="font-size: 14px; color: var(--color-text);">${email} ${isMaster ? '<span style="color:#6b7280; font-size:12px;">(Master)</span>' : ''}</span>
-      ${!isMaster ? `<button onclick="removeAdminEmail('${email}')" style="background:none; border:none; color:#f87171; cursor:pointer;">Remove</button>` : '<span></span>'}
-    `;
-    listEl.appendChild(li);
-  });
-}
 window.addAdminEmail = function() {
   const input = document.getElementById("newAdminEmail");
   const email = input.value.trim().toLowerCase();
@@ -111,8 +84,8 @@ function updateUserProfile() {
     emailEl.textContent = currentUserEmail;
     avatarEl.textContent = currentUserEmail.charAt(0).toUpperCase();
   } else {
-    emailEl.textContent = "Guest";
-    avatarEl.textContent = "?";
+    emailEl.textContent = "Ronald";
+    avatarEl.textContent = "R";
   }
 }
 
@@ -1599,7 +1572,6 @@ document.addEventListener("DOMContentLoaded", () => {
   try { initTabNavigation(); } catch(e) { console.error("TabNav Error:", e); }
   try { initMobileNavigation(); } catch(e) { console.error("MobileNav Error:", e); }
   try { initParentEventListeners(); } catch(e) { console.error("ParentListeners Error:", e); }
-  try { initQuickLinks(); } catch(e) { console.error("QuickLinks Error:", e); }
   try { refreshAllViews(); } catch(e) { console.error("Refresh Error:", e); }
 
   // Reset Sandbox Button listener
@@ -1766,175 +1738,6 @@ function saveBrandVault() {
   renderDashboard();
 }
 
-
-// ── Team Quick Links Logic ──
-function initQuickLinks() {
-  const defaultLinks = [
-    { id: 'sop', name: 'Master SOP Index', url: '', icon: '📋' },
-    { id: 'drive', name: 'Google Drive', url: '', icon: '📁' },
-    { id: 'intake', name: 'Client Intake Form', url: '', icon: '📝' },
-    { id: 'handoff', name: 'Onboarding Handoff', url: '', icon: '🔄' },
-    { id: 'tracker', name: 'Shared Links Tracker', url: '', icon: '🔗' }
-  ];
-  
-  let savedLinks = defaultLinks;
-  
-  // Try local first for instant paint
-  try {
-    const saved = localStorage.getItem('revital-team-links-array');
-    if (saved) {
-      savedLinks = JSON.parse(saved);
-      if (!Array.isArray(savedLinks)) savedLinks = defaultLinks;
-    }
-  } catch(e) {}
-
-  // Function to save to both LocalStorage and Firebase
-  function saveQuickLinks() {
-    localStorage.setItem('revital-team-links-array', JSON.stringify(savedLinks));
-    if (window.firebaseSetDoc && window.firebaseDb && window.firebaseDoc) {
-      window.firebaseSetDoc(window.firebaseDoc(window.firebaseDb, "hub", "quickLinks"), { links: savedLinks })
-        .catch(err => console.error("Error saving Quick Links to Firebase:", err));
-    }
-  }
-
-  // Subscribe to Firebase changes
-  if (window.firebaseOnSnapshot && window.firebaseDb && window.firebaseDoc) {
-    window.firebaseOnSnapshot(window.firebaseDoc(window.firebaseDb, "hub", "quickLinks"), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data && Array.isArray(data.links)) {
-          savedLinks = data.links;
-          localStorage.setItem('revital-team-links-array', JSON.stringify(savedLinks));
-          if (typeof renderLinks === 'function') {
-            renderLinks();
-          }
-        }
-      } else {
-        // If it doesn't exist on firebase yet, upload our defaults
-        saveQuickLinks();
-      }
-    });
-  }
-
-  const listEl = document.getElementById('dynamicQuickLinksList');
-  const addBtn = document.getElementById('addQuickLinkBtn');
-  const inlineForm = document.getElementById('inlineAddLinkForm');
-  const nameInput = document.getElementById('newLinkName');
-  const urlInput = document.getElementById('newLinkUrl');
-  const saveBtn = document.getElementById('saveNewLinkBtn');
-  const cancelBtn = document.getElementById('cancelNewLinkBtn');
-
-  window.renderLinks = function renderLinks() {
-    listEl.innerHTML = '';
-    savedLinks.forEach((link, index) => {
-      const li = document.createElement('li');
-      li.className = 'quick-link-li';
-      li.style.position = 'relative';
-      li.style.display = 'flex';
-      li.style.alignItems = 'center';
-      li.style.justifyContent = 'space-between';
-      li.style.marginBottom = '8px';
-      
-      const isMissingUrl = !link.url || link.url.trim() === '';
-      const hrefAttr = isMissingUrl ? '#' : link.url;
-      const targetAttr = isMissingUrl ? '' : 'target="_blank"';
-      const opacity = isMissingUrl ? '0.5' : '1';
-
-      li.innerHTML = `
-        <a href="${hrefAttr}" ${targetAttr} class="quick-link-item" style="opacity: ${opacity}; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color 0.2s;">
-          <span class="icon">${link.icon || '🔗'}</span> ${link.name}
-        </a>
-        <div class="quick-link-actions" style="display: ${isAdmin ? 'flex' : 'none'}; gap: 4px; opacity: 0; transition: opacity 0.2s;">
-          <button class="edit-ql-btn" data-index="${index}" style="background: none; border: none; color: var(--color-text-secondary); cursor: pointer; padding: 2px;" title="Edit">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4z"></path></svg>
-          </button>
-          <button class="del-ql-btn" data-index="${index}" style="background: none; border: none; color: #f87171; cursor: pointer; padding: 2px;" title="Delete">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
-        </div>
-      `;
-
-      li.addEventListener('mouseenter', () => li.querySelector('.quick-link-actions').style.opacity = '1');
-      li.addEventListener('mouseleave', () => li.querySelector('.quick-link-actions').style.opacity = '0');
-
-      if (isMissingUrl) {
-        li.querySelector('a').addEventListener('click', (e) => {
-          e.preventDefault();
-          const newUrl = prompt(`Enter the URL for ${link.name}:`, '');
-          if (newUrl !== null) {
-            savedLinks[index].url = newUrl.trim();
-            saveQuickLinks();
-            renderLinks();
-          }
-        });
-      }
-
-      listEl.appendChild(li);
-    });
-
-    document.querySelectorAll('.del-ql-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const idx = e.currentTarget.getAttribute('data-index');
-        if (confirm(`Remove "${savedLinks[idx].name}"?`)) {
-          savedLinks.splice(idx, 1);
-          saveQuickLinks();
-          renderLinks();
-        }
-      });
-    });
-
-    document.querySelectorAll('.edit-ql-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const idx = e.currentTarget.getAttribute('data-index');
-        const link = savedLinks[idx];
-        const newName = prompt('Edit Link Name:', link.name);
-        if (newName === null) return;
-        const newUrl = prompt('Edit URL (include https://):', link.url || '');
-        if (newUrl === null) return;
-
-        savedLinks[idx].name = newName.trim() || 'Unnamed Link';
-        savedLinks[idx].url = newUrl.trim();
-        saveQuickLinks();
-        renderLinks();
-      });
-    });
-  }
-
-  if (addBtn && inlineForm) {
-    addBtn.addEventListener('click', () => {
-      addBtn.style.display = 'none';
-      inlineForm.style.display = 'flex';
-      nameInput.value = '';
-      urlInput.value = '';
-      nameInput.focus();
-    });
-
-    cancelBtn.addEventListener('click', () => {
-      inlineForm.style.display = 'none';
-      addBtn.style.display = isAdmin ? 'flex' : 'none';
-    });
-
-    saveBtn.addEventListener('click', () => {
-      const name = nameInput.value.trim();
-      const url = urlInput.value.trim();
-      if (!name) { alert('Please enter a name.'); return; }
-      
-      savedLinks.push({
-        id: 'custom_' + Date.now(),
-        name: name,
-        url: url,
-        icon: '🔗'
-      });
-      saveQuickLinks();
-      
-      inlineForm.style.display = 'none';
-      addBtn.style.display = isAdmin ? 'flex' : 'none';
-      renderLinks();
-    });
-  }
-
-  renderLinks();
-}
 
 
 // ── Firebase Cloud Sync ──
