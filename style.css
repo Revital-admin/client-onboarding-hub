@@ -2650,3 +2650,7 @@ textarea {
   font-size: 0.8rem;
   color: var(--color-text-secondary);
 }
+
+#logoutBtn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
