@@ -1819,7 +1819,7 @@ function loadDatabase() {
   if (window.firebaseOnSnapshot && window.firebaseDoc && window.firebaseDb) {
     const docRef = window.firebaseDoc(window.firebaseDb, "agency", "clientsDb");
     window.firebaseOnSnapshot(docRef, (docSnap) => {
-      if (docSnap.exists()) {
+      if (docSnap.exists) {
         const cloudData = docSnap.data();
         
         const cloudStr = JSON.stringify(cloudData);
@@ -2003,7 +2003,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const listEl = document.getElementById('activityFeedList');
         if (!listEl) return;
         
-        if (docSnap.exists()) {
+        if (docSnap.exists) {
           const data = docSnap.data();
           window.agencyActivityLogs = data.logs || [];
           
