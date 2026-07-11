@@ -1817,7 +1817,7 @@ textarea {
 }
 
 /* ── Responsive Styling ── */
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   body {
     flex-direction: column;
   }
@@ -1886,7 +1886,7 @@ textarea {
   }
 }
 
-@media (max-width: 500px) {
+@media (max-width: 768px) {
   .score-grid {
     grid-template-columns: 1fr;
     gap: 12px;

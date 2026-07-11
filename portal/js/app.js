@@ -163,7 +163,16 @@ function setupIframe(navId, iframeId, url) {
   const iframe = document.getElementById(iframeId);
   if (url) {
     navBtn.style.display = "flex";
-    if (iframe.src !== url) iframe.src = url;
+    
+    // Store URL for lazy-loading instead of booting it up immediately
+    iframe.dataset.src = url; 
+    
+    // Check if the view is currently active. If it is, load it immediately.
+    // Otherwise, it will load when the user clicks the navigation button.
+    const viewSection = document.getElementById(navBtn.dataset.target);
+    if (viewSection && viewSection.classList.contains("active")) {
+      if (iframe.src !== url) iframe.src = url;
+    }
   } else {
     navBtn.style.display = "none";
   }
@@ -245,7 +254,14 @@ navBtns.forEach(btn => {
     viewSections.forEach(v => v.classList.remove("active"));
     
     btn.classList.add("active");
-    document.getElementById(btn.dataset.target).classList.add("active");
+    const targetSection = document.getElementById(btn.dataset.target);
+    targetSection.classList.add("active");
+
+    // Lazy Load logic: If the target section has an iframe with a dataset.src, load it now!
+    const targetIframe = targetSection.querySelector("iframe");
+    if (targetIframe && targetIframe.dataset.src && targetIframe.src !== targetIframe.dataset.src) {
+      targetIframe.src = targetIframe.dataset.src;
+    }
   });
 });
 
@@ -291,3 +307,32 @@ function createParticle(color) {
 
 // Boot
 init();
+
+// ── Mobile Sidebar Logic ──
+const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+const mobileCloseBtn = document.getElementById("mobileCloseBtn");
+const sidebarOverlay = document.getElementById("sidebarOverlay");
+const sidebar = document.getElementById("sidebar");
+
+function openSidebar() {
+  if (sidebar) sidebar.classList.add("open");
+  if (sidebarOverlay) sidebarOverlay.classList.add("active");
+}
+
+function closeSidebar() {
+  if (sidebar) sidebar.classList.remove("open");
+  if (sidebarOverlay) sidebarOverlay.classList.remove("active");
+}
+
+if (mobileMenuBtn) mobileMenuBtn.addEventListener("click", openSidebar);
+if (mobileCloseBtn) mobileCloseBtn.addEventListener("click", closeSidebar);
+if (sidebarOverlay) sidebarOverlay.addEventListener("click", closeSidebar);
+
+// Close sidebar on navigation click (mobile)
+document.querySelectorAll(".nav-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (window.innerWidth <= 1024) {
+      closeSidebar();
+    }
+  });
+});
