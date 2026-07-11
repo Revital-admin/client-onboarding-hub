@@ -1801,7 +1801,7 @@ function initQuickLinks() {
   if (window.firebaseOnSnapshot && window.firebaseDb && window.firebaseDoc) {
     window.firebaseOnSnapshot(window.firebaseDoc(window.firebaseDb, "hub", "quickLinks"), (docSnap) => {
       if (docSnap.exists()) {
-        const data = doc.data();
+        const data = docSnap.data();
         if (data && Array.isArray(data.links)) {
           savedLinks = data.links;
           localStorage.setItem('revital-team-links-array', JSON.stringify(savedLinks));
