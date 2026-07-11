@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+window.addEventListener('error', function(e) {
+  document.getElementById('loader').innerHTML = '<h2 style="color:red;">Error</h2><p>' + e.message + ' at line ' + e.lineno + '</p>';
+});
+</script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Client Portal</title>
@@ -228,6 +234,6 @@
     </main>
   </div>
 
-  <script src="js/app.js?v=62"></script>
+  <script src="js/app.js?v=71"></script>
 </body>
 </html>

@@ -180,22 +180,27 @@ function setupIframe(navId, iframeId, url) {
 
 function renderChecklist() {
   checklistContainer.innerHTML = "";
-  if (!clientData.onboardingChecklist || clientData.onboardingChecklist.length === 0) return;
+  
+  // Backwards compatibility for older schema
+  const checklistSource = clientData.onboardingChecklist || clientData.onboarding;
+  
+  if (!checklistSource || !Array.isArray(checklistSource) || checklistSource.length === 0) return;
   
   let allItems = [];
-  clientData.onboardingChecklist.forEach(cat => {
-    cat.items.forEach(item => {
-      // Only show items that start with "Client:" or we can just show all phase 1.
-      // For now, let's show all items in the first category ("Phase 1: Setup") to the client.
-      if (cat.category.includes("Phase 1") || item.label.toLowerCase().includes("client")) {
-        allItems.push(item);
-      }
-    });
+  checklistSource.forEach(cat => {
+    if (cat && cat.items && Array.isArray(cat.items)) {
+      cat.items.forEach(item => {
+        // Only show items that start with "Client:" or we can just show all phase 1.
+        if ((cat.category && cat.category.includes("Phase 1")) || (item.label && item.label.toLowerCase().includes("client"))) {
+          allItems.push(item);
+        }
+      });
+    }
   });
 
   // If we couldn't filter easily, just grab the first 4 tasks.
-  if (allItems.length === 0) {
-    allItems = clientData.onboardingChecklist[0].items.slice(0, 4);
+  if (allItems.length === 0 && checklistSource[0] && checklistSource[0].items) {
+    allItems = checklistSource[0].items.slice(0, 4);
   }
 
   let completedCount = 0;
@@ -208,7 +213,7 @@ function renderChecklist() {
     
     const cb = document.createElement("input");
     cb.type = "checkbox";
-    cb.checked = item.checked;
+    cb.checked = !!item.checked;
     
     cb.addEventListener("change", (e) => {
       item.checked = e.target.checked;
@@ -216,7 +221,7 @@ function renderChecklist() {
     });
 
     const span = document.createElement("span");
-    span.textContent = item.label.replace("Client: ", ""); // clean label
+    span.textContent = item.label ? item.label.replace("Client: ", "") : "Task"; 
 
     div.appendChild(cb);
     div.appendChild(span);
@@ -229,10 +234,9 @@ function renderChecklist() {
       fireConfetti();
       window.hasFiredConfetti = true;
     }
-  } else {
-    window.hasFiredConfetti = false;
   }
 }
+
 
 function updateFirebaseChecklist() {
   const docRef = db.collection("agency").doc("clientsDb");
