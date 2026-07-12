@@ -1910,8 +1910,31 @@ function saveBrandVault() {
 // ── Firebase Cloud Sync ──
 let isInitialLoad = true;
 
+function backfillMissingClientChecklists() {
+  // Clients created before the client-facing checklist feature shipped
+  // never got a clientChecklist array. Client Portal Manager backfills it,
+  // but only for a client the admin has actually opened that tool for -
+  // any client that hasn't been visited there yet silently syncs an empty
+  // checklist to its portal, which just looks blank to the client with no
+  // explanation. Backfill here so every client gets the starter checklist
+  // regardless of whether Client Portal Manager has been opened for them.
+  let changed = false;
+  Object.values(clientsDb).forEach(client => {
+    if (client && !Array.isArray(client.clientChecklist)) {
+      client.clientChecklist = DEFAULT_CLIENT_CHECKLIST.map(item => ({
+        id: item.id,
+        label: item.label,
+        checked: false
+      }));
+      changed = true;
+    }
+  });
+  return changed;
+}
+
 function saveDatabase() {
   // 1. Save locally as fallback
+  backfillMissingClientChecklists();
   localStorage.setItem("REVITAL_HUB_CLIENTS", JSON.stringify(clientsDb));
   
   // 2. Trigger Autosave UI indicator
@@ -2058,6 +2081,13 @@ function loadDatabase() {
     const defaultName = "Nexus Productions";
     clientsDb[defaultName] = createClientBlankState(defaultName);
     activeClientName = defaultName;
+  }
+
+  // Self-heal any client missing a clientChecklist (see
+  // backfillMissingClientChecklists) and push the fix out immediately so
+  // it doesn't sit unsynced until the next unrelated edit.
+  if (backfillMissingClientChecklists()) {
+    saveDatabase();
   }
 
   // Render immediately with whatever we have (localStorage cache or the
