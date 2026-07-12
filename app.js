@@ -687,6 +687,11 @@ function initTabNavigation() {
 
 // ── View Refresh Controllers ──
 function refreshAllViews() {
+  // Keep one live listener per client with a magic link so client-driven
+  // checklist changes reach the agency side immediately, not just as a
+  // side effect of the admin happening to save something.
+  try { ensureClientPortalListeners(); } catch (e) {}
+
   // Toggle Sandbox Banner
   const sandboxName = "Quick Sandbox (One-Offs)";
   const banner = document.getElementById("sandboxBanner");
@@ -2011,35 +2016,41 @@ function commitDatabaseToCloud() {
 // holding the actual magic link can read a given client's portal data.
 // Non-portal fields (proposals, SEO audits, internal notes, etc.) never
 // leave the admin-only agency/clientsDb document.
+function foldInOnboardingChecked(targetCategories, existingCategories) {
+  if (!Array.isArray(targetCategories) || !Array.isArray(existingCategories)) return false;
+  const checkedIds = new Set();
+  existingCategories.forEach(cat => (cat.items || []).forEach(item => {
+    if (item.checked) checkedIds.add(item.id);
+  }));
+  let changed = false;
+  targetCategories.forEach(cat => (cat.items || []).forEach(item => {
+    if (checkedIds.has(item.id) && !item.checked) {
+      item.checked = true;
+      changed = true;
+    }
+  }));
+  return changed;
+}
+
+function foldInClientChecklistChecked(targetItems, existingItems) {
+  if (!Array.isArray(targetItems) || !Array.isArray(existingItems)) return false;
+  const checkedIds = new Set(existingItems.filter(item => item.checked).map(item => item.id));
+  let changed = false;
+  targetItems.forEach(item => {
+    if (checkedIds.has(item.id) && !item.checked) {
+      item.checked = true;
+      changed = true;
+    }
+  });
+  return changed;
+}
+
 async function syncPublicPortalDocs(dbSnapshot) {
   if (!window.firebaseDb || !window.firebaseDb.collection) return;
 
   const entries = Object.entries(dbSnapshot).filter(
     ([, client]) => client && client.portalConfig && client.portalConfig.magicToken
   );
-
-  // Small helpers shared between "fold onto this sync's outgoing clone"
-  // and "fold onto the real, live clientsDb" below.
-  function foldInOnboardingChecked(targetCategories, existingCategories) {
-    if (!Array.isArray(targetCategories) || !Array.isArray(existingCategories)) return;
-    const checkedIds = new Set();
-    existingCategories.forEach(cat => (cat.items || []).forEach(item => {
-      if (item.checked) checkedIds.add(item.id);
-    }));
-    targetCategories.forEach(cat => (cat.items || []).forEach(item => {
-      if (checkedIds.has(item.id)) item.checked = true;
-    }));
-  }
-
-  function foldInClientChecklistChecked(targetItems, existingItems) {
-    if (!Array.isArray(targetItems) || !Array.isArray(existingItems)) return;
-    const checkedIds = new Set(existingItems.filter(item => item.checked).map(item => item.id));
-    targetItems.forEach(item => {
-      if (checkedIds.has(item.id)) item.checked = true;
-    });
-  }
-
-  let anyRealClientMutated = false;
 
   for (const [name, client] of entries) {
     const token = client.portalConfig.magicToken;
@@ -2049,27 +2060,15 @@ async function syncPublicPortalDocs(dbSnapshot) {
 
     try {
       // Fold in any checklist progress the client already made directly on
-      // the portal so this save doesn't stomp on it.
+      // the portal so this save doesn't stomp on it. (Pulling that progress
+      // into the real, live clientsDb so the admin side actually SEES it is
+      // handled separately and continuously by ensureClientPortalListeners
+      // below - not tied to whether the admin happens to save something.)
       const existing = await publicRef.get();
       if (existing.exists) {
         const existingData = existing.data();
-
         foldInOnboardingChecked(localChecklist, existingData.onboardingChecklist);
         foldInClientChecklistChecked(localClientChecklist, existingData.clientChecklist);
-
-        // The two fold-ins above only touched `dbSnapshot`'s clone, so this
-        // sync's outgoing write doesn't stomp on the client's own progress.
-        // But that clone is discarded after this function returns - without
-        // also applying it to the real, live clientsDb, the admin's own
-        // Client Portal Manager view (and dashboard) would never actually
-        // learn the client had checked anything off; only the portal doc
-        // would know. Mirror the checked state onto the real object too.
-        const realClient = clientsDb[name];
-        if (realClient) {
-          foldInOnboardingChecked(realClient.onboardingChecklist, existingData.onboardingChecklist);
-          foldInClientChecklistChecked(realClient.clientChecklist, existingData.clientChecklist);
-          anyRealClientMutated = true;
-        }
       }
     } catch (e) {
       console.warn("Could not read existing public portal doc for", name, e);
@@ -2090,25 +2089,78 @@ async function syncPublicPortalDocs(dbSnapshot) {
       console.error("Public portal doc write failed for", name, err);
     });
   }
+}
 
-  // Persist any checked-state we just pulled in from clients' own portal
-  // activity, and refresh the on-screen views so the admin sees it without
-  // needing to switch tabs or reload.
-  if (anyRealClientMutated) {
-    localStorage.setItem("REVITAL_HUB_CLIENTS", JSON.stringify(clientsDb));
-    try { renderOnboardingChecklist(); } catch (e) {}
-    try { renderDashboard(); } catch (e) {}
-    try {
-      if (typeof iframeNeedsReload !== "undefined" && iframeNeedsReload["tab-portal"] !== undefined) {
-        iframeNeedsReload["tab-portal"] = true;
-        const activeTabBtn = document.querySelector(".nav-item-btn.active");
-        const activeTab = activeTabBtn ? activeTabBtn.getAttribute("data-tab") : "";
-        if (activeTab === "tab-portal") {
-          refreshIframeTab("tab-portal");
-        }
+// ── Live sync: client-side checklist changes -> agency side ──
+// The client portal writes checklist checkbox changes directly to its own
+// clients/{token} doc (see updateFirebaseChecklist in portal/js/app.js) -
+// that write never goes through the admin's saveDatabase()/clientsDb at
+// all. Without a listener dedicated to watching for that, the agency side
+// only ever found out about it as an incidental side effect of the admin
+// happening to save something else - which is why checking a box on the
+// client portal didn't reliably (or promptly) show up here. This keeps one
+// real-time listener per client with an active magic link, purely to pull
+// client-driven checklist progress back into the real clientsDb the
+// moment it happens.
+const portalListenerUnsubscribers = {};
+
+function ensureClientPortalListeners() {
+  if (!window.firebaseDb || !window.firebaseOnSnapshot || !window.firebaseDoc) return;
+
+  const activeTokens = new Set();
+
+  Object.entries(clientsDb).forEach(([name, client]) => {
+    if (!client || !client.portalConfig || !client.portalConfig.magicToken) return;
+    const token = client.portalConfig.magicToken;
+    activeTokens.add(token);
+
+    if (portalListenerUnsubscribers[token]) return; // already listening
+
+    const docRef = window.firebaseDoc(window.firebaseDb, "clients", token);
+    const unsubscribe = window.firebaseOnSnapshot(docRef, (docSnap) => {
+      if (!docSnap.exists) return;
+      // Skip echoes of the admin's own not-yet-confirmed writes to this
+      // same doc (from syncPublicPortalDocs above) - only react to changes
+      // that actually came from somewhere else (the client's own portal).
+      if (docSnap.metadata && docSnap.metadata.hasPendingWrites) return;
+
+      const data = docSnap.data();
+      const currentClient = clientsDb[name];
+      if (!currentClient) return;
+
+      const changedOnboarding = foldInOnboardingChecked(currentClient.onboardingChecklist, data.onboardingChecklist);
+      const changedClientChecklist = foldInClientChecklistChecked(currentClient.clientChecklist, data.clientChecklist);
+
+      if (changedOnboarding || changedClientChecklist) {
+        localStorage.setItem("REVITAL_HUB_CLIENTS", JSON.stringify(clientsDb));
+        try { renderOnboardingChecklist(); } catch (e) {}
+        try { renderDashboard(); } catch (e) {}
+        try {
+          if (typeof iframeNeedsReload !== "undefined" && iframeNeedsReload["tab-portal"] !== undefined) {
+            iframeNeedsReload["tab-portal"] = true;
+            const activeTabBtn = document.querySelector(".nav-item-btn.active");
+            const activeTab = activeTabBtn ? activeTabBtn.getAttribute("data-tab") : "";
+            if (activeTab === "tab-portal" && activeClientName === name) {
+              refreshIframeTab("tab-portal");
+            }
+          }
+        } catch (e) {}
       }
-    } catch (e) {}
-  }
+    }, (err) => {
+      console.error("Portal listener error for", name, err);
+    });
+
+    portalListenerUnsubscribers[token] = unsubscribe;
+  });
+
+  // Stop listening for tokens that no longer belong to any client (deleted
+  // client, or a regenerated magic link).
+  Object.keys(portalListenerUnsubscribers).forEach(token => {
+    if (!activeTokens.has(token)) {
+      try { portalListenerUnsubscribers[token](); } catch (e) {}
+      delete portalListenerUnsubscribers[token];
+    }
+  });
 }
 
 function loadDatabase() {
