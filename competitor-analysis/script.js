@@ -282,6 +282,42 @@ function removePlatform(idx) {
   showBanner('success', `Platform "${pName}" was removed.`);
 }
 
+/* ── Publish current report as a new dated entry in the client's report
+   archive, shown natively on their portal. This is a deliberate, separate
+   action from autosave - saveToParent()/autosave just persists your
+   in-progress draft to the hub, it does NOT touch the archive or the
+   client-visible portal. Only clicking this button does. ── */
+function publishToClientPortal() {
+  if (!isEmbedded || !parentClient) {
+    showBanner('error', 'This can only be published from inside the Hub.');
+    return;
+  }
+
+  // Make sure reportState reflects whatever's currently in the form.
+  saveToParent();
+
+  if (!Array.isArray(parentClient.reportArchive)) {
+    parentClient.reportArchive = [];
+  }
+
+  const snapshot = {
+    id: 'report_' + Date.now(),
+    date: reportState.date || '',
+    preparedBy: reportState.preparedBy || '',
+    focus: reportState.focus || '',
+    wins: reportState.wins || '',
+    platforms: JSON.parse(JSON.stringify(reportState.platforms || [])),
+    cellData: JSON.parse(JSON.stringify(reportState.cellData || {})),
+    publishedAt: new Date().toISOString()
+  };
+
+  // Newest first.
+  parentClient.reportArchive.unshift(snapshot);
+  window.parent.saveDatabase();
+
+  showBanner('success', 'Report published! It now shows on the client\'s portal.');
+}
+
 /* ── Show Status Notification Banners ── */
 function showBanner(type, message) {
   const successBanner = document.getElementById('banner-success');

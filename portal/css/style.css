@@ -476,3 +476,112 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Monthly Reports (published archive) ── */
+.report-archive-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.report-archive-empty {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.report-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.report-card:hover {
+  border-color: var(--color-primary);
+  background: var(--color-surface-hover);
+}
+
+.report-card-date {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.report-card-focus {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.report-detail-header h3 {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.report-meta {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+.report-wins {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 16px;
+  margin: 20px 0;
+  font-size: 0.9rem;
+}
+
+.report-wins strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--color-primary);
+}
+
+.report-wins p {
+  color: var(--color-text-secondary);
+  white-space: pre-wrap;
+}
+
+.report-metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.report-metrics-table th,
+.report-metrics-table td {
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.report-metrics-table th {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.report-metrics-table td.metric-label {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.report-metrics-table td {
+  color: var(--color-text);
+}
+
+.platform-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}

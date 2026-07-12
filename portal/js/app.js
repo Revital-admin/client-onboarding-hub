@@ -30,6 +30,7 @@ const amEmail = document.getElementById("amEmail");
 const btnBookCall = document.getElementById("btnBookCall");
 const btnRevision = document.getElementById("btnRevision");
 const btnContentRequest = document.getElementById("btnContentRequest");
+const btnUploadFiles = document.getElementById("btnUploadFiles");
 const quickActionsWidget = document.getElementById("quickActionsWidget");
 
 
@@ -129,6 +130,26 @@ function renderPortal() {
   setupIframe("navCompleted", "completedIframe", config.completedWorkUrl);
   setupIframe("navAssets", "assetsIframe", config.brandAssetsUrl);
 
+  // Monthly Reports is always visible - it shows the published report
+  // archive natively regardless of whether an external embed link is also
+  // configured. The embed (if any) is just an optional extra section
+  // beneath the archive, not the only content.
+  document.getElementById("navMonthlyReports").style.display = "flex";
+  const monthlyReportsEmbedWrapper = document.getElementById("monthlyReportsEmbedWrapper");
+  const monthlyReportsIframe = document.getElementById("monthlyReportsIframe");
+  if (config.monthlyReportsUrl) {
+    monthlyReportsEmbedWrapper.style.display = "block";
+    monthlyReportsIframe.dataset.src = config.monthlyReportsUrl;
+    const viewSection = document.getElementById("view-monthlyreports");
+    if (viewSection && viewSection.classList.contains("active") && monthlyReportsIframe.src !== config.monthlyReportsUrl) {
+      monthlyReportsIframe.src = config.monthlyReportsUrl;
+    }
+  } else {
+    monthlyReportsEmbedWrapper.style.display = "none";
+  }
+
+  renderReportArchive();
+
   const analyticsEmbed = document.getElementById("analyticsEmbedContainer");
   if (config.liveAnalyticsUrl) {
     analyticsEmbed.style.display = "block";
@@ -150,6 +171,11 @@ function renderPortal() {
   if (config.contentRequestFormUrl) {
     btnContentRequest.style.display = "inline-flex";
     btnContentRequest.href = config.contentRequestFormUrl;
+    hasQuickActions = true;
+  }
+  if (config.fileUploadUrl) {
+    btnUploadFiles.style.display = "inline-flex";
+    btnUploadFiles.href = config.fileUploadUrl;
     hasQuickActions = true;
   }
   if (hasQuickActions) {
@@ -181,30 +207,107 @@ function setupIframe(navId, iframeId, url) {
   }
 }
 
+// ── Monthly Reports (published archive) ──
+// Same metric key -> label mapping used by the admin-side report tool
+// (competitor-analysis/script.js). Duplicated here rather than shared
+// since this is a separate iframe document.
+const REPORT_METRIC_LABELS = {
+  followers_total: "Followers (Total)",
+  followers_new: "Followers (New)",
+  impressions: "Impressions",
+  engagement: "Engagement Rate",
+  posted: "Content Posted",
+  top_post: "Top Performing Post"
+};
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str == null ? "" : String(str);
+  return div.innerHTML;
+}
+
+function renderReportArchive() {
+  const listEl = document.getElementById("reportArchiveList");
+  const detailEl = document.getElementById("reportDetailView");
+  if (!listEl || !detailEl) return;
+
+  detailEl.style.display = "none";
+  listEl.style.display = "grid";
+  listEl.innerHTML = "";
+
+  const reports = Array.isArray(clientData.reportArchive) ? clientData.reportArchive : [];
+
+  if (reports.length === 0) {
+    listEl.style.display = "block";
+    listEl.innerHTML = '<p class="report-archive-empty">No reports have been published yet. Check back soon!</p>';
+    return;
+  }
+
+  reports.forEach((report) => {
+    const card = document.createElement("div");
+    card.className = "report-card";
+    card.innerHTML = `
+      <div class="report-card-date">${escapeHtml(report.date || "Untitled Report")}</div>
+      <div class="report-card-focus">${escapeHtml(report.focus || "")}</div>
+    `;
+    card.addEventListener("click", () => showReportDetail(report));
+    listEl.appendChild(card);
+  });
+}
+
+function showReportDetail(report) {
+  const listEl = document.getElementById("reportArchiveList");
+  const detailEl = document.getElementById("reportDetailView");
+  const contentEl = document.getElementById("reportDetailContent");
+  if (!listEl || !detailEl || !contentEl) return;
+
+  listEl.style.display = "none";
+  detailEl.style.display = "block";
+
+  const platforms = Array.isArray(report.platforms) ? report.platforms : [];
+  const cellData = report.cellData || {};
+  const metricKeys = Object.keys(REPORT_METRIC_LABELS);
+
+  let tableHtml = '<table class="report-metrics-table"><thead><tr><th>Metric</th>';
+  platforms.forEach((p) => {
+    tableHtml += `<th><span class="platform-dot" style="background:${escapeHtml(p.color || "#999")}"></span>${escapeHtml(p.name || "Platform")}</th>`;
+  });
+  tableHtml += "</tr></thead><tbody>";
+
+  metricKeys.forEach((key) => {
+    tableHtml += `<tr><td class="metric-label">${escapeHtml(REPORT_METRIC_LABELS[key])}</td>`;
+    platforms.forEach((_, idx) => {
+      const val = cellData[key] && cellData[key][idx] ? cellData[key][idx] : "\u2014";
+      tableHtml += `<td>${escapeHtml(val)}</td>`;
+    });
+    tableHtml += "</tr>";
+  });
+  tableHtml += "</tbody></table>";
+
+  contentEl.innerHTML = `
+    <div class="report-detail-header">
+      <h3>${escapeHtml(report.date || "Report")}</h3>
+      ${report.preparedBy ? `<p class="report-meta">Prepared by ${escapeHtml(report.preparedBy)}</p>` : ""}
+      ${report.focus ? `<p class="report-meta">Focus: ${escapeHtml(report.focus)}</p>` : ""}
+    </div>
+    ${report.wins ? `<div class="report-wins"><strong>Key wins this month</strong><p>${escapeHtml(report.wins)}</p></div>` : ""}
+    ${platforms.length > 0 ? tableHtml : ""}
+  `;
+}
+
 function renderChecklist() {
   checklistContainer.innerHTML = "";
-  
-  // Backwards compatibility for older schema
-  const checklistSource = clientData.onboardingChecklist || clientData.onboarding;
-  
-  if (!checklistSource || !Array.isArray(checklistSource) || checklistSource.length === 0) return;
-  
-  let allItems = [];
-  checklistSource.forEach(cat => {
-    if (cat && cat.items && Array.isArray(cat.items)) {
-      cat.items.forEach(item => {
-        // Only show items that start with "Client:" or we can just show all phase 1.
-        if ((cat.category && cat.category.includes("Phase 1")) || (item.label && item.label.toLowerCase().includes("client"))) {
-          allItems.push(item);
-        }
-      });
-    }
-  });
 
-  // If we couldn't filter easily, just grab the first 4 tasks.
-  if (allItems.length === 0 && checklistSource[0] && checklistSource[0].items) {
-    allItems = checklistSource[0].items.slice(0, 4);
-  }
+  // The client-facing checklist is its own, fully independent list -
+  // configured per-client in the hub's "Client Checklist" section - rather
+  // than a filtered view of the account manager's internal onboarding
+  // tracker (clientData.onboardingChecklist). That older approach kept
+  // leaking internal-only tasks onto the client's portal because it relied
+  // on keyword-guessing or a manual per-task visibility flag layered on
+  // top of internal data. This is just whatever the admin put here.
+  const allItems = Array.isArray(clientData.clientChecklist) ? clientData.clientChecklist : [];
+
+  if (allItems.length === 0) return;
 
   let completedCount = 0;
 
@@ -245,15 +348,25 @@ function updateFirebaseChecklist() {
   const docRef = db.collection("clients").doc(clientToken);
 
   // Firestore rules only allow unauthenticated writes that touch the
-  // onboardingChecklist field, so that's the only thing we ever send here -
-  // normalize the legacy "onboarding" key to the canonical one on write.
-  const checklist = clientData.onboardingChecklist || clientData.onboarding || [];
+  // clientChecklist field - this is the client's own separate checklist,
+  // not the account manager's internal onboarding tracker.
+  const checklist = Array.isArray(clientData.clientChecklist) ? clientData.clientChecklist : [];
   const purifiedChecklist = JSON.parse(JSON.stringify(checklist));
 
   docRef.set({
-    onboardingChecklist: purifiedChecklist
+    clientChecklist: purifiedChecklist
   }, { merge: true }).catch(err => {
     console.error("Error updating checklist:", err);
+  });
+}
+
+// Back button from a report's detail view to the archive grid
+const btnBackToReports = document.getElementById("btnBackToReports");
+if (btnBackToReports) {
+  btnBackToReports.addEventListener("click", () => {
+    document.getElementById("reportDetailView").style.display = "none";
+    document.getElementById("reportArchiveList").style.display = "";
+    renderReportArchive();
   });
 }
 

@@ -225,8 +225,22 @@ function createClientBlankState(name) {
       id: item.id,
       label: item.label,
       checked: false,
-      notes: "" // local note for this task
+      notes: "", // local note for this task
+      // Explicit opt-in flag for whether this task shows on the client
+      // portal's onboarding checklist. Defaults to false (internal-only)
+      // unless the template item was already marked visible - nothing is
+      // shown to the client unless someone deliberately flags it.
+      clientVisible: item.clientVisible || false
     }))
+  }));
+
+  // Separate, client-facing checklist - fully independent of the internal
+  // onboarding tracker above. Managed per-client in the Client Portal
+  // Manager tool and shown as-is on the client's own portal.
+  const clientChecklist = DEFAULT_CLIENT_CHECKLIST.map(item => ({
+    id: item.id,
+    label: item.label,
+    checked: false
   }));
 
   // Clone SEO audit steps
@@ -305,6 +319,8 @@ function createClientBlankState(name) {
     clickupUrl: "",
     onboardingDate: today,
     onboardingChecklist: onboarding,
+    clientChecklist: clientChecklist,
+    reportArchive: [], // published monthly reports shown on the client portal
     uxuiAudit: uxuiAudit,
     seoAudit: seoAudit,
     paidAdsAudit: paidAdsAudit,
@@ -1080,6 +1096,10 @@ function renderOnboardingChecklist() {
         <div class="checklist-item-content">
           <div class="checklist-item-label">${item.label}</div>
         </div>
+        <label class="client-visible-toggle" title="Show this task on the client's portal checklist">
+          <input type="checkbox" class="client-visible-checkbox" ${item.clientVisible ? "checked" : ""}>
+          <span>Visible to client</span>
+        </label>
       `;
 
       // Event listener for checkbox
@@ -1101,7 +1121,18 @@ function renderOnboardingChecklist() {
         }, 50);
       });
 
-
+      // Event listener for the client-visibility toggle. This is the only
+      // thing that controls whether a task shows up on the client-facing
+      // portal - internal-only tasks (like "schedule internal prep
+      // meeting") should stay unchecked here.
+      const visToggle = card.querySelector(".client-visible-checkbox");
+      visToggle.addEventListener("change", () => {
+        item.clientVisible = visToggle.checked;
+        saveDatabase();
+        showBanner("success", item.clientVisible
+          ? "This task will now show on the client's portal."
+          : "This task is now hidden from the client's portal.");
+      });
 
       stack.appendChild(card);
     });
@@ -1385,7 +1416,8 @@ function initParentEventListeners() {
           id: newId,
           label: label,
           checked: false,
-          notes: ""
+          notes: "",
+          clientVisible: false
         });
         saveDatabase();
         labelInput.value = "";
@@ -1410,7 +1442,8 @@ function initParentEventListeners() {
           id: item.id,
           label: item.label,
           checked: false,
-          notes: ""
+          notes: "",
+          clientVisible: item.clientVisible || false
         }))
       }));
 
@@ -1845,13 +1878,16 @@ async function syncPublicPortalDocs(dbSnapshot) {
     const token = client.portalConfig.magicToken;
     const publicRef = window.firebaseDb.collection("clients").doc(token);
     const localChecklist = client.onboardingChecklist || client.onboarding || [];
+    const localClientChecklist = client.clientChecklist || [];
 
     try {
       // Fold in any checklist progress the client already made directly on
       // the portal so this save doesn't stomp on it.
       const existing = await publicRef.get();
       if (existing.exists) {
-        const existingChecklist = existing.data().onboardingChecklist;
+        const existingData = existing.data();
+
+        const existingChecklist = existingData.onboardingChecklist;
         if (Array.isArray(existingChecklist) && Array.isArray(localChecklist)) {
           const checkedIds = new Set();
           existingChecklist.forEach(cat => (cat.items || []).forEach(item => {
@@ -1861,6 +1897,17 @@ async function syncPublicPortalDocs(dbSnapshot) {
             if (checkedIds.has(item.id)) item.checked = true;
           }));
         }
+
+        // Same fold-in, but for the separate client-facing checklist.
+        const existingClientChecklist = existingData.clientChecklist;
+        if (Array.isArray(existingClientChecklist) && Array.isArray(localClientChecklist)) {
+          const checkedClientIds = new Set(
+            existingClientChecklist.filter(item => item.checked).map(item => item.id)
+          );
+          localClientChecklist.forEach(item => {
+            if (checkedClientIds.has(item.id)) item.checked = true;
+          });
+        }
       }
     } catch (e) {
       console.warn("Could not read existing public portal doc for", name, e);
@@ -1868,7 +1915,13 @@ async function syncPublicPortalDocs(dbSnapshot) {
 
     const projection = {
       portalConfig: client.portalConfig,
-      onboardingChecklist: localChecklist
+      onboardingChecklist: localChecklist,
+      clientChecklist: localClientChecklist,
+      // Published report snapshots (see competitor-analysis/script.js's
+      // publishToClientPortal). Admin-only to create - clients never write
+      // this field, so no fold-in-existing-progress step is needed here
+      // the way there is for the two checklists above.
+      reportArchive: client.reportArchive || []
     };
 
     publicRef.set(projection).catch(err => {

@@ -86,6 +86,10 @@ window.addEventListener('error', function(e) {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
           Completed Work
         </button>
+        <button class="nav-btn" data-target="view-monthlyreports" id="navMonthlyReports" style="display:none;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"></path><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path></svg>
+          Monthly Reports
+        </button>
       </nav>
 
       <!-- First Week Checklist Widget -->
@@ -107,6 +111,10 @@ window.addEventListener('error', function(e) {
           <a href="#" id="btnContentRequest" class="btn-secondary" target="_blank" style="display:none; text-align:left; justify-content: flex-start; gap: 8px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
             Submit Content Request
+          </a>
+          <a href="#" id="btnUploadFiles" class="btn-secondary" target="_blank" style="display:none; text-align:left; justify-content: flex-start; gap: 8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Upload Files
           </a>
         </div>
       </div>
@@ -216,6 +224,30 @@ window.addEventListener('error', function(e) {
         </header>
         <div class="iframe-wrapper full-height">
           <iframe id="completedIframe" src="" frameborder="0"></iframe>
+        </div>
+      </section>
+
+      <!-- MONTHLY REPORTS VIEW -->
+      <section id="view-monthlyreports" class="view-section">
+        <header class="view-header">
+          <h2>Monthly Reports</h2>
+          <p>Your monthly performance and results summaries.</p>
+        </header>
+
+        <div id="reportArchiveList" class="report-archive-list">
+          <!-- Populated by JS -->
+        </div>
+
+        <div id="reportDetailView" class="report-detail-view" style="display:none;">
+          <button id="btnBackToReports" class="btn-secondary" style="margin-bottom: 20px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Back to all reports
+          </button>
+          <div id="reportDetailContent"></div>
+        </div>
+
+        <div id="monthlyReportsEmbedWrapper" class="iframe-wrapper full-height" style="display:none; margin-top: 32px;">
+          <iframe id="monthlyReportsIframe" src="" frameborder="0"></iframe>
         </div>
       </section>
 

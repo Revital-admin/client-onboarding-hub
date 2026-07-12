@@ -126,6 +126,32 @@
           <label for="brandAssetsUrl">Assets & Brand View (ClickUp Embed)</label>
           <input type="text" id="brandAssetsUrl" placeholder="https://sharing.clickup.com/.../">
         </div>
+
+        <div class="form-group">
+          <label for="monthlyReportsUrl">Monthly Reports (ClickUp/GDoc Embed)</label>
+          <input type="text" id="monthlyReportsUrl" placeholder="https://sharing.clickup.com/.../">
+        </div>
+
+        <div class="form-group">
+          <label for="fileUploadUrl">Upload Files (JotForm/Form Embed)</label>
+          <input type="text" id="fileUploadUrl" placeholder="https://form.jotform.com/...">
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card" style="margin-top: 24px;">
+      <div class="section-title" style="margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+        <h2 style="font-family: var(--font-heading); color: var(--color-primary);">Client Checklist</h2>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--color-text-secondary); margin-top: -12px; margin-bottom: 20px;">
+        This is a separate, client-facing checklist shown on the client's own portal. It has nothing to do with your internal onboarding tracker - add whatever tasks you actually want this client to see and check off themselves.
+      </p>
+
+      <div id="clientChecklistList" class="client-checklist-list"></div>
+
+      <div style="display: flex; gap: 8px; margin-top: 16px;">
+        <input type="text" id="newClientChecklistItem" placeholder="Add a task for the client..." style="flex: 1;">
+        <button class="download-pdf-btn" id="addClientChecklistItemBtn" style="padding: 0 16px; white-space: nowrap;">Add</button>
       </div>
     </div>
 
