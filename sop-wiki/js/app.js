@@ -43,15 +43,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function saveSopsToFirestore() {
     const docRef = getSopsDocRef();
-    if (!docRef || !window.parent.firebaseSetDoc) {
+    if (!docRef || !window.parent.firebaseSetDocFromJSON) {
       alert("Couldn't reach the Hub's database - try reopening this tab from the Hub.");
       return;
     }
-    const clean = JSON.parse(JSON.stringify(sops));
-    window.parent.firebaseSetDoc(docRef, { list: clean }).catch(err => {
+    // Pass a JSON string, not an object literal, across the iframe
+    // boundary. An object built in this iframe's own JS realm gets
+    // rejected by Firestore ("a custom Object object") when handed
+    // straight to a Firestore call bound to the parent page - a string is
+    // a primitive with no realm identity problem, and firebaseSetDocFromJSON
+    // parses it in the parent's own realm before writing.
+    const jsonString = JSON.stringify({ list: sops });
+    try {
+      window.parent.firebaseSetDocFromJSON(docRef, jsonString).catch(err => {
+        console.error("Failed to save SOPs:", err);
+        alert("Couldn't save to the cloud: " + err.message);
+      });
+    } catch (err) {
       console.error("Failed to save SOPs:", err);
       alert("Couldn't save to the cloud: " + err.message);
-    });
+    }
   }
 
   function initSops() {
@@ -73,7 +84,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // once, so nothing already written is lost and everything becomes
         // editable going forward.
         sops = typeof SOPS !== "undefined" && Array.isArray(SOPS) ? JSON.parse(JSON.stringify(SOPS)) : [];
-        saveSopsToFirestore();
+        try {
+          saveSopsToFirestore();
+        } catch (err) {
+          // Even if the migration save fails for some reason, still show
+          // the bundled content below rather than leaving the sidebar
+          // blank with no explanation.
+          console.error("SOP migration save failed:", err);
+        }
       }
 
       const query = searchInput.value.trim().toLowerCase();

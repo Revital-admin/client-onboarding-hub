@@ -30,8 +30,21 @@
     // Map compat functions to window for app.js to use synchronously
     window.firebaseDb = db;
     window.firebaseSetDoc = function(docRef, data) { return docRef.set(data); };
+    // Tool iframes (Client Portal Manager, SOP Wiki, etc.) run in their own
+    // browsing context with their own separate Object/JSON/Array globals.
+    // An object literal built inside an iframe and handed straight to
+    // firebaseSetDoc above gets rejected by the Firestore SDK ("a custom
+    // Object object") because it doesn't recognize a plain object from a
+    // different JS realm as one of its own - even though it looks
+    // identical. Passing a JSON string instead and parsing it here, in the
+    // parent's own realm, produces a plain object native to this page that
+    // Firestore accepts normally. Iframes needing to write cross-boundary
+    // objects should use this instead of firebaseSetDoc directly.
+    window.firebaseSetDocFromJSON = function(docRef, jsonString) {
+      return docRef.set(JSON.parse(jsonString));
+    };
     window.firebaseDoc = function(db, collectionPath, docPath) { return db.collection(collectionPath).doc(docPath); };
-    window.firebaseOnSnapshot = function(docRef, callback) { return docRef.onSnapshot(callback); };
+    window.firebaseOnSnapshot = function(docRef, callback, errorCallback) { return docRef.onSnapshot(callback, errorCallback); };
     window.firebaseGetDoc = function(docRef) { return docRef.get(); };
   </script>
 
