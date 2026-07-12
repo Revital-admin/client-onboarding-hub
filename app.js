@@ -4,89 +4,130 @@
    ============================================================ */
 
 
-// ── Auth & Identity ──
-let currentUserEmail = null;
-let globalAdmins = [];
+// ── Cryptographically secure token generator ──
+// (replaces the old Math.random-based generator; used for magic link tokens)
+function generateSecureToken(length = 32) {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+}
 
-async function checkIdentity() {
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('dev') === 'admin') {
-    currentUserEmail = "dev_bypass_admin";
-    isAdmin = true;
-    console.log("Developer Admin Bypass Active");
-    updateAdminUI();
-    updateUserProfile();
+// ── Firebase Auth gate (admin) ──
+// Cloudflare Access already verifies who reaches this page, but Firestore
+// has no knowledge of that identity on its own. Rather than making you log
+// in twice, this silently exchanges the Access-verified identity for a
+// Firebase session: _worker.js's /api/mint-firebase-token route reads the
+// already-verified Cf-Access-Authenticated-User-Email header and mints a
+// Firebase custom token, which we redeem here with no popup. A manual
+// Google sign-in is kept as a fallback (e.g. local dev without Access
+// in front, or if the token-minting function isn't configured yet).
+const ADMIN_EMAIL = "admin@revitalproductions.com";
+let firebaseAuthReady = false;
+
+function initAdminAuthGate() {
+  if (!window.firebase || !firebase.auth) {
+    console.warn("Firebase Auth SDK not loaded; skipping auth gate.");
+    firebaseAuthReady = true;
+    boot();
     return;
   }
-  try {
-    const response = await fetch('/cdn-cgi/access/get-identity');
-    if (response.ok) {
-      const data = await response.json();
-      if (data && data.email) {
-        currentUserEmail = data.email.toLowerCase();
-        verifyAdminStatus();
+
+  const gate = document.getElementById("authGate");
+  const signInBtn = document.getElementById("authGateSignInBtn");
+  const statusEl = document.getElementById("authGateStatus");
+  const errorEl = document.getElementById("authGateError");
+
+  function showManualSignIn(message) {
+    if (statusEl) statusEl.style.display = "none";
+    if (signInBtn) signInBtn.style.display = "inline-block";
+    if (errorEl) {
+      if (message) {
+        errorEl.textContent = message;
+        errorEl.style.display = "block";
+      } else {
+        errorEl.style.display = "none";
       }
     }
-    updateUserProfile();
-  } catch (error) {
-    console.log("Running locally or Cloudflare identity unavailable.");
+    if (gate) gate.style.display = "flex";
   }
-}
 
-function verifyAdminStatus() {
-  if (currentUserEmail && globalAdmins.includes(currentUserEmail)) {
-    isAdmin = true;
-  } else {
-    isAdmin = false;
+  if (signInBtn) {
+    signInBtn.addEventListener("click", () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.setCustomParameters({ login_hint: ADMIN_EMAIL });
+      firebase.auth().signInWithPopup(provider).catch(err => {
+        console.error("Manual sign-in failed:", err);
+        showManualSignIn("Sign-in failed: " + err.message);
+      });
+    });
   }
-  updateAdminUI();
-}
 
-function updateAdminUI() {
-  const adminBtn = document.getElementById("adminSettingsBtn");
-  if (adminBtn) adminBtn.style.display = isAdmin ? 'inline-block' : 'none';
-  
-  const addQuickLinkBtn = document.getElementById("addQuickLinkBtn");
-  if (addQuickLinkBtn) addQuickLinkBtn.style.display = isAdmin ? 'flex' : 'none';
-
-  if (typeof window.renderLinks === 'function') {
-    window.renderLinks();
+  let attemptedSilentSignIn = false;
+  async function attemptSilentSignIn() {
+    if (attemptedSilentSignIn) return;
+    attemptedSilentSignIn = true;
+    try {
+      const res = await fetch("/api/mint-firebase-token");
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.token) {
+        await firebase.auth().signInWithCustomToken(data.token);
+        // onAuthStateChanged below fires again and completes the boot.
+      } else {
+        console.log("Silent sign-in unavailable:", data.error || res.status);
+        showManualSignIn();
+      }
+    } catch (e) {
+      console.log("Silent sign-in failed (likely running locally without Access):", e);
+      showManualSignIn();
+    }
   }
+
+  // Show a lightweight "checking access" state immediately while the
+  // silent exchange runs, so the page isn't just blank.
+  if (gate) gate.style.display = "flex";
+
+  firebase.auth().onAuthStateChanged((user) => {
+    const isAuthorizedAdmin = !!(user && user.email && user.email.toLowerCase() === ADMIN_EMAIL);
+
+    if (isAuthorizedAdmin) {
+      if (gate) gate.style.display = "none";
+      firebaseAuthReady = true;
+      boot();
+    } else if (user) {
+      // Signed into Firebase with the wrong account - sign back out.
+      firebase.auth().signOut();
+      showManualSignIn("That account isn't authorized for this hub.");
+    } else {
+      attemptSilentSignIn();
+    }
+  });
 }
 
-// ── Admin Modal Functions ──
-window.addAdminEmail = function() {
-  const input = document.getElementById("newAdminEmail");
-  const email = input.value.trim().toLowerCase();
-  if (!email || !email.includes("@")) return alert("Enter a valid email.");
-  if (globalAdmins.includes(email)) return alert("Already an admin.");
-  globalAdmins.push(email);
-  saveAdminsToFirebase();
-  input.value = "";
-}
-window.removeAdminEmail = function(email) {
-  if (email === "admin@revitalproductions.com") return;
-  if (!confirm(`Remove ${email} from admins?`)) return;
-  globalAdmins = globalAdmins.filter(e => e !== email);
-  saveAdminsToFirebase();
-}
+// boot() runs the rest of app init, but only once, and only after the
+// admin auth gate above has confirmed identity.
+let hasBooted = false;
+function boot() {
+  if (hasBooted) return;
+  hasBooted = true;
+  fetchCloudflareProfile();
+  try { initTabNavigation(); } catch(e) { console.error("TabNav Error:", e); }
+  try { initMobileNavigation(); } catch(e) { console.error("MobileNav Error:", e); }
+  try { initParentEventListeners(); } catch(e) { console.error("ParentListeners Error:", e); }
+  try { refreshAllViews(); } catch(e) { console.error("Refresh Error:", e); }
 
-// ── Theme & User Profile ──
-
-
-
-function updateUserProfile() {
-  const avatarEl = document.getElementById('userAvatar');
-  const emailEl = document.getElementById('userEmail');
-  if (!avatarEl || !emailEl) return;
-  
-  if (currentUserEmail) {
-    emailEl.textContent = currentUserEmail;
-    avatarEl.textContent = currentUserEmail.charAt(0).toUpperCase();
-  } else {
-    emailEl.textContent = "Ronald";
-    avatarEl.textContent = "R";
+  const resetSandboxBtn = document.getElementById("resetSandboxBtn");
+  if (resetSandboxBtn) {
+    resetSandboxBtn.addEventListener("click", () => {
+      const sandboxName = "Quick Sandbox (One-Offs)";
+      if (!confirm("Are you sure you want to clear all data in the Quick Sandbox? This will reset all checklist audits and competitor sheets back to blank templates.")) return;
+      clientsDb[sandboxName] = createClientBlankState(sandboxName);
+      saveDatabase();
+      refreshAllViews();
+      showBanner("success", "Quick Sandbox data cleared and reset successfully!");
+    });
   }
+
+  loadDatabase();
 }
 
 // ── PDF Generation ──
@@ -155,15 +196,6 @@ async function generateClientPDF() {
   btn.innerHTML = oldText;
   btn.disabled = false;
 }
-
-function saveAdminsToFirebase() {
-  if (window.firebaseSetDoc && window.firebaseDb && window.firebaseDoc) {
-    window.firebaseSetDoc(window.firebaseDoc(window.firebaseDb, "hub", "settings"), { admins: globalAdmins })
-      .then(() => renderAdminList())
-      .catch(err => console.error(err));
-  }
-}
-
 
 // ── Global Variables ──
 let clientsDb = {};
@@ -365,7 +397,7 @@ copywriting: {
       clientContactName: "",
       primaryColor: "#10b981",
       secondaryColor: "#6366f1",
-      magicToken: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+      magicToken: generateSecureToken()
     }
   };
 }
@@ -1558,9 +1590,23 @@ function fetchCloudflareProfile() {
       if (data && data.email && data.email !== 'Guest') {
         const userEmailEl = document.getElementById('userEmail');
         const userAvatarEl = document.getElementById('userAvatar');
-        if (userEmailEl) userEmailEl.textContent = data.email;
+        
+        // Extract username from email
+        let displayName = data.email;
+        if (data.email.includes('@')) {
+          const username = data.email.split('@')[0];
+          // Capitalize first letter
+          displayName = username.charAt(0).toUpperCase() + username.slice(1);
+          
+          // Force 'Ronald' to show as 'Admin'
+          if (displayName.toLowerCase() === 'ronald') {
+            displayName = 'Admin';
+          }
+        }
+        
+        if (userEmailEl) userEmailEl.textContent = displayName;
         if (userAvatarEl) {
-          userAvatarEl.textContent = data.email.charAt(0).toUpperCase();
+          userAvatarEl.textContent = displayName.charAt(0).toUpperCase();
         }
       }
     })
@@ -1568,27 +1614,9 @@ function fetchCloudflareProfile() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  fetchCloudflareProfile();
-  try { initTabNavigation(); } catch(e) { console.error("TabNav Error:", e); }
-  try { initMobileNavigation(); } catch(e) { console.error("MobileNav Error:", e); }
-  try { initParentEventListeners(); } catch(e) { console.error("ParentListeners Error:", e); }
-  try { refreshAllViews(); } catch(e) { console.error("Refresh Error:", e); }
-
-  // Reset Sandbox Button listener
-  const resetSandboxBtn = document.getElementById("resetSandboxBtn");
-  if (resetSandboxBtn) {
-    resetSandboxBtn.addEventListener("click", () => {
-      const sandboxName = "Quick Sandbox (One-Offs)";
-      if (!confirm("Are you sure you want to clear all data in the Quick Sandbox? This will reset all checklist audits and competitor sheets back to blank templates.")) return;
-      clientsDb[sandboxName] = createClientBlankState(sandboxName);
-      saveDatabase();
-      refreshAllViews();
-      showBanner("success", "Quick Sandbox data cleared and reset successfully!");
-    });
-  }
-  
-  // Call loadDatabase AFTER DOM is ready and Module scripts are loaded
-  loadDatabase();
+  // Require Firebase sign-in as the admin account before booting the hub
+  // (checkIdentity/boot logic lives in initAdminAuthGate() -> boot()).
+  initAdminAuthGate();
 });
 
 // ── Brand Vault Controllers ──
@@ -1782,12 +1810,70 @@ function saveDatabase() {
         setTimeout(() => { indicator.style.opacity = "0"; }, 5000);
       }
     });
+
+    // Mirror only the portal-facing subset of each client into its own
+    // public document (see syncPublicPortalDocs). The full clientsDb doc
+    // above is admin-only under Firestore rules; this is what the
+    // unauthenticated client portal is allowed to read.
+    syncPublicPortalDocs(cleanDb).catch(err => {
+      console.error("Public portal sync failed:", err);
+    });
   } else {
     // Firebase is not loaded!
     if (indicator) {
       indicator.innerHTML = "Firebase Not Loaded ❌";
       setTimeout(() => { indicator.style.opacity = "0"; }, 3000);
     }
+  }
+}
+
+// Push the portal-facing subset (branding + checklist) of every client that
+// has an active magic link out to clients/{magicToken}. That document's ID
+// *is* the capability token: Firestore rules allow anyone to GET a single
+// doc by its exact ID but never LIST the collection, so only someone
+// holding the actual magic link can read a given client's portal data.
+// Non-portal fields (proposals, SEO audits, internal notes, etc.) never
+// leave the admin-only agency/clientsDb document.
+async function syncPublicPortalDocs(dbSnapshot) {
+  if (!window.firebaseDb || !window.firebaseDb.collection) return;
+
+  const entries = Object.entries(dbSnapshot).filter(
+    ([, client]) => client && client.portalConfig && client.portalConfig.magicToken
+  );
+
+  for (const [name, client] of entries) {
+    const token = client.portalConfig.magicToken;
+    const publicRef = window.firebaseDb.collection("clients").doc(token);
+    const localChecklist = client.onboardingChecklist || client.onboarding || [];
+
+    try {
+      // Fold in any checklist progress the client already made directly on
+      // the portal so this save doesn't stomp on it.
+      const existing = await publicRef.get();
+      if (existing.exists) {
+        const existingChecklist = existing.data().onboardingChecklist;
+        if (Array.isArray(existingChecklist) && Array.isArray(localChecklist)) {
+          const checkedIds = new Set();
+          existingChecklist.forEach(cat => (cat.items || []).forEach(item => {
+            if (item.checked) checkedIds.add(item.id);
+          }));
+          localChecklist.forEach(cat => (cat.items || []).forEach(item => {
+            if (checkedIds.has(item.id)) item.checked = true;
+          }));
+        }
+      }
+    } catch (e) {
+      console.warn("Could not read existing public portal doc for", name, e);
+    }
+
+    const projection = {
+      portalConfig: client.portalConfig,
+      onboardingChecklist: localChecklist
+    };
+
+    publicRef.set(projection).catch(err => {
+      console.error("Public portal doc write failed for", name, err);
+    });
   }
 }
 

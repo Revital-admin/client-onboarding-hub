@@ -45,31 +45,34 @@ function getUrlParams() {
 
 function init() {
   getUrlParams();
-  
-  if (!clientName || !clientToken) {
+
+  // The token IS the document ID now (a capability-URL / "anyone with the
+  // link" model) - clientName is only used for the on-screen label below,
+  // it no longer has any bearing on access.
+  if (!clientToken) {
     loader.innerHTML = "<h2>Access Denied</h2><p>Invalid or missing magic link.</p>";
     return;
   }
 
-  const docRef = db.collection("agency").doc("clientsDb");
-  
+  const docRef = db.collection("clients").doc(clientToken);
+
   // Real-time listener
   docRef.onSnapshot((doc) => {
     if (doc.exists) {
-      const data = doc.data();
-      if (data[clientName] && data[clientName].portalConfig && data[clientName].portalConfig.magicToken === clientToken) {
-        clientData = data[clientName];
-        renderPortal();
-        
-        // Hide loader on first success
-        if (loader.style.display !== "none") {
-          loader.style.display = "none";
-          appLayout.style.display = "flex";
-        }
-      } else {
-        loader.innerHTML = "<h2>Access Denied</h2><p>Link expired or invalid token.</p>";
+      clientData = doc.data();
+      renderPortal();
+
+      // Hide loader on first success
+      if (loader.style.display !== "none") {
+        loader.style.display = "none";
+        appLayout.style.display = "flex";
       }
+    } else {
+      loader.innerHTML = "<h2>Access Denied</h2><p>Link expired or invalid token.</p>";
     }
+  }, (err) => {
+    console.error("Portal listener error:", err);
+    loader.innerHTML = "<h2>Access Denied</h2><p>Unable to load this portal.</p>";
   });
 }
 
@@ -239,13 +242,16 @@ function renderChecklist() {
 
 
 function updateFirebaseChecklist() {
-  const docRef = db.collection("agency").doc("clientsDb");
-  
-  // To avoid prototype issues, deep clone
-  const purifiedData = JSON.parse(JSON.stringify(clientData));
-  
+  const docRef = db.collection("clients").doc(clientToken);
+
+  // Firestore rules only allow unauthenticated writes that touch the
+  // onboardingChecklist field, so that's the only thing we ever send here -
+  // normalize the legacy "onboarding" key to the canonical one on write.
+  const checklist = clientData.onboardingChecklist || clientData.onboarding || [];
+  const purifiedChecklist = JSON.parse(JSON.stringify(checklist));
+
   docRef.set({
-    [clientName]: purifiedData
+    onboardingChecklist: purifiedChecklist
   }, { merge: true }).catch(err => {
     console.error("Error updating checklist:", err);
   });

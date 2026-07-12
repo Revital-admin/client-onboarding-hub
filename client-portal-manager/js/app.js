@@ -1,3 +1,10 @@
+// Cryptographically secure token generator (replaces Math.random-based tokens)
+function generateSecureToken(length = 32) {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // Connect to parent Hub state safely
 let parentSave, getActiveClient;
 try {
@@ -69,7 +76,7 @@ function init() {
       clientContactName: "",
       primaryColor: "#10b981",
       secondaryColor: "#6366f1",
-      magicToken: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+      magicToken: generateSecureToken()
     };
     if (parentSave) parentSave();
   }

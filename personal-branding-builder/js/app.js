@@ -657,8 +657,6 @@ function setupEventHandlers() {
       pdfBtn.disabled = false;
       pdfBtn.innerHTML = origText;
     });
-  }, 500);
-    });
   }
 }
 

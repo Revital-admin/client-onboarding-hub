@@ -1,0 +1,12 @@
+# Cloudflare Workers Static Assets exclude list (gitignore syntax).
+# These are build/deploy config, internal docs, and one-off dev/patch
+# scripts that were previously being served publicly to anyone who
+# browsed to their filename (e.g. yoursite.com/patch_admin.py).
+wrangler.toml
+_worker.js
+firestore.rules
+README.md
+implementation_plan.md
+*.py
+test_*.html
+test_*.js
