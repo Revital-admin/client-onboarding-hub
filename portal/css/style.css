@@ -22,6 +22,10 @@
   padding: 0;
 }
 
+html {
+  overscroll-behavior-x: none;
+}
+
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
@@ -31,8 +35,10 @@ body {
   /* Without this, a trackpad's horizontal two-finger swipe over an
      embedded iframe (e.g. a wide ClickUp table/Gantt view) can get
      hijacked by the browser's own back/forward navigation gesture
-     instead of reaching the iframe's content. */
-  overscroll-behavior-x: contain;
+     instead of reaching the iframe's content. 'none' (not just
+     'contain') because 'contain' still let the gesture escape to the
+     browser's navigation handler in testing. */
+  overscroll-behavior-x: none;
 }
 
 /* Loader */
@@ -262,6 +268,7 @@ body {
   flex-grow: 1;
   overflow-y: auto;
   position: relative;
+  overscroll-behavior-x: none;
 }
 
 .view-section {
@@ -350,7 +357,7 @@ body {
   border: 1px solid var(--color-border);
   border-radius: 12px;
   overflow: hidden;
-  overscroll-behavior-x: contain;
+  overscroll-behavior-x: none;
 }
 .iframe-wrapper.full-height {
   flex-grow: 1;
@@ -360,6 +367,7 @@ body {
   width: 100%;
   height: 100%;
   min-height: 500px;
+  overscroll-behavior-x: none;
 }
 
 /* Confetti */

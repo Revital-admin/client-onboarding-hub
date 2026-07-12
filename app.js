@@ -210,7 +210,22 @@ let iframeNeedsReload = {
   "tab-webcomp": true,
   "tab-socialcomp": true,
   "tab-report": true,
-  "tab-copywriting": true
+  "tab-copywriting": true,
+  // These tool tabs previously had a hardcoded iframe src in index.html and
+  // were never wired into the reload system at all, so switching client
+  // workspaces never refreshed them - they kept showing whichever client
+  // was active when the page first loaded until a full page refresh.
+  "tab-portal": true,
+  "tab-welcomeguide": true,
+  "tab-emailsig": true,
+  "tab-creativebrief": true,
+  "tab-contentaudit": true,
+  "tab-paidads": true,
+  "tab-emailstrategy": true,
+  "tab-campaignlaunch": true,
+  "tab-roiprojector": true,
+  "tab-sopwiki": true,
+  "tab-proposal": true
 };
 
 // ── Initial State Blueprint ──
@@ -565,6 +580,39 @@ function refreshIframeTab(tabId) {
       break;
     case "tab-seo":
       renderSeoAudit();
+      break;
+    case "tab-portal":
+      renderClientPortalManagerTab();
+      break;
+    case "tab-welcomeguide":
+      renderWelcomeGuide();
+      break;
+    case "tab-emailsig":
+      renderEmailSigGenerator();
+      break;
+    case "tab-creativebrief":
+      renderCreativeBrief();
+      break;
+    case "tab-contentaudit":
+      renderContentAudit();
+      break;
+    case "tab-paidads":
+      renderPaidAdsAudit();
+      break;
+    case "tab-emailstrategy":
+      renderEmailStrategyAudit();
+      break;
+    case "tab-campaignlaunch":
+      renderCampaignLaunchChecklist();
+      break;
+    case "tab-roiprojector":
+      renderRoiProjector();
+      break;
+    case "tab-sopwiki":
+      renderSopWiki();
+      break;
+    case "tab-proposal":
+      renderProposalCalculator();
       break;
     case "tab-strategy":
       renderContentStrategy();
@@ -1171,11 +1219,14 @@ function renderOnboardingChecklist() {
 function setIframeAbsoluteSrc(iframeSelector, relativeFallbackPath) {
   const iframe = document.querySelector(iframeSelector);
   if (iframe) {
-    const rawSrc = iframe.getAttribute('src') || relativeFallbackPath;
-    const newSrc = new URL(rawSrc, window.location.href).href;
-    if (iframe.src !== newSrc) {
-      iframe.src = newSrc;
-    }
+    const newSrc = new URL(relativeFallbackPath, window.location.href).href;
+    // Force an actual reload every time this is called (called only when a
+    // tab is freshly navigated to, or right after switching the active
+    // client) so the tool inside always re-reads getActiveClient() fresh.
+    // Re-assigning the exact same src string is a no-op in browsers, so
+    // clear it first.
+    iframe.src = "about:blank";
+    iframe.src = newSrc;
   }
 }
 
@@ -1187,6 +1238,61 @@ function renderUxuiAudit() {
 // ── SEO Audit Suite Controller ──
 function renderSeoAudit() {
   setIframeAbsoluteSrc('#tab-seo iframe', "seo-audit-checklist/index.html");
+}
+
+// ── Client Portal Manager Controller ──
+function renderClientPortalManagerTab() {
+  setIframeAbsoluteSrc('#tab-portal iframe', "client-portal-manager/index.html");
+}
+
+// ── Client Welcome Guide Controller ──
+function renderWelcomeGuide() {
+  setIframeAbsoluteSrc('#tab-welcomeguide iframe', "client-welcome-guide/index.html");
+}
+
+// ── Email Signature Generator Controller ──
+function renderEmailSigGenerator() {
+  setIframeAbsoluteSrc('#tab-emailsig iframe', "email-signature-generator/index.html");
+}
+
+// ── Creative Brief Generator Controller ──
+function renderCreativeBrief() {
+  setIframeAbsoluteSrc('#tab-creativebrief iframe', "creative-brief-generator/index.html");
+}
+
+// ── Content Audit Controller ──
+function renderContentAudit() {
+  setIframeAbsoluteSrc('#tab-contentaudit iframe', "content-audit/index.html");
+}
+
+// ── Paid Ads Audit Controller ──
+function renderPaidAdsAudit() {
+  setIframeAbsoluteSrc('#tab-paidads iframe', "paid-ads-audit/index.html");
+}
+
+// ── Email Marketing Audit Controller ──
+function renderEmailStrategyAudit() {
+  setIframeAbsoluteSrc('#tab-emailstrategy iframe', "email-marketing-audit/index.html?v=1.0");
+}
+
+// ── Campaign Launch Checklist Controller ──
+function renderCampaignLaunchChecklist() {
+  setIframeAbsoluteSrc('#tab-campaignlaunch iframe', "campaign-launch-checklist/index.html");
+}
+
+// ── ROI Projector Controller ──
+function renderRoiProjector() {
+  setIframeAbsoluteSrc('#tab-roiprojector iframe', "roi-projector/index.html");
+}
+
+// ── SOP Wiki Controller ──
+function renderSopWiki() {
+  setIframeAbsoluteSrc('#tab-sopwiki iframe', "sop-wiki/index.html?v=1.7");
+}
+
+// ── Proposal Calculator Controller ──
+function renderProposalCalculator() {
+  setIframeAbsoluteSrc('#tab-proposal iframe', "proposal-calculator/index.html?v=10");
 }
 
 // ── Content Strategy Guide Controller ──
