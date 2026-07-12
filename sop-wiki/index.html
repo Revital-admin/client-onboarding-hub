@@ -85,8 +85,27 @@
         <label class="editor-label" for="editorTitle">Title</label>
         <input type="text" id="editorTitle" class="editor-input" placeholder="e.g. Revision &amp; Feedback Process" autocomplete="off">
 
-        <label class="editor-label" for="editorContent">Content (Markdown supported)</label>
-        <textarea id="editorContent" class="editor-textarea" rows="16" placeholder="## Heading&#10;&#10;Body text, bullet points, etc."></textarea>
+        <label class="editor-label" for="editorContent">Content</label>
+        <div id="editorToolbar" class="editor-toolbar">
+          <button type="button" data-cmd="bold" title="Bold"><strong>B</strong></button>
+          <button type="button" data-cmd="italic" title="Italic"><em>I</em></button>
+          <span class="editor-toolbar-divider"></span>
+          <button type="button" data-block="H2" title="Heading">H2</button>
+          <button type="button" data-block="H3" title="Subheading">H3</button>
+          <button type="button" data-block="P" title="Paragraph">¶</button>
+          <span class="editor-toolbar-divider"></span>
+          <button type="button" data-cmd="insertUnorderedList" title="Bullet list">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+          </button>
+          <button type="button" data-cmd="insertOrderedList" title="Numbered list">1.</button>
+          <button type="button" data-block="BLOCKQUOTE" title="Quote">&rdquo;</button>
+          <span class="editor-toolbar-divider"></span>
+          <button type="button" data-cmd="createLink" title="Link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          </button>
+          <button type="button" data-cmd="removeFormat" title="Clear formatting">Clear</button>
+        </div>
+        <div id="editorContent" class="editor-richtext" contenteditable="true" data-placeholder="Paste directly from ClickUp, Google Docs, or Word - formatting carries over automatically."></div>
       </div>
       <div class="editor-modal-footer">
         <button id="cancelEditorBtn" class="btn-editor-secondary" type="button">Cancel</button>
@@ -96,6 +115,6 @@
   </div>
 
   <script src="js/data.js?v=4"></script>
-  <script src="js/app.js?v=63"></script>
+  <script src="js/app.js?v=64"></script>
 </body>
 </html>

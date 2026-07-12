@@ -18,7 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const editorModalTitle = document.getElementById('editorModalTitle');
   const editorCategory = document.getElementById('editorCategory');
   const editorTitle = document.getElementById('editorTitle');
-  const editorContent = document.getElementById('editorContent');
+  const editorContent = document.getElementById('editorContent'); // contenteditable rich-text area
+  const editorToolbar = document.getElementById('editorToolbar');
   const closeEditorBtn = document.getElementById('closeEditorBtn');
   const cancelEditorBtn = document.getElementById('cancelEditorBtn');
   const saveSopBtn = document.getElementById('saveSopBtn');
@@ -33,9 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // agency/activityLog. That means they fall under the existing
   // "match /agency/{document} { allow read, write: if isAdmin(); }" rule
   // automatically - no Firestore rules changes needed for this feature.
-  // Talks to Firebase through window.parent because this tool runs in an
-  // iframe and shares the hub's already-authenticated Firebase session
-  // rather than creating its own.
   function getSopsDocRef() {
     if (!window.parent || !window.parent.firebaseDb || !window.parent.firebaseDoc) return null;
     return window.parent.firebaseDoc(window.parent.firebaseDb, "agency", "sops");
@@ -114,11 +112,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Legacy entries (created before the rich-text editor) store Markdown in
+  // `content` and have no `format` field. New/edited entries store real
+  // HTML from the contenteditable area and are marked format: 'html'.
+  function sopContentAsHtml(sop) {
+    if (sop.format === 'html') return sop.content || '';
+    marked.setOptions({ breaks: true });
+    return marked.parse(sop.content || '');
+  }
+
+  function getPlainTextForSearch(sop) {
+    const html = sopContentAsHtml(sop);
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return (tmp.textContent || '').toLowerCase();
+  }
+
   function filterSops(query) {
     return sops.filter(sop =>
       sop.title.toLowerCase().includes(query) ||
       sop.category.toLowerCase().includes(query) ||
-      sop.content.toLowerCase().includes(query)
+      getPlainTextForSearch(sop).includes(query)
     );
   }
 
@@ -191,18 +205,138 @@ document.addEventListener('DOMContentLoaded', () => {
     docTitle.textContent = sop.title;
     docDate.textContent = `Last updated: ${sop.date}`;
 
-    // Parse Markdown to HTML
-    marked.setOptions({ breaks: true });
-    docBody.innerHTML = marked.parse(sop.content);
+    docBody.innerHTML = sopContentAsHtml(sop);
   }
 
-  // ── Editor ──
+  // ── Rich-text paste sanitization ──
+  // ClickUp, Google Docs, and Word all paste as HTML full of inline
+  // styles, spans, and classes that would fight the wiki's own design.
+  // Strip everything down to a small whitelist of semantic tags so pasted
+  // content picks up the wiki's styling instead of bringing its own.
+  const ALLOWED_TAGS = new Set([
+    'H1', 'H2', 'H3', 'H4', 'P', 'BR', 'STRONG', 'B', 'EM', 'I', 'U',
+    'UL', 'OL', 'LI', 'A', 'BLOCKQUOTE', 'TABLE', 'THEAD', 'TBODY',
+    'TR', 'TH', 'TD', 'CODE', 'PRE', 'HR'
+  ]);
+  const ALLOWED_ATTRS = { A: ['href'] };
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function sanitizeNode(node) {
+    Array.from(node.childNodes).forEach(child => {
+      if (child.nodeType === Node.TEXT_NODE) return;
+
+      if (child.nodeType !== Node.ELEMENT_NODE) {
+        node.removeChild(child);
+        return;
+      }
+
+      const tag = child.tagName;
+
+      // Images are deliberately dropped, not just unwrapped: SOPs share one
+      // Firestore document, and a pasted screenshot as a base64 data URL
+      // could blow past Firestore's per-document size limit and break
+      // every SOP at once, not just this one.
+      if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'IMG' || tag === 'META' || tag === 'LINK' || tag === 'IFRAME') {
+        child.remove();
+        return;
+      }
+
+      if (!ALLOWED_TAGS.has(tag)) {
+        // Unwrap disallowed wrapper tags (span, div, font, etc. from
+        // ClickUp/Word) but keep their inner content.
+        sanitizeNode(child);
+        while (child.firstChild) {
+          node.insertBefore(child.firstChild, child);
+        }
+        node.removeChild(child);
+        return;
+      }
+
+      const allowedAttrs = ALLOWED_ATTRS[tag] || [];
+      Array.from(child.attributes).forEach(attr => {
+        if (!allowedAttrs.includes(attr.name)) {
+          child.removeAttribute(attr.name);
+        }
+      });
+
+      if (tag === 'A') {
+        const href = child.getAttribute('href') || '';
+        if (!/^https?:\/\//i.test(href)) {
+          child.removeAttribute('href');
+        }
+        child.setAttribute('target', '_blank');
+        child.setAttribute('rel', 'noopener');
+      }
+
+      sanitizeNode(child);
+    });
+  }
+
+  function sanitizeHtml(rawHtml) {
+    const container = document.createElement('div');
+    container.innerHTML = rawHtml;
+    sanitizeNode(container);
+    return container.innerHTML;
+  }
+
+  editorContent.addEventListener('paste', (e) => {
+    e.preventDefault();
+    const html = e.clipboardData.getData('text/html');
+    const text = e.clipboardData.getData('text/plain');
+
+    let toInsert;
+    if (html) {
+      toInsert = sanitizeHtml(html);
+    } else {
+      toInsert = text
+        .split(/\r?\n/)
+        .filter(line => line.trim() !== '')
+        .map(line => `<p>${escapeHtml(line)}</p>`)
+        .join('') || '<p></p>';
+    }
+
+    document.execCommand('insertHTML', false, toInsert);
+  });
+
+  // ── Toolbar ──
+  editorToolbar.querySelectorAll('button').forEach(btn => {
+    // Prevent the button from stealing focus away from the contenteditable
+    // before the click fires - otherwise the text selection needed for
+    // execCommand to apply to the right spot gets lost.
+    btn.addEventListener('mousedown', (e) => e.preventDefault());
+
+    btn.addEventListener('click', () => {
+      editorContent.focus();
+      const cmd = btn.getAttribute('data-cmd');
+      const block = btn.getAttribute('data-block');
+
+      if (block) {
+        document.execCommand('formatBlock', false, block);
+      } else if (cmd === 'createLink') {
+        const url = prompt('Link URL:');
+        if (url && url.trim()) {
+          let safeUrl = url.trim();
+          if (!/^https?:\/\//i.test(safeUrl)) safeUrl = 'https://' + safeUrl;
+          document.execCommand('createLink', false, safeUrl);
+        }
+      } else if (cmd) {
+        document.execCommand(cmd);
+      }
+    });
+  });
+
+  // ── Editor open/close/save/delete ──
   function openNewSopForm() {
     editingSopId = null;
     editorModalTitle.textContent = 'New SOP';
     editorCategory.value = '';
     editorTitle.value = '';
-    editorContent.value = '';
+    editorContent.innerHTML = '';
     editorOverlay.style.display = 'flex';
     editorCategory.focus();
   }
@@ -212,7 +346,10 @@ document.addEventListener('DOMContentLoaded', () => {
     editorModalTitle.textContent = 'Edit SOP';
     editorCategory.value = sop.category;
     editorTitle.value = sop.title;
-    editorContent.value = sop.content;
+    // Legacy Markdown entries get auto-converted to HTML the moment they're
+    // opened in the editor; saving completes the one-time migration for
+    // that entry.
+    editorContent.innerHTML = sopContentAsHtml(sop);
     editorOverlay.style.display = 'flex';
     editorCategory.focus();
   }
@@ -228,7 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function handleSaveSop() {
     const category = editorCategory.value.trim();
     const title = editorTitle.value.trim();
-    const content = editorContent.value;
+    const content = editorContent.innerHTML.trim();
 
     if (!category || !title) {
       alert('Category and Title are required.');
@@ -243,6 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
         existing.category = category;
         existing.title = title;
         existing.content = content;
+        existing.format = 'html';
         existing.date = today;
         activeSopId = existing.id;
       }
@@ -254,7 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
         id = `${baseId}-${suffix}`;
         suffix++;
       }
-      const newSop = { id, category, title, content, date: today };
+      const newSop = { id, category, title, content, format: 'html', date: today };
       sops.push(newSop);
       activeSopId = id;
     }

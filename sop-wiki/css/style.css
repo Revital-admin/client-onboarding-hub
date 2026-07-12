@@ -601,3 +601,122 @@ body {
 .btn-editor-primary:hover {
   background: var(--primary-hover);
 }
+
+/* ── Rich-text editor (paste from ClickUp/Docs/Word) ── */
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  padding: 6px;
+}
+
+.editor-toolbar button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.editor-toolbar button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-bright);
+  border-color: var(--border-color);
+}
+
+.editor-toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-color);
+  margin: 0 2px;
+}
+
+.editor-richtext {
+  width: 100%;
+  min-height: 260px;
+  max-height: 50vh;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  padding: 12px 14px;
+  outline: none;
+}
+
+.editor-richtext:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+.editor-richtext:empty::before {
+  content: attr(data-placeholder);
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+.editor-richtext h1, .editor-richtext h2, .editor-richtext h3, .editor-richtext h4 {
+  font-family: var(--font-heading);
+  color: var(--text-bright);
+  margin: 0.8em 0 0.4em;
+  font-weight: 600;
+}
+
+.editor-richtext h2 { font-size: 1.3rem; }
+.editor-richtext h3 { font-size: 1.1rem; color: #a5b4fc; }
+
+.editor-richtext p {
+  margin-bottom: 0.8em;
+}
+
+.editor-richtext ul, .editor-richtext ol {
+  margin-bottom: 0.8em;
+  padding-left: 22px;
+}
+
+.editor-richtext li {
+  margin-bottom: 0.3em;
+}
+
+.editor-richtext blockquote {
+  border-left: 3px solid rgba(99, 102, 241, 0.4);
+  padding-left: 12px;
+  margin: 0.8em 0;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.editor-richtext a {
+  color: var(--color-accent);
+}
+
+.editor-richtext table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0.8em;
+}
+
+.editor-richtext th, .editor-richtext td {
+  border: 1px solid var(--border-color);
+  padding: 6px 8px;
+  font-size: 0.85rem;
+}
