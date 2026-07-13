@@ -33,6 +33,11 @@
 .btn-pdf { display: inline-flex; align-items: center; justify-content: center; background: #f68d5f; color: white; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; width: 100%; text-align: center; margin-top: auto; border: none; }
 .btn-pdf svg { margin-right: 12px; }
 
+.video-card { background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: 8px; padding: 20px; margin-bottom: 0.4in; }
+.video-card h3 { font-size: 16px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.video-card p { font-size: 14px; color: var(--color-text-muted); line-height: 1.5; margin-bottom: 16px; }
+.btn-pdf-secondary { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: #f68d5f; border: 2px solid #f68d5f; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; }
+
 .policy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 .policy-card { background: var(--color-surface-2); padding: 20px; border-radius: 8px; border: 1px solid var(--color-border); }
 .policy-card h3 { font-size: 15px; color: var(--color-text-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }

@@ -27,10 +27,12 @@ const checklistContainer = document.getElementById("checklistContainer");
 const amInitial = document.getElementById("amInitial");
 const amName = document.getElementById("amName");
 const amEmail = document.getElementById("amEmail");
+const amPhone = document.getElementById("amPhone");
 const btnBookCall = document.getElementById("btnBookCall");
 const btnRevision = document.getElementById("btnRevision");
 const btnContentRequest = document.getElementById("btnContentRequest");
 const btnUploadFiles = document.getElementById("btnUploadFiles");
+const btnDriveFolder = document.getElementById("btnDriveFolder");
 const quickActionsWidget = document.getElementById("quickActionsWidget");
 
 
@@ -118,6 +120,14 @@ function renderPortal() {
     amEmail.textContent = "Email " + config.accountManagerName.split(' ')[0];
     amEmail.href = "mailto:" + config.accountManagerEmail;
   }
+  if (config.accountManagerPhone) {
+    var amFirstName = config.accountManagerName ? config.accountManagerName.split(' ')[0] : "";
+    amPhone.textContent = "Call/Text " + amFirstName;
+    amPhone.href = "tel:" + config.accountManagerPhone.replace(/[^0-9+]/g, '');
+    amPhone.style.display = "block";
+  } else {
+    amPhone.style.display = "none";
+  }
   if (config.calendlyLink) {
     btnBookCall.style.display = "inline-flex";
     btnBookCall.href = config.calendlyLink;
@@ -176,6 +186,11 @@ function renderPortal() {
   if (config.fileUploadUrl) {
     btnUploadFiles.style.display = "inline-flex";
     btnUploadFiles.href = config.fileUploadUrl;
+    hasQuickActions = true;
+  }
+  if (config.driveFolderUrl) {
+    btnDriveFolder.style.display = "inline-flex";
+    btnDriveFolder.href = config.driveFolderUrl;
     hasQuickActions = true;
   }
   if (hasQuickActions) {

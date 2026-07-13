@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const amName = document.getElementById('amName').value || 'Jane Doe';
     const amEmail = document.getElementById('amEmail').value || 'jane@revitalproductions.com';
     const welcomeNote = document.getElementById('welcomeNote').value || `We are thrilled to partner with ${clientName} and can't wait to get started!`;
+    const loomLink = document.getElementById('loomLink').value.trim();
     
     const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
     let servicesHtml = '';
@@ -89,6 +90,20 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="welcome-note">
           Hi there! ${welcomeNote}
         </div>
+
+        ${loomLink ? `
+        <div class="video-card">
+          <h3>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f68d5f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+            Start Here &mdash; Watch Your Portal Walkthrough
+          </h3>
+          <p>Before your kick-off call, take a few minutes to watch this short video. It walks you through exactly how to use your portal and what to expect from us.</p>
+          <a href="${loomLink}" target="_blank" class="btn-pdf-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+            Watch the Walkthrough Video
+          </a>
+        </div>
+        ` : ''}
 
         <div class="pdf-h2">Your Dedicated Account Manager</div>
         <div class="am-card">

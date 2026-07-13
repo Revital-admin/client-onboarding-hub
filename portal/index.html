@@ -90,6 +90,10 @@ window.addEventListener('error', function(e) {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"></path><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path></svg>
           Monthly Reports
         </button>
+        <button class="nav-btn" data-target="view-guide" id="navGuide">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          Guide &amp; FAQ
+        </button>
       </nav>
 
       <!-- First Week Checklist Widget -->
@@ -116,6 +120,10 @@ window.addEventListener('error', function(e) {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             Upload Files
           </a>
+          <a href="#" id="btnDriveFolder" class="btn-secondary" target="_blank" style="display:none; text-align:left; justify-content: flex-start; gap: 8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            Google Drive Folder
+          </a>
         </div>
       </div>
 
@@ -127,6 +135,7 @@ window.addEventListener('error', function(e) {
           <div>
             <strong id="amName">Account Manager</strong>
             <a href="#" id="amEmail">Email Support</a>
+            <a href="#" id="amPhone" style="display:none;">Call/Text</a>
           </div>
         </div>
         <a href="#" id="btnBookCall" class="btn-primary" target="_blank" style="display:none;">Book a Call</a>
@@ -262,9 +271,110 @@ window.addEventListener('error', function(e) {
         </div>
       </section>
 
+
+      <!-- GUIDE & FAQ VIEW -->
+      <section id="view-guide" class="view-section">
+        <header class="view-header">
+          <h2>Guide &amp; FAQ</h2>
+          <p>How your portal works, what to expect from us, and answers to common questions.</p>
+        </header>
+
+        <div class="guide-content">
+          <div class="guide-section">
+            <h3>How Your Portal Is Organized</h3>
+            <table class="guide-table">
+              <thead><tr><th>Section</th><th>What It's For</th></tr></thead>
+              <tbody>
+                <tr><td>Dashboard</td><td>Your live performance snapshot and analytics, always up to date</td></tr>
+                <tr><td>Active Projects</td><td>Everything currently in production &mdash; a real-time view of what your team is working on</td></tr>
+                <tr><td>Content Calendar</td><td>All upcoming content and go-live dates for the month</td></tr>
+                <tr><td>Campaign Briefs</td><td>Every campaign starts here &mdash; review and approve before production begins</td></tr>
+                <tr><td>Feedback &amp; Revisions</td><td>Submit ALL feedback using the Quick Actions links &mdash; not by email or text</td></tr>
+                <tr><td>Monthly Reports</td><td>Performance reports delivered on or before the 5th of every month</td></tr>
+                <tr><td>Assets &amp; Brand</td><td>Your logos, fonts, guidelines, and all final delivered files</td></tr>
+                <tr><td>Completed Work</td><td>Your full archive of approved and published deliverables</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="guide-section">
+            <h3>Our Commitments to You</h3>
+            <table class="guide-table">
+              <thead><tr><th>Commitment</th><th>Timing</th></tr></thead>
+              <tbody>
+                <tr><td>Email response</td><td>Within 1 business day</td></tr>
+                <tr><td>Calls and texts</td><td>Same day during office hours</td></tr>
+                <tr><td>Client Review notification</td><td>Same day it's ready &mdash; you'll get an email</td></tr>
+                <tr><td>Monthly report delivery</td><td>On or before the 5th of every month</td></tr>
+                <tr><td>Revision turnaround</td><td>2&ndash;4 business days depending on content type</td></tr>
+                <tr><td>Kick-off call follow-up</td><td>Written summary within 24 hours</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="guide-section">
+            <h3>How to Submit Feedback &amp; Revisions</h3>
+            <p class="guide-intro">All feedback must come through the portal &mdash; not via email, text, or phone. Use the <strong>Submit a Revision</strong> button in Quick Actions, name the task clearly, write your feedback as specifically as possible, and set a priority.</p>
+            <table class="guide-table">
+              <thead><tr><th>&#10060; Vague</th><th>&#9989; Specific</th></tr></thead>
+              <tbody>
+                <tr><td>"I don't like it"</td><td>"Can we change the font color to our brand blue?"</td></tr>
+                <tr><td>"Change the copy"</td><td>"The headline feels too formal &mdash; try something more conversational"</td></tr>
+                <tr><td>"The image is wrong"</td><td>"Can we use something with natural lighting and a warmer tone?"</td></tr>
+                <tr><td>"Fix the video"</td><td>"At 0:23 the text is too small on mobile &mdash; increase the font size"</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="guide-section">
+            <h3>Revision Turnaround Times</h3>
+            <table class="guide-table">
+              <thead><tr><th>Content Type</th><th>Turnaround</th></tr></thead>
+              <tbody>
+                <tr><td>Social posts and graphics</td><td>2 business days</td></tr>
+                <tr><td>Paid ad creative</td><td>2 business days</td></tr>
+                <tr><td>Video and Reels</td><td>3&ndash;4 business days</td></tr>
+                <tr><td>Email campaigns</td><td>2 business days</td></tr>
+                <tr><td>Website pages</td><td>3&ndash;5 business days</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="guide-section">
+            <h3>Frequently Asked Questions</h3>
+            <div class="guide-faq">
+              <details class="guide-faq-item">
+                <summary>How do I know when something needs my review?</summary>
+                <p>You'll get an email notification the same day it's ready. You can also check Active Projects for anything awaiting your review.</p>
+              </details>
+              <details class="guide-faq-item">
+                <summary>Can I send feedback via email or text?</summary>
+                <p>Please use the portal only, via the Submit a Revision or Submit Content Request buttons in Quick Actions. That keeps everything in one trackable place.</p>
+              </details>
+              <details class="guide-faq-item">
+                <summary>How many revisions am I allowed?</summary>
+                <p>Your revision rounds are outlined in your Statement of Work. Additional rounds beyond what's included may require a Change Order &mdash; your account manager will let you know.</p>
+              </details>
+              <details class="guide-faq-item">
+                <summary>How do I send you files or brand assets?</summary>
+                <p>Use the Upload Files button in Quick Actions. No login needed &mdash; just fill in your details, describe what you're uploading, and attach your files. We'll confirm receipt within 1 business day.</p>
+              </details>
+              <details class="guide-faq-item">
+                <summary>Can I submit ideas for content or posts?</summary>
+                <p>Yes &mdash; use the Submit Content Request button in Quick Actions. Tell us your idea, the platform, and any inspiration you have. We'll follow up within 2 business days.</p>
+              </details>
+              <details class="guide-faq-item">
+                <summary>What if I want to add a new service or change my plan?</summary>
+                <p>Email your account manager &mdash; they'll prepare a proposal or Change Order. No scope changes happen without written agreement from both sides.</p>
+              </details>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 
-  <script src="js/app.js?v=71"></script>
+  <script src="js/app.js?v=73"></script>
 </body>
 </html>
