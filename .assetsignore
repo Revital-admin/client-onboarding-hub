@@ -1,4 +1,4 @@
-# Cloudflare Workers Static Assets exclude list (gitignore syntax).
+﻿# Cloudflare Workers Static Assets exclude list (gitignore syntax).
 # These are build/deploy config, internal docs, and one-off dev/patch
 # scripts that were previously being served publicly to anyone who
 # browsed to their filename (e.g. yoursite.com/patch_admin.py).
@@ -10,3 +10,20 @@ implementation_plan.md
 *.py
 test_*.html
 test_*.js
+
+# Git internals - were being served publicly (e.g. yoursite.com/.git/HEAD),
+# which would let anyone pull the repo's commit history.
+.git
+.git/**
+
+# Local wrangler dev/build artifacts - not meant to be public.
+.wrangler
+.wrangler/**
+
+# Dependency and environment files - never meant to be public.
+node_modules
+node_modules/**
+.env
+.env.*
+*.md
+.DS_Store
