@@ -226,6 +226,65 @@ body {
   margin-top: 0;
 }
 
+/* Collapsible nav sections */
+.nav-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-section:first-child .nav-section-toggle {
+  margin-top: 0;
+}
+
+.nav-section-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 20px;
+  margin-bottom: 4px;
+  padding: 4px 14px;
+  transition: color var(--transition-fast);
+}
+
+.nav-section-toggle:hover {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.nav-section-toggle .chevron {
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+
+.nav-section.collapsed .nav-section-toggle .chevron {
+  transform: rotate(-90deg);
+}
+
+.nav-section-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+  max-height: 2000px;
+  transition: max-height 0.25s ease, opacity 0.2s ease;
+  opacity: 1;
+}
+
+.nav-section.collapsed .nav-section-items {
+  max-height: 0;
+  opacity: 0;
+}
+
 .nav-item-btn {
   width: 100%;
   display: flex;

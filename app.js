@@ -111,6 +111,7 @@ function boot() {
   hasBooted = true;
   fetchCloudflareProfile();
   try { initTabNavigation(); } catch(e) { console.error("TabNav Error:", e); }
+  try { initNavSectionToggles(); } catch(e) { console.error("NavSectionToggles Error:", e); }
   try { initMobileNavigation(); } catch(e) { console.error("MobileNav Error:", e); }
   try { initParentEventListeners(); } catch(e) { console.error("ParentListeners Error:", e); }
   try { refreshAllViews(); } catch(e) { console.error("Refresh Error:", e); }
@@ -666,6 +667,22 @@ function initTabNavigation() {
       navButtons.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
 
+      // If this button lives inside a collapsed section (e.g. activated
+      // programmatically via a dashboard quick link), expand it so the
+      // user can see where they landed.
+      const parentSection = btn.closest(".nav-section");
+      if (parentSection && parentSection.classList.contains("collapsed")) {
+        parentSection.classList.remove("collapsed");
+        const toggleBtn = parentSection.querySelector(".nav-section-toggle");
+        if (toggleBtn) toggleBtn.setAttribute("aria-expanded", "true");
+        const slug = parentSection.getAttribute("data-section");
+        if (slug) {
+          const current = new Set(getCollapsedNavSections());
+          current.delete(slug);
+          saveCollapsedNavSections(Array.from(current));
+        }
+      }
+
       sections.forEach(sec => {
         sec.classList.remove("active");
         if (sec.id === targetTab) {
@@ -693,6 +710,61 @@ function initTabNavigation() {
       if (sidebarNavBtn) {
         sidebarNavBtn.click();
       }
+    });
+  });
+}
+
+// ── Collapsible Nav Sections ──
+const NAV_COLLAPSED_SECTIONS_KEY = "REVITAL_HUB_NAV_COLLAPSED_SECTIONS";
+
+function getCollapsedNavSections() {
+  try {
+    const stored = localStorage.getItem(NAV_COLLAPSED_SECTIONS_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveCollapsedNavSections(collapsedSlugs) {
+  try {
+    localStorage.setItem(NAV_COLLAPSED_SECTIONS_KEY, JSON.stringify(collapsedSlugs));
+  } catch (e) {}
+}
+
+function initNavSectionToggles() {
+  const sections = document.querySelectorAll(".nav-section");
+  if (!sections.length) return;
+
+  const collapsedSlugs = new Set(getCollapsedNavSections());
+
+  // Don't collapse the section that contains the currently active tab,
+  // so the user always lands on a page that shows where they are.
+  const activeBtn = document.querySelector(".nav-item-btn.active");
+  const activeSection = activeBtn ? activeBtn.closest(".nav-section") : null;
+  const activeSlug = activeSection ? activeSection.getAttribute("data-section") : null;
+
+  sections.forEach(section => {
+    const slug = section.getAttribute("data-section");
+    const toggleBtn = section.querySelector(".nav-section-toggle");
+    if (!toggleBtn || !slug) return;
+
+    if (collapsedSlugs.has(slug) && slug !== activeSlug) {
+      section.classList.add("collapsed");
+      toggleBtn.setAttribute("aria-expanded", "false");
+    }
+
+    toggleBtn.addEventListener("click", () => {
+      const isCollapsed = section.classList.toggle("collapsed");
+      toggleBtn.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
+
+      const current = new Set(getCollapsedNavSections());
+      if (isCollapsed) {
+        current.add(slug);
+      } else {
+        current.delete(slug);
+      }
+      saveCollapsedNavSections(Array.from(current));
     });
   });
 }
