@@ -427,10 +427,18 @@ copywriting: {
       liveAnalyticsUrl: "",
       clientLogoUrl: "",
       clientContactName: "",
+      clientContactEmail: "",
       primaryColor: "#10b981",
       secondaryColor: "#6366f1",
       magicToken: generateSecureToken()
-    }
+    },
+    // Content Approvals - deliverables awaiting a client decision
+    // (pendingApprovals) and ones they've already decided on
+    // (approvalHistory). Client-side decisions write straight to the
+    // public clients/{token} doc, same as clientChecklist - synced back
+    // into this real object by ensureClientPortalListeners below.
+    pendingApprovals: [],
+    approvalHistory: []
   };
 }
 
@@ -1153,10 +1161,6 @@ function renderOnboardingChecklist() {
         <div class="checklist-item-content">
           <div class="checklist-item-label">${item.label}</div>
         </div>
-        <label class="client-visible-toggle" title="Show this task on the client's portal checklist">
-          <input type="checkbox" class="client-visible-checkbox" ${item.clientVisible ? "checked" : ""}>
-          <span>Visible to client</span>
-        </label>
       `;
 
       // Event listener for checkbox
@@ -1176,19 +1180,6 @@ function renderOnboardingChecklist() {
           renderOnboardingChecklist();
           renderDashboard();
         }, 50);
-      });
-
-      // Event listener for the client-visibility toggle. This is the only
-      // thing that controls whether a task shows up on the client-facing
-      // portal - internal-only tasks (like "schedule internal prep
-      // meeting") should stay unchecked here.
-      const visToggle = card.querySelector(".client-visible-checkbox");
-      visToggle.addEventListener("change", () => {
-        item.clientVisible = visToggle.checked;
-        saveDatabase();
-        showBanner("success", item.clientVisible
-          ? "This task will now show on the client's portal."
-          : "This task is now hidden from the client's portal.");
       });
 
       stack.appendChild(card);
@@ -2054,6 +2045,33 @@ function foldInClientChecklistChecked(targetItems, existingItems) {
   return changed;
 }
 
+// Pull any approval decisions the client already made (which write
+// straight to the public clients/{token} doc, same as the checklist) into
+// a target object with .pendingApprovals / .approvalHistory arrays -
+// moving the decided item out of pending and into history. Works whether
+// "target" is the real live client object (ensureClientPortalListeners)
+// or a throwaway wrapper around an outgoing-write clone
+// (syncPublicPortalDocs), since both just need their two array
+// properties reassigned in place.
+function foldInApprovalDecisions(target, publicData) {
+  if (!target || !publicData || !Array.isArray(publicData.approvalHistory)) return false;
+  if (!Array.isArray(target.pendingApprovals)) target.pendingApprovals = [];
+  if (!Array.isArray(target.approvalHistory)) target.approvalHistory = [];
+
+  const knownIds = new Set(target.approvalHistory.map(a => a.id));
+  let changed = false;
+
+  publicData.approvalHistory.forEach(entry => {
+    if (!knownIds.has(entry.id)) {
+      target.approvalHistory = target.approvalHistory.concat([entry]);
+      target.pendingApprovals = target.pendingApprovals.filter(p => p.id !== entry.id);
+      changed = true;
+    }
+  });
+
+  return changed;
+}
+
 async function syncPublicPortalDocs(dbSnapshot) {
   if (!window.firebaseDb || !window.firebaseDb.collection) return;
 
@@ -2066,18 +2084,24 @@ async function syncPublicPortalDocs(dbSnapshot) {
     const publicRef = window.firebaseDb.collection("clients").doc(token);
     const localChecklist = client.onboardingChecklist || client.onboarding || [];
     const localClientChecklist = client.clientChecklist || [];
+    const approvalsWrapper = {
+      pendingApprovals: client.pendingApprovals || [],
+      approvalHistory: client.approvalHistory || []
+    };
 
     try {
-      // Fold in any checklist progress the client already made directly on
-      // the portal so this save doesn't stomp on it. (Pulling that progress
-      // into the real, live clientsDb so the admin side actually SEES it is
-      // handled separately and continuously by ensureClientPortalListeners
-      // below - not tied to whether the admin happens to save something.)
+      // Fold in any checklist progress (and approval decisions) the client
+      // already made directly on the portal so this save doesn't stomp on
+      // it. (Pulling that progress into the real, live clientsDb so the
+      // admin side actually SEES it is handled separately and continuously
+      // by ensureClientPortalListeners below - not tied to whether the
+      // admin happens to save something.)
       const existing = await publicRef.get();
       if (existing.exists) {
         const existingData = existing.data();
         foldInOnboardingChecked(localChecklist, existingData.onboardingChecklist);
         foldInClientChecklistChecked(localClientChecklist, existingData.clientChecklist);
+        foldInApprovalDecisions(approvalsWrapper, existingData);
       }
     } catch (e) {
       console.warn("Could not read existing public portal doc for", name, e);
@@ -2087,6 +2111,8 @@ async function syncPublicPortalDocs(dbSnapshot) {
       portalConfig: client.portalConfig,
       onboardingChecklist: localChecklist,
       clientChecklist: localClientChecklist,
+      pendingApprovals: approvalsWrapper.pendingApprovals,
+      approvalHistory: approvalsWrapper.approvalHistory,
       // Published report snapshots (see competitor-analysis/script.js's
       // publishToClientPortal). Admin-only to create - clients never write
       // this field, so no fold-in-existing-progress step is needed here
@@ -2139,8 +2165,9 @@ function ensureClientPortalListeners() {
 
       const changedOnboarding = foldInOnboardingChecked(currentClient.onboardingChecklist, data.onboardingChecklist);
       const changedClientChecklist = foldInClientChecklistChecked(currentClient.clientChecklist, data.clientChecklist);
+      const changedApprovals = foldInApprovalDecisions(currentClient, data);
 
-      if (changedOnboarding || changedClientChecklist) {
+      if (changedOnboarding || changedClientChecklist || changedApprovals) {
         localStorage.setItem("REVITAL_HUB_CLIENTS", JSON.stringify(clientsDb));
         try { renderOnboardingChecklist(); } catch (e) {}
         try { renderDashboard(); } catch (e) {}
