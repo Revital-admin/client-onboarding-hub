@@ -1,0 +1,104 @@
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+}
+
+.call-header-card { margin-bottom: 20px; }
+.call-header-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 900px) { .call-header-grid { grid-template-columns: 1fr; } }
+
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 6px; }
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group input[type="number"],
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border-md);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+.form-group textarea { resize: vertical; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none; border-color: var(--color-accent); box-shadow: 0 0 0 3px var(--color-accent-dim);
+}
+
+.main-content { display: flex; flex-direction: column; gap: 20px; max-width: 860px; margin-bottom: 24px; }
+
+.call-block-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+.call-block-title {
+  font-family: var(--font-heading);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--color-accent);
+  margin-bottom: 16px;
+}
+
+.script-box {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.script-box p { font-size: 15px; color: var(--color-text-primary); font-style: italic; margin-bottom: 10px; }
+.script-box .stage-direction { font-size: 12px; color: var(--color-text-muted); font-style: normal; text-transform: uppercase; letter-spacing: 0.3px; }
+
+.question-block { margin-bottom: 22px; padding-bottom: 22px; border-bottom: 1px solid var(--color-border); }
+.question-block:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+
+.question-text { font-size: 15px; font-weight: 600; color: var(--color-text-primary); margin-bottom: 6px; }
+.question-why { font-size: 12px; color: var(--color-text-muted); font-style: italic; margin-bottom: 4px; }
+.question-probe { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.question-probe::before { content: "↳ "; }
+.question-redflag {
+  font-size: 12px; color: #ef4444; background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 6px; padding: 6px 10px; margin: 6px 0;
+}
+
+.question-answer {
+  width: 100%; margin-top: 8px; padding: 10px 12px;
+  border: 1px solid var(--color-border-md); border-radius: 6px;
+  font-size: 14px; font-family: inherit; background: var(--color-surface); color: var(--color-text-primary);
+  resize: vertical;
+}
+.question-answer:focus { outline: none; border-color: var(--color-accent); box-shadow: 0 0 0 3px var(--color-accent-dim); }
+
+.checkbox-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.checkbox-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border: 1px solid var(--color-border-md); border-radius: 100px;
+  font-size: 13px; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s ease;
+}
+.checkbox-pill:hover { border-color: var(--color-accent); color: var(--color-text-primary); }
+.checkbox-pill input { accent-color: var(--color-accent); }
+.checkbox-pill:has(input:checked) { background: var(--color-accent-dim); border-color: var(--color-accent); color: var(--color-text-primary); }
+
+.postcall-card { max-width: 860px; }
+.postcall-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 900px) { .postcall-grid { grid-template-columns: 1fr; } }
+
+.fit-pill-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.fit-pill {
+  padding: 8px 16px; border-radius: 100px; border: 1px solid var(--color-border-md);
+  background: var(--color-surface-2); color: var(--color-text-secondary);
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s ease;
+}
+.fit-pill:hover { border-color: var(--color-accent); }
+.fit-pill.selected { background: var(--color-accent-dim); border-color: var(--color-accent); color: var(--color-text-primary); }

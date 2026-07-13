@@ -264,6 +264,17 @@ body {
   font-weight: 600;
 }
 
+/* h1 and h4 previously had no explicit font-size here, so pasted ClickUp/
+   Google Docs "Heading 1" text fell back to the browser's default h1 size
+   (~2em) instead of following this doc's type scale - that's what made
+   some pasted headings look oversized compared to h2/h3. */
+.doc-body h1 {
+  font-size: 1.9rem;
+  border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+  padding-bottom: 10px;
+  margin-top: 0;
+}
+
 .doc-body h2 { 
   font-size: 1.6rem; 
   border-bottom: 1px solid rgba(99, 102, 241, 0.15); /* Soft indigo divider */
@@ -276,6 +287,12 @@ body {
   color: #a5b4fc; /* Very soft pastel indigo/blue */
   margin-top: 2em; 
   margin-bottom: 1em; 
+}
+
+.doc-body h4 {
+  font-size: 1.1rem;
+  margin-top: 1.5em;
+  margin-bottom: 0.6em;
 }
 
 .doc-body p {
@@ -681,8 +698,12 @@ body {
   font-weight: 600;
 }
 
+/* Same fix as .doc-body: h1/h4 had no explicit size, so pasted "Heading 1"
+   content looked oversized in the editor too, before you'd even saved it. */
+.editor-richtext h1 { font-size: 1.5rem; }
 .editor-richtext h2 { font-size: 1.3rem; }
 .editor-richtext h3 { font-size: 1.1rem; color: #a5b4fc; }
+.editor-richtext h4 { font-size: 1rem; }
 
 .editor-richtext p {
   margin-bottom: 0.8em;
@@ -713,10 +734,29 @@ body {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 0.8em;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
 }
 
 .editor-richtext th, .editor-richtext td {
-  border: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
   padding: 6px 8px;
   font-size: 0.85rem;
+  text-align: left;
+}
+
+/* Editor table cells previously had no distinct header treatment, so
+   pasted tables looked flat/unstyled while editing even though the saved
+   read view (.doc-body) rendered a proper header row - bring them in
+   line with each other. */
+.editor-richtext th {
+  background: rgba(99, 102, 241, 0.06);
+  color: #e0e7ff;
+  font-weight: 600;
+  font-family: var(--font-heading);
+}
+
+.editor-richtext tr:last-child td {
+  border-bottom: none;
 }

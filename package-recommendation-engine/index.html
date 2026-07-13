@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Package Recommendation Engine</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <main class="container">
+    <div class="brand-bar">
+      <div class="brand-logo-container"></div>
+    </div>
+
+    <header class="site-header">
+      <div class="header-eyebrow">
+        <span class="dot"></span>
+        <span>Sales & Pitch</span>
+      </div>
+      <h1 class="site-title">Package Recommendation <em>Engine</em></h1>
+      <p class="site-subtitle">Answer 6 questions to get a recommended package, service mix, and talking points before you pitch.</p>
+    </header>
+
+    <div class="main-content split-layout">
+      <div class="step-card">
+
+        <div class="form-section">
+          <h3>Client (optional)</h3>
+          <div class="form-group">
+            <label for="companyName">Company Name</label>
+            <input type="text" id="companyName" placeholder="e.g. Acme Corp">
+          </div>
+          <div class="form-group">
+            <label for="contactName">Contact Name</label>
+            <input type="text" id="contactName" placeholder="e.g. Jane Smith">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>6 Questions</h3>
+
+          <div class="form-group">
+            <label for="q1Budget">1. Monthly Budget Range</label>
+            <select id="q1Budget">
+              <option value="">Select...</option>
+              <option value="under1k">Under $1,000</option>
+              <option value="1k_2k">$1,000 - $2,000</option>
+              <option value="2k_3.5k">$2,000 - $3,500</option>
+              <option value="3.5k_5k">$3,500 - $5,000</option>
+              <option value="5k_plus">$5,000+</option>
+              <option value="unknown">Unknown</option>
+              <option value="refused">Refused to Share</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="q2Goal">2. Primary Goal</label>
+            <select id="q2Goal">
+              <option value="">Select...</option>
+              <option value="more_leads">More leads</option>
+              <option value="brand_awareness">Brand awareness</option>
+              <option value="more_sales">More sales</option>
+              <option value="local_presence">Better local presence</option>
+              <option value="launch_new">Launch a new product or service</option>
+              <option value="all_of_above">All of the above</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>3. Platforms Currently Active On</label>
+            <div class="checkbox-grid" id="q3PlatformsGroup">
+              <label class="checkbox-pill"><input type="checkbox" value="organic_social"> Organic Social</label>
+              <label class="checkbox-pill"><input type="checkbox" value="paid_social"> Paid Social</label>
+              <label class="checkbox-pill"><input type="checkbox" value="paid_search"> Paid Search</label>
+              <label class="checkbox-pill"><input type="checkbox" value="seo"> SEO</label>
+              <label class="checkbox-pill"><input type="checkbox" value="email_marketing"> Email Marketing</label>
+              <label class="checkbox-pill"><input type="checkbox" value="website_design"> Website Design</label>
+              <label class="checkbox-pill"><input type="checkbox" value="inbound_marketing"> Inbound Marketing</label>
+              <label class="checkbox-pill"><input type="checkbox" value="strategy"> Strategy</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="q4Assets">4. Existing Brand Assets</label>
+            <select id="q4Assets">
+              <option value="">Select...</option>
+              <option value="full_kit">Yes - full brand kit</option>
+              <option value="partial">Yes - partial</option>
+              <option value="none">No - starting from scratch</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="q5Timeline">5. Timeline</label>
+            <select id="q5Timeline">
+              <option value="">Select...</option>
+              <option value="immediate">Immediate</option>
+              <option value="1to3">1 - 3 months</option>
+              <option value="3to6">3 - 6 months</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="q6BusinessType">6. Business Type</label>
+            <select id="q6BusinessType">
+              <option value="">Select...</option>
+              <option value="local_service">Local service business</option>
+              <option value="ecommerce">E-commerce</option>
+              <option value="b2b">B2B</option>
+              <option value="restaurant">Restaurant or hospitality</option>
+              <option value="personal_brand">Personal brand</option>
+              <option value="nonprofit">Non-profit</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-card" style="position: sticky; top: 24px;">
+        <h2 style="font-family: var(--font-heading); margin-bottom: 16px;">Recommendation</h2>
+
+        <div id="resultCard" class="result-card result-unknown">
+          <div class="result-package" id="resultPackage">Answer the questions to see a recommendation</div>
+          <div class="result-retainer" id="resultRetainer"></div>
+        </div>
+
+        <div class="result-section">
+          <h3>Recommended Services</h3>
+          <div id="resultServices" class="result-services">--</div>
+        </div>
+
+        <div class="result-section">
+          <h3>Why This Package</h3>
+          <p id="resultWhy" class="result-text">--</p>
+        </div>
+
+        <div class="result-section">
+          <h3>What to Emphasize on the Call</h3>
+          <ul id="resultEmphasis" class="result-list"><li>--</li></ul>
+        </div>
+
+        <div class="result-section">
+          <h3>One-Sentence Pitch</h3>
+          <p id="resultPitch" class="result-text result-pitch">--</p>
+        </div>
+
+        <button id="openProposalBtn" class="download-pdf-btn" style="width: 100%; justify-content: center; margin-top: 12px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect></svg>
+          <span>Open Proposal Calculator with These Selections</span>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -227,7 +227,11 @@ let iframeNeedsReload = {
   "tab-campaignlaunch": true,
   "tab-roiprojector": true,
   "tab-sopwiki": true,
-  "tab-proposal": true
+  "tab-proposal": true,
+  "tab-intakequalifier": true,
+  "tab-discoverycall": true,
+  "tab-packagerecommend": true,
+  "tab-followuptracker": true
 };
 
 // ── Initial State Blueprint ──
@@ -502,6 +506,20 @@ function getActiveClient() {
   return clientsDb[activeClientName];
 }
 
+// Cross-client accessor for tools that need to see every client at once
+// (e.g. the Proposal Follow-Up Tracker), rather than just the active one.
+function getAllClients() {
+  return clientsDb;
+}
+
+// Shared helper so embedded iframe tools can jump the user to another tab
+// (e.g. "Open Proposal Calculator" buttons) by clicking the real sidebar
+// button, which keeps all the existing tab-switch/reload logic intact.
+function navigateToTab(tabId) {
+  const btn = document.querySelector(`.nav-item-btn[data-tab="${tabId}"]`);
+  if (btn) btn.click();
+}
+
 // ── Workspace Switching & View Management ──
 function switchClient(clientName) {
   if (clientsDb[clientName]) {
@@ -617,6 +635,18 @@ function refreshIframeTab(tabId) {
       break;
     case "tab-campaignlaunch":
       renderCampaignLaunchChecklist();
+      break;
+    case "tab-intakequalifier":
+      renderIntakeQualifier();
+      break;
+    case "tab-discoverycall":
+      renderDiscoveryCallScript();
+      break;
+    case "tab-packagerecommend":
+      renderPackageRecommendationEngine();
+      break;
+    case "tab-followuptracker":
+      renderFollowUpTracker();
       break;
     case "tab-roiprojector":
       renderRoiProjector();
@@ -1031,7 +1061,12 @@ function renderDashboard() {
     let filledPbFields = 0;
     let totalPbFields = 0;
     
-    // Simplistic check: count all string properties that are not empty
+    // Simplistic check: count all string properties that are not empty.
+    // "platforms" is deliberately skipped here and counted separately below,
+    // because the builder auto-seeds a default (empty) LinkedIn platform row
+    // the moment the tab is opened -- counting the array itself as "filled"
+    // just because it's non-empty produced a false-positive percentage even
+    // when the user hadn't entered anything.
     const countFields = (obj) => {
       if (typeof obj === 'string') {
         totalPbFields++;
@@ -1040,7 +1075,10 @@ function renderDashboard() {
         totalPbFields++;
         if (obj.length > 0) filledPbFields++;
       } else if (typeof obj === 'object' && obj !== null) {
-        Object.values(obj).forEach(countFields);
+        Object.entries(obj).forEach(([key, val]) => {
+          if (key === 'platforms') return;
+          countFields(val);
+        });
       }
     };
     countFields(client.personalBranding.data);
@@ -1355,6 +1393,26 @@ function renderEmailStrategyAudit() {
 // ── Campaign Launch Checklist Controller ──
 function renderCampaignLaunchChecklist() {
   setIframeAbsoluteSrc('#tab-campaignlaunch iframe', "campaign-launch-checklist/index.html");
+}
+
+// ── Client Intake Pre-Qualifier Controller ──
+function renderIntakeQualifier() {
+  setIframeAbsoluteSrc('#tab-intakequalifier iframe', "intake-prequalifier/index.html");
+}
+
+// ── Discovery Call Script Controller ──
+function renderDiscoveryCallScript() {
+  setIframeAbsoluteSrc('#tab-discoverycall iframe', "discovery-call-script/index.html");
+}
+
+// ── Package Recommendation Engine Controller ──
+function renderPackageRecommendationEngine() {
+  setIframeAbsoluteSrc('#tab-packagerecommend iframe', "package-recommendation-engine/index.html");
+}
+
+// ── Proposal Follow-Up Sequence Tracker Controller ──
+function renderFollowUpTracker() {
+  setIframeAbsoluteSrc('#tab-followuptracker iframe', "proposal-followup-tracker/index.html");
 }
 
 // ── ROI Projector Controller ──
