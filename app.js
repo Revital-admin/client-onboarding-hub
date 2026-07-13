@@ -216,6 +216,7 @@ let iframeNeedsReload = {
   // workspaces never refreshed them - they kept showing whichever client
   // was active when the page first loaded until a full page refresh.
   "tab-portal": true,
+  "tab-intakerequest": true,
   "tab-welcomeguide": true,
   "tab-emailsig": true,
   "tab-creativebrief": true,
@@ -583,6 +584,9 @@ function refreshIframeTab(tabId) {
       break;
     case "tab-portal":
       renderClientPortalManagerTab();
+      break;
+    case "tab-intakerequest":
+      renderIntakeRequest();
       break;
     case "tab-welcomeguide":
       renderWelcomeGuide();
@@ -1248,6 +1252,11 @@ function renderSeoAudit() {
 // ── Client Portal Manager Controller ──
 function renderClientPortalManagerTab() {
   setIframeAbsoluteSrc('#tab-portal iframe', "client-portal-manager/index.html");
+}
+
+// ── Intake Request Controller ──
+function renderIntakeRequest() {
+  setIframeAbsoluteSrc('#tab-intakerequest iframe', "intake-request/index.html");
 }
 
 // ── Client Welcome Guide Controller ──

@@ -8,9 +8,55 @@ document.addEventListener('DOMContentLoaded', () => {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   }
 
+  // ── Hub integration ──
+  // Auto-fill from the currently active client so nothing needs to be
+  // retyped by hand. Falls back gracefully to manual entry if this file is
+  // ever opened outside the Hub (no window.parent access).
+  function getParentActiveClient() {
+    try {
+      if (window.parent && typeof window.parent.getActiveClient === 'function') {
+        return window.parent.getActiveClient();
+      }
+    } catch (e) {
+      // Cross-origin or otherwise inaccessible - fall back to manual entry.
+    }
+    return null;
+  }
+
+  function buildPortalLink(client) {
+    if (!client || !client.portalConfig || !client.portalConfig.magicToken) return '';
+    const baseUrl = window.location.origin + '/portal/index.html';
+    const clientNameRaw = client.id || client.name || 'Client';
+    return `${baseUrl}?c=${encodeURIComponent(clientNameRaw)}&t=${client.portalConfig.magicToken}`;
+  }
+
+  function autoFillFromActiveClient() {
+    const client = getParentActiveClient();
+    if (!client) return;
+
+    const clientNameInput = document.getElementById('clientName');
+    const amNameInput = document.getElementById('amName');
+    const amEmailInput = document.getElementById('amEmail');
+    const portalLinkInput = document.getElementById('portalLink');
+
+    if (clientNameInput && !clientNameInput.value) {
+      clientNameInput.value = client.name || '';
+    }
+    const config = client.portalConfig || {};
+    if (amNameInput && !amNameInput.value) {
+      amNameInput.value = config.accountManagerName || '';
+    }
+    if (amEmailInput && !amEmailInput.value) {
+      amEmailInput.value = config.accountManagerEmail || '';
+    }
+    if (portalLinkInput) {
+      portalLinkInput.value = buildPortalLink(client);
+    }
+  }
+
   function renderPreview() {
     const clientName = document.getElementById('clientName').value || 'Acme Corp';
-    const intakeLink = document.getElementById('intakeLink').value || 'https://forms.gle/...';
+    const portalLink = document.getElementById('portalLink').value || 'https://hub.revitalproductions.com/portal/...';
     const amName = document.getElementById('amName').value || 'Jane Doe';
     const amEmail = document.getElementById('amEmail').value || 'jane@revitalproductions.com';
     const welcomeNote = document.getElementById('welcomeNote').value || `We are thrilled to partner with ${clientName} and can't wait to get started!`;
@@ -58,9 +104,9 @@ document.addEventListener('DOMContentLoaded', () => {
           ${servicesHtml}
         </div>
 
-        <a href="${intakeLink}" target="_blank" class="btn-pdf">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-          Click Here to Start Your Onboarding
+        <a href="${portalLink}" target="_blank" class="btn-pdf">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+          Access Your Client Portal
         </a>
         <div class="page-number">Page 1</div>
       </div>
@@ -151,6 +197,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Initial render
+  // Wait a tiny bit for the parent to fully inject its globals if this
+  // iframe just loaded fresh (same pattern used elsewhere in the Hub for
+  // the same reason), then auto-fill and render.
+  setTimeout(() => {
+    autoFillFromActiveClient();
+    renderPreview();
+  }, 300);
+
+  // Initial render (before the auto-fill above resolves, so the preview
+  // isn't blank while waiting).
   renderPreview();
 });
