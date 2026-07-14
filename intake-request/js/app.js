@@ -146,35 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportContainer = document.createElement('div');
     exportContainer.innerHTML = pdfContainer.innerHTML;
 
-    // TEMPORARY DIAGNOSTIC - safe to ignore/remove later. Measures the
-    // actual content we're about to hand to html2pdf, to see ground truth
-    // instead of guessing. Attaches off-screen only long enough to read
-    // real layout measurements (getBoundingClientRect/scrollHeight return
-    // 0 for detached nodes), then detaches again before proceeding - this
-    // does not change what html2pdf itself sees or how it captures.
-    exportContainer.style.position = 'absolute';
-    exportContainer.style.top = '0';
-    exportContainer.style.left = '0';
-    exportContainer.style.visibility = 'hidden';
-    exportContainer.style.pointerEvents = 'none';
-    document.body.appendChild(exportContainer);
-    const pdfPages = exportContainer.querySelectorAll('.pdf-page');
-    console.log('[PDF DIAG] pdfContainer.innerHTML length:', pdfContainer.innerHTML.length);
-    console.log('[PDF DIAG] exportContainer childElementCount:', exportContainer.childElementCount);
-    console.log('[PDF DIAG] exportContainer.children tags:', Array.from(exportContainer.children).map(c => c.tagName + '.' + c.className));
-    console.log('[PDF DIAG] .pdf-page count found:', pdfPages.length);
-    console.log('[PDF DIAG] exportContainer scrollHeight (px):', exportContainer.scrollHeight);
-    pdfPages.forEach((p, i) => {
-      const r = p.getBoundingClientRect();
-      console.log('[PDF DIAG] .pdf-page[' + i + '] rect height (px):', r.height, 'top:', r.top, 'id:', p.id);
-    });
-    document.body.removeChild(exportContainer);
-    exportContainer.style.position = '';
-    exportContainer.style.top = '';
-    exportContainer.style.left = '';
-    exportContainer.style.visibility = '';
-    exportContainer.style.pointerEvents = '';
-
     // NOTE: an earlier attempt intercepted the chain via
     // .toPdf().get('pdf').then(pdf => { ...trim pages...; pdf.save(...) })
     // to manually strip a leading blank page via jsPDF's own page API.
