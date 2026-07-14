@@ -109,7 +109,13 @@ document.addEventListener('DOMContentLoaded', () => {
       // capture should always want. Omitting this was the actual cause
       // of the blank-space-then-offset-content pattern that persisted
       // through the container/overflow fixes.
-      html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
+      // Explicit width/height forces html2canvas to render exactly one
+      // 8.5x11in page's worth of pixels (816x1056 CSS px at 96dpi)
+      // instead of auto-measuring the container - auto-measurement was
+      // apparently landing a hair over the one-page threshold even with
+      // overflow:hidden and no box-shadow, rounding up to a spurious
+      // blank 2nd page. This removes that ambiguity entirely.
+      html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0, width: 816, height: 1056, windowWidth: 816, windowHeight: 1056 },
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
       // pagebreak avoid-all forces page-break-inside:avoid onto every
       // single element in the container, which turned out to conflict

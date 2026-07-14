@@ -205,7 +205,10 @@ document.addEventListener('DOMContentLoaded', () => {
       // capture should always want. Omitting this was the actual cause
       // of the blank-space-then-offset-content pattern that persisted
       // through the container/overflow fixes.
-      html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
+      // Same fix as Intake Request, but this template has TWO .pdf-page
+      // divs stacked (page-1 and page-2), so the forced height is two
+      // full pages tall (816x2112 CSS px at 96dpi) instead of one.
+      html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0, width: 816, height: 2112, windowWidth: 816, windowHeight: 2112 },
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
       // pagebreak avoid-all forces page-break-inside:avoid onto every
       // single element in the container, which turned out to conflict
