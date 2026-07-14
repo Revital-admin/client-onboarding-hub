@@ -8,7 +8,12 @@
 .pdf-page {
   width: 8.5in; height: 11in; overflow: hidden; background: var(--color-surface);
   padding: 1in; box-sizing: border-box; position: relative;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1); flex-shrink: 0;
+  /* box-shadow removed: its blur radius bleeds a few extra pixels
+     beyond the box's exact edges when rasterized, which was enough to
+     tip html2canvas's measured height over the one-page threshold and
+     trigger a spurious blank second page. Not needed for a printed
+     PDF anyway. */
+  flex-shrink: 0;
   display: flex; flex-direction: column; page-break-inside: avoid;
   /* overflow: hidden is the real fix for the multi-page/blank-page bug -
      without it, content even a hair taller than 11in silently overflows
