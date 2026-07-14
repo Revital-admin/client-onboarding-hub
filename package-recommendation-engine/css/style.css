@@ -24,11 +24,37 @@
 .checkbox-pill {
   display: flex; align-items: center; gap: 6px;
   padding: 6px 12px; border: 1px solid var(--color-border-md); border-radius: 100px;
-  font-size: 13px; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s ease;
+  font-size: 13px; color: var(--color-text-secondary); cursor: pointer; transition: all var(--transition);
 }
-.checkbox-pill:hover { border-color: var(--color-accent); color: var(--color-text-primary); }
-.checkbox-pill input { accent-color: var(--color-accent); }
-.checkbox-pill:has(input:checked) { background: var(--color-accent-dim); border-color: var(--color-accent); color: var(--color-text-primary); }
+.checkbox-pill:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+.checkbox-pill input[type="checkbox"] {
+  appearance: none; -webkit-appearance: none; margin: 0; flex-shrink: 0;
+  width: 14px; height: 14px; border-radius: 4px;
+  border: 1.5px solid var(--color-border-md);
+  background: var(--color-surface-2);
+  cursor: pointer; position: relative; transition: all var(--transition);
+}
+.checkbox-pill input[type="checkbox"]:checked {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.checkbox-pill input[type="checkbox"]:checked::after {
+  content: ''; position: absolute; left: 4px; top: 1px;
+  width: 4px; height: 8px;
+  border: solid #070a13; border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.checkbox-pill:has(input:checked) {
+  background: var(--color-accent-dim);
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+  box-shadow: 0 0 0 1px var(--color-accent) inset;
+}
 
 .result-card {
   text-align: center; padding: 24px 16px; border-radius: var(--radius-lg);
@@ -38,7 +64,7 @@
 .result-retainer { font-size: 15px; font-weight: 600; color: var(--color-accent); }
 .result-unknown { background: var(--color-surface-2); border-color: var(--color-border); }
 .result-unknown .result-package { font-size: 15px; color: var(--color-text-muted); font-family: var(--font-body); font-weight: 500; }
-.result-ready { background: rgba(246, 141, 95, 0.1); border-color: var(--color-accent); }
+.result-ready { background: rgba(246, 141, 95, 0.1); border-color: var(--color-accent); box-shadow: 0 8px 24px var(--color-accent-dim); }
 
 .result-section { margin-bottom: 20px; }
 .result-section h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); font-weight: 700; margin-bottom: 8px; }
@@ -46,8 +72,8 @@
 .result-pitch { font-style: italic; color: var(--color-text-primary); }
 .result-services { display: flex; flex-wrap: wrap; gap: 6px; }
 .result-services .service-tag {
-  font-size: 12px; padding: 4px 10px; border-radius: 100px;
-  background: var(--color-surface-2); border: 1px solid var(--color-border-md); color: var(--color-text-primary);
+  font-size: 12px; padding: 5px 12px; border-radius: 100px; font-weight: 500;
+  background: var(--color-accent-dim); border: 1px solid var(--color-accent); color: var(--color-text-primary);
 }
 .result-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
 .result-list li {

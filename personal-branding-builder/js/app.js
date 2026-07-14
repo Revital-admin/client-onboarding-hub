@@ -639,8 +639,8 @@ function setupEventHandlers() {
         const opt = {
           margin:       0,
           filename:     'Personal_Branding_Strategy.pdf',
-          image:        { type: 'png' },
-          html2canvas:  { scale: 4, letterRendering: true, useCORS: true },
+          image:        { type: 'jpeg', quality: 0.92 },
+          html2canvas:  { scale: 2, letterRendering: true, useCORS: true },
           jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
         

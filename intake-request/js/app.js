@@ -95,9 +95,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const opt = {
       margin:       0,
       filename:     `Intake_Request_${clientName.replace(/\s+/g, '_')}.pdf`,
-      image:        { type: 'png' },
-      html2canvas:  { scale: 4, useCORS: true, letterRendering: true },
-      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+      // JPEG (no alpha channel) instead of PNG, and scale 2 instead of 4 -
+      // the old settings were rendering a near-transparent full-resolution
+      // alpha mask alongside the color layer, then (due to no pagebreak
+      // mode being set) silently doubling that onto a second, mostly-blank
+      // page whenever the content was even a hair over 11in tall. Together
+      // that produced 100MB+ PDFs with a phantom blank first page.
+      image:        { type: 'jpeg', quality: 0.92 },
+      html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
+      pagebreak:    { mode: 'avoid-all' }
     };
 
     generateBtn.innerHTML = 'Generating...';

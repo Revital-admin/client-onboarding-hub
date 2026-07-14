@@ -21,9 +21,13 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function isAdmin() {
+      // Any @revitalproductions.com Google account counts as admin, not
+      // just one hardcoded address - keeps this in sync with the same
+      // domain-wide check in app.js / _worker.js. Without this, employees
+      // could sign in but every Firestore read/write would still 403.
       return request.auth != null
         && request.auth.token.email != null
-        && request.auth.token.email.lower() == 'admin@revitalproductions.com';
+        && request.auth.token.email.lower().matches('.*@revitalproductions[.]com$');
     }
 
     // Covers every document under agency/ (clientsDb, activityLog, and any

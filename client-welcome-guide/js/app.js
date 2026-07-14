@@ -192,9 +192,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const opt = {
       margin:       0,
       filename:     `Welcome_Guide_${clientName.replace(/\s+/g, '_')}.pdf`,
-      image:        { type: 'png' },
-      html2canvas:  { scale: 4, useCORS: true, letterRendering: true },
-      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+      // Same fix as the Intake Request generator: JPEG instead of PNG (no
+      // alpha layer), scale 2 instead of 4, and an explicit pagebreak mode
+      // so html2pdf breaks at the two .pdf-page divs instead of silently
+      // slicing in a mostly-blank extra page whenever content ran a hair
+      // past 11in. Old settings were producing 100MB+ files.
+      image:        { type: 'jpeg', quality: 0.92 },
+      html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
+      pagebreak:    { mode: 'avoid-all' }
     };
     
     generateBtn.innerHTML = 'Generating...';
