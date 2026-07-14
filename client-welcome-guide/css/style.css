@@ -14,7 +14,14 @@
      trigger a spurious blank second page. Not needed for a printed
      PDF anyway. */
   flex-shrink: 0;
-  display: flex; flex-direction: column; page-break-inside: avoid;
+  display: flex; flex-direction: column;
+  /* page-break-inside: avoid removed - html2pdf.js's default pagebreak
+     mode respects CSS page-break rules, and this property on the ONLY
+     element in the capture appears to have been triggering a forced
+     break before it (a spurious blank leading page) rather than
+     actually preventing a break inside it. Nothing left to avoid a
+     break inside of now that overflow:hidden guarantees single-page
+     sizing, so this rule was pure risk with no benefit. */
   /* overflow: hidden is the real fix for the multi-page/blank-page bug -
      without it, content even a hair taller than 11in silently overflows
      past this fixed height, and html2canvas measures the full overflowed
