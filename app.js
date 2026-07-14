@@ -21,7 +21,10 @@ function generateSecureToken(length = 32) {
 // Firebase custom token, which we redeem here with no popup. A manual
 // Google sign-in is kept as a fallback (e.g. local dev without Access
 // in front, or if the token-minting function isn't configured yet).
-const ADMIN_EMAIL = "admin@revitalproductions.com";
+// Any Google account on this company domain is authorized - previously
+// this was a single hardcoded email, which silently locked out everyone
+// except that one account.
+const ADMIN_EMAIL_DOMAIN = "revitalproductions.com";
 let firebaseAuthReady = false;
 
 function initAdminAuthGate() {
@@ -54,7 +57,7 @@ function initAdminAuthGate() {
   if (signInBtn) {
     signInBtn.addEventListener("click", () => {
       const provider = new firebase.auth.GoogleAuthProvider();
-      provider.setCustomParameters({ login_hint: ADMIN_EMAIL });
+      provider.setCustomParameters({ hd: ADMIN_EMAIL_DOMAIN });
       firebase.auth().signInWithPopup(provider).catch(err => {
         console.error("Manual sign-in failed:", err);
         showManualSignIn("Sign-in failed: " + err.message);
@@ -87,7 +90,7 @@ function initAdminAuthGate() {
   if (gate) gate.style.display = "flex";
 
   firebase.auth().onAuthStateChanged((user) => {
-    const isAuthorizedAdmin = !!(user && user.email && user.email.toLowerCase() === ADMIN_EMAIL);
+    const isAuthorizedAdmin = !!(user && user.email && user.email.toLowerCase().endsWith("@" + ADMIN_EMAIL_DOMAIN));
 
     if (isAuthorizedAdmin) {
       if (gate) gate.style.display = "none";

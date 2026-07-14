@@ -7,7 +7,10 @@
 // routes directly and falls back to serving the static site for
 // everything else via the ASSETS binding configured in wrangler.toml.
 
-const ADMIN_EMAIL = "admin@revitalproductions.com";
+// Any Google account on this company domain is treated as authorized -
+// previously this was a single hardcoded email, which silently locked out
+// every employee except that one account.
+const ADMIN_EMAIL_DOMAIN = "revitalproductions.com";
 
 export default {
   async fetch(request, env, ctx) {
@@ -55,7 +58,7 @@ async function handleUser(request) {
 async function handleMintFirebaseToken(request, env) {
   const accessEmail = request.headers.get("Cf-Access-Authenticated-User-Email");
 
-  if (!accessEmail || accessEmail.toLowerCase() !== ADMIN_EMAIL) {
+  if (!accessEmail || !accessEmail.toLowerCase().endsWith("@" + ADMIN_EMAIL_DOMAIN)) {
     return jsonResponse({ error: "Not authorized" }, 403);
   }
 
