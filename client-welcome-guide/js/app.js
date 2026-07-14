@@ -198,14 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // slicing in a mostly-blank extra page whenever content ran a hair
       // past 11in. Old settings were producing 100MB+ files.
       image:        { type: 'jpeg', quality: 0.92 },
-      // scrollY/scrollX compensate for a well-documented html2canvas quirk:
-      // it captures using the page's current scroll offset even when
-      // targeting one specific element. Since the live preview panel is
-      // sticky and the form is long, the page is often scrolled down when
-      // this button is clicked - without this, the capture started from
-      // that scrolled offset, producing blank leading pages with the real
-      // content only appearing partway down the last one.
-      html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: -window.scrollY },
+      html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
       pagebreak:    { mode: 'avoid-all' }
     };
@@ -220,32 +213,20 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // The live preview sits inside .preview-scroll, a capped/scrollable
-    // box (max-height: 80vh; overflow-y: auto) so it fits on screen next
-    // to the form. html2canvas clones the DOM including that ancestor's
-    // clipping and scroll position, so it was capturing whatever was
-    // currently visible in the scrolled viewport instead of the full
-    // document - blank space above, content cut off below. Temporarily
-    // remove the clipping and reset scroll before capturing, then restore
-    // it right after so the on-screen preview is unaffected.
-    const scrollWrap = pdfContainer.closest('.preview-scroll');
-    const prevOverflow = scrollWrap ? scrollWrap.style.overflowY : null;
-    const prevMaxHeight = scrollWrap ? scrollWrap.style.maxHeight : null;
-    const prevScrollTop = scrollWrap ? scrollWrap.scrollTop : null;
-    if (scrollWrap) {
-      scrollWrap.scrollTop = 0;
-      scrollWrap.style.overflowY = 'visible';
-      scrollWrap.style.maxHeight = 'none';
-    }
+    // Capture from a detached copy of the preview content instead of the
+    // live pdfContainer itself. pdfContainer sits inside .preview-scroll
+    // (a sticky, scrollable box) - two rounds of patching that scroll
+    // context (removing clipping, compensating scroll offset) still left
+    // edge cases producing blank/offset pages. Every other PDF tool in the
+    // Hub builds its output in a plain, never-attached div and that
+    // pattern has never had this problem, so match it here instead of
+    // continuing to fight the live sticky/scrolled DOM.
+    const exportContainer = document.createElement('div');
+    exportContainer.innerHTML = pdfContainer.innerHTML;
 
-    html2pdf().set(opt).from(pdfContainer).save().then(() => {
+    html2pdf().set(opt).from(exportContainer).save().then(() => {
       generateBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Download PDF';
       generateBtn.disabled = false;
-      if (scrollWrap) {
-        scrollWrap.style.overflowY = prevOverflow;
-        scrollWrap.style.maxHeight = prevMaxHeight;
-        scrollWrap.scrollTop = prevScrollTop;
-      }
     });
   });
 
