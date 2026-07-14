@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // apparently landing a hair over the one-page threshold even with
       // overflow:hidden and no box-shadow, rounding up to a spurious
       // blank 2nd page. This removes that ambiguity entirely.
-      html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0, width: 816, height: 1056, windowWidth: 816, windowHeight: 1056 },
+      html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
       // pagebreak avoid-all forces page-break-inside:avoid onto every
       // single element in the container, which turned out to conflict
@@ -137,18 +137,22 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Capture from a detached copy of the preview content instead of the
-    // live pdfContainer itself. pdfContainer sits inside .preview-scroll
-    // (a sticky, scrollable box) - two rounds of patching that scroll
-    // context (removing clipping, compensating scroll offset) still left
-    // edge cases producing blank/offset pages. Every other PDF tool in the
-    // Hub builds its output in a plain, never-attached div and that
-    // pattern has never had this problem, so match it here instead of
-    // continuing to fight the live sticky/scrolled DOM.
+    // Capture from a copy of the preview content, appended off-screen,
+    // instead of the live pdfContainer inside the sticky/scrollable
+    // preview panel. A completely un-attached element (never appended
+    // anywhere) has no real position in the document, which can leave
+    // html2canvas unable to correctly scope its capture to just that
+    // element - appending it off-screen gives it an actual, measurable
+    // position/size while staying invisible to the user.
     const exportContainer = document.createElement('div');
+    exportContainer.style.position = 'fixed';
+    exportContainer.style.top = '0';
+    exportContainer.style.left = '-99999px';
     exportContainer.innerHTML = pdfContainer.innerHTML;
+    document.body.appendChild(exportContainer);
 
     html2pdf().set(opt).from(exportContainer).save().then(() => {
+      exportContainer.remove();
       generateBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Download PDF';
       generateBtn.disabled = false;
     });
