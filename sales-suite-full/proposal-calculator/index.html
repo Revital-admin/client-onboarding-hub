@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proposal Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- html2pdf for generating PDF proposals -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+  
+  <div class="calc-layout">
+    
+    <!-- Left Pane: Inputs -->
+    <aside class="calc-inputs">
+      <div class="inputs-header">
+        <h1 class="calc-title">Proposal Config</h1>
+        <p>Adjust variables to calculate the retainer and generate the Scope of Work.</p>
+      </div>
+
+
+
+      <!-- PROPOSAL DETAILS -->
+      <div class="input-section" style="border: 1px solid var(--border-focus); background: rgba(99, 102, 241, 0.05); padding: 16px; border-radius: var(--radius-md); margin-bottom: 24px;">
+        <h3 style="margin-top: 0; display: flex; align-items: center; gap: 8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          Proposal Details
+        </h3>
+        <p class="section-desc" style="margin-bottom: 16px;">Fill these out to populate the PDF template.</p>
+        
+        <label>Client Company Name</label>
+        <input type="text" id="propClientName" class="num-input" placeholder="e.g. Acme Corp" style="margin-bottom: 12px;">
+        
+        <label>Contact Name</label>
+        <input type="text" id="propContactName" class="num-input" placeholder="e.g. John Doe" style="margin-bottom: 12px;">
+        
+        <label>A Note From Us</label>
+        <textarea id="propNote" class="num-input" placeholder="Thank you for taking the time to connect with us..." style="min-height: 80px; resize: vertical; margin-bottom: 12px;"></textarea>
+
+        <label>Current Situation: What's Working</label>
+        <textarea id="propWorking" class="num-input" placeholder="1-2 things they are already doing well..." style="min-height: 60px; resize: vertical; margin-bottom: 12px;"></textarea>
+        
+        <label>Current Situation: Opportunities</label>
+        <textarea id="propOpps" class="num-input" placeholder="2-4 specific gaps or areas for improvement..." style="min-height: 80px; resize: vertical; margin-bottom: 12px;"></textarea>
+
+        <label>Meeting Recap</label>
+        <textarea id="propMeetingRecap" class="num-input" placeholder="Brief summary of what was discussed on the call..." style="min-height: 60px; resize: vertical; margin-bottom: 12px;"></textarea>
+
+        <label>Client Testimonial (optional)</label>
+        <textarea id="propTestimonial" class="num-input" placeholder="Paste a relevant client quote here - name and company optional." style="min-height: 60px; resize: vertical; margin-bottom: 12px;"></textarea>
+
+        <label>Stripe Payment Link</label>
+        <input type="url" id="propStripeUrl" class="num-input" placeholder="Paste client-specific Stripe payment link here" style="margin-bottom: 12px;">
+
+        <label>Proposed Start Date</label>
+        <input type="text" id="propStartDate" class="num-input" placeholder="e.g. August 1, 2026" style="margin-bottom: 12px;">
+
+        <div style="display: flex; gap: 12px;">
+          <div style="flex: 1;">
+            <label>Current AOV ($)</label>
+            <input type="number" id="propAov" class="num-input" placeholder="500">
+          </div>
+          <div style="flex: 1;">
+            <label>Current Conv Rate (%)</label>
+            <input type="number" id="propConvRate" class="num-input" placeholder="2.5">
+          </div>
+        </div>
+      </div>
+
+      <div class="input-section" style="background: var(--bg-card); padding: 16px; border-radius: var(--radius-md); margin-bottom: 24px; border: 1px solid var(--border-color);">
+        <h3 style="margin-top: 0;">⚡ Package Presets</h3>
+        <p class="section-desc" style="margin-bottom: 12px;">Instantly load common scope combinations.</p>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button id="presetBasic" class="btn-copy" style="flex: 1; padding: 8px; font-size: 0.8rem;">Basic Social</button>
+          <button id="presetGrowth" class="btn-copy" style="flex: 1; padding: 8px; font-size: 0.8rem;">Growth Ads</button>
+          <button id="presetFull" class="btn-copy" style="flex: 1; padding: 8px; font-size: 0.8rem;">Full-Stack</button>
+        </div>
+      </div>
+
+      <div class="input-section">
+        <h3>1. Baseline Retainer</h3>
+        <p class="section-desc">The minimum monthly fee to manage the account.</p>
+        <label>Base Fee ($)</label>
+        <input type="number" id="baseFee" value="2500" step="500" class="num-input">
+      </div>
+
+      <div class="input-section" style="margin-top: -16px;">
+        <label for="contractTerm" style="font-size: 0.9rem; margin-bottom: 6px; display: block;">Contract Term (Discount)</label>
+        <select id="contractTerm" class="select-input">
+          <option value="0">Month-to-Month (0% off)</option>
+          <option value="5">3-Month Contract (5% off)</option>
+          <option value="10">6-Month Contract (10% off)</option>
+          <option value="15">12-Month Contract (15% off)</option>
+        </select>
+      </div>
+
+      <div class="input-section" style="margin-top: -16px;">
+        <label class="cb-label">
+          <input type="checkbox" id="rushFee">
+          Rush Delivery Turnaround (+25% on Setup)
+        </label>
+      </div>
+
+      <details class="service-category">
+        <summary><h3>📣 Organic Social</h3></summary>
+        <div class="checkbox-group">
+          <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed var(--border-color);">
+            <label style="display:block; font-size: 0.9rem; margin-bottom: 6px; color: var(--color-text-primary);">Social Media Posts per month (+$100 each)</label>
+            <input type="number" id="socialCount" value="0" min="0" class="num-input">
+          </div>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Feed Posts (static images, carousels)">
+            Feed Posts (static images, carousels)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Reels & Short-Form Video">
+            Reels & Short-Form Video
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Stories">
+            Stories
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Community Management (responding to comments, DMs, engaging followers)">
+            Community Management (responding to comments, DMs, engaging followers)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Content Calendar Management">
+            Content Calendar Management
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Hashtag Strategy">
+            Hashtag Strategy
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Profile Optimization">
+            Profile Optimization
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Social Listening & Trend Monitoring">
+            Social Listening & Trend Monitoring
+          </label>
+        </div>
+      </details>
+
+      <details class="service-category">
+        <summary><h3>💰 Paid Social</h3></summary>
+        <div class="checkbox-group">
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="1000" value="Meta Ads (Facebook + Instagram)">
+            Meta Ads (Facebook + Instagram) (+$1,000)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="1200" value="TikTok Ads">
+            TikTok Ads (+$1,200)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="LinkedIn Ads">
+            LinkedIn Ads
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Pinterest Ads">
+            Pinterest Ads
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Snapchat Ads">
+            Snapchat Ads
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Audience Research & Targeting">
+            Audience Research & Targeting
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Ad Creative Production">
+            Ad Creative Production
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="setup" data-price="0" value="Campaign Setup & Management">
+            Campaign Setup & Management
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="A/B Testing">
+            A/B Testing
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Retargeting Campaigns">
+            Retargeting Campaigns
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Budget Management & Reporting">
+            Budget Management & Reporting
+          </label>
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-color);">
+            <label style="display:block; font-size: 0.9rem; margin-bottom: 6px; color: var(--color-text-primary);">Monthly Ad Spend Tier</label>
+            <select id="spendTier" class="select-input">
+              <option value="0">Under $10k (No extra fee)</option>
+              <option value="500">$10k - $25k (+$500/mo)</option>
+              <option value="1000">$25k - $50k (+$1,000/mo)</option>
+              <option value="2000">$50k+ (+$2,000/mo)</option>
+            </select>
+          </div>
+        </div>
+      </details>
+
+      <details class="service-category">
+        <summary><h3>🔍 Paid Search</h3></summary>
+        <div class="checkbox-group">
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="1000" value="Google Ads — Search">
+            Google Ads — Search (+$1,000)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Google Ads — Display">
+            Google Ads — Display
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Google Ads — Performance Max">
+            Google Ads — Performance Max
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Google Ads — Shopping">
+            Google Ads — Shopping
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Keyword Research">
+            Keyword Research
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Ad Copywriting">
+            Ad Copywriting
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Landing Page Recommendations">
+            Landing Page Recommendations
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Bid Strategy Management">
+            Bid Strategy Management
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="setup" data-price="0" value="Conversion Tracking Setup">
+            Conversion Tracking Setup
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Quality Score Optimization">
+            Quality Score Optimization
+          </label>
+        </div>
+      </details>
+
+      <details class="service-category">
+        <summary><h3>🌐 SEO</h3></summary>
+        <div class="checkbox-group">
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="On-Page SEO (meta titles, descriptions, headers, content optimization)">
+            On-Page SEO (meta titles, descriptions, headers, content optimization)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Technical SEO (site speed, crawlability, schema markup)">
+            Technical SEO (site speed, crawlability, schema markup)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Local SEO (Google Business Profile, local citations, NAP consistency)">
+            Local SEO (Google Business Profile, local citations, NAP consistency)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Off-Page SEO (link building, backlink outreach)">
+            Off-Page SEO (link building, backlink outreach)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Keyword Research & Strategy">
+            Keyword Research & Strategy
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="SEO Content Writing (blog posts, landing pages)">
+            SEO Content Writing (blog posts, landing pages)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="setup" data-price="0" value="SEO Audits">
+            SEO Audits
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Google Search Console Management">
+            Google Search Console Management
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Rank Tracking & Reporting">
+            Rank Tracking & Reporting
+          </label>
+        </div>
+      </details>
+
+      <details class="service-category">
+        <summary><h3>📧 Email Marketing</h3></summary>
+        <div class="checkbox-group">
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="1500" value="Newsletter Campaigns">
+            Newsletter Campaigns (+$1,500)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Promotional Emails">
+            Promotional Emails
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Drip / Nurture Sequences">
+            Drip / Nurture Sequences
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Welcome Sequences">
+            Welcome Sequences
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Re-engagement Campaigns">
+            Re-engagement Campaigns
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="setup" data-price="0" value="List Building & Growth">
+            List Building & Growth
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="List Segmentation & Hygiene">
+            List Segmentation & Hygiene
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Email Copywriting">
+            Email Copywriting
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Template Design">
+            Template Design
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="A/B Testing (subject lines, send times, CTAs)">
+            A/B Testing (subject lines, send times, CTAs)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="setup" data-price="0" value="Platform Setup & Integration (Mailchimp, Klaviyo, ActiveCampaign, etc.)">
+            Platform Setup & Integration (Mailchimp, Klaviyo, ActiveCampaign, etc.)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Performance Reporting">
+            Performance Reporting
+          </label>
+        </div>
+      </details>
+
+      <details class="service-category">
+        <summary><h3>🌐 Website Design</h3></summary>
+        <div class="checkbox-group">
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="setup" data-price="0" value="New Website Builds">
+            New Website Builds
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Website Redesigns">
+            Website Redesigns
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="setup" data-price="0" value="Landing Page Design & Development">
+            Landing Page Design & Development
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Website Maintenance & Updates">
+            Website Maintenance & Updates
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="UX/UI Optimization">
+            UX/UI Optimization
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Conversion Rate Optimization (CRO)">
+            Conversion Rate Optimization (CRO)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Speed & Performance Optimization">
+            Speed & Performance Optimization
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Mobile Responsiveness">
+            Mobile Responsiveness
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Hosting & Domain Management">
+            Hosting & Domain Management
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="setup" data-price="800" value="Analytics Setup (GA4, Meta Pixel, GTM)">
+            Analytics Setup (GA4, Meta Pixel, GTM) (+$800)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="setup" data-price="0" value="E-commerce Setup (Shopify, WooCommerce)">
+            E-commerce Setup (Shopify, WooCommerce)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Platform Support: WordPress, Shopify, Webflow, Squarespace, Wix">
+            Platform Support: WordPress, Shopify, Webflow, Squarespace, Wix
+          </label>
+        </div>
+      </details>
+
+      <details class="service-category">
+        <summary><h3>🎯 Inbound Marketing</h3></summary>
+        <div class="checkbox-group">
+          <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed var(--border-color);">
+            <label style="display:block; font-size: 0.9rem; margin-bottom: 6px; color: var(--color-text-primary);">Blog Posts per month (+$300 each)</label>
+            <input type="number" id="blogCount" value="0" min="0" class="num-input">
+          </div>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="setup" data-price="0" value="Content Strategy Development">
+            Content Strategy Development
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Blog Writing & Management">
+            Blog Writing & Management
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="setup" data-price="0" value="Lead Magnet Creation (guides, checklists, templates, free audits)">
+            Lead Magnet Creation (guides, checklists, templates, free audits)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Landing Page Copywriting">
+            Landing Page Copywriting
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="setup" data-price="0" value="Lead Capture Form Setup">
+            Lead Capture Form Setup
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="setup" data-price="0" value="Marketing Funnel Build">
+            Marketing Funnel Build
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="CTA Strategy">
+            CTA Strategy
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Content Distribution">
+            Content Distribution
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Organic Lead Generation">
+            Organic Lead Generation
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="setup" data-price="0" value="Marketing Automation Setup">
+            Marketing Automation Setup
+          </label>
+        </div>
+      </details>
+
+      <details class="service-category">
+        <summary><h3>🗺️ Strategy</h3></summary>
+        <div class="checkbox-group">
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="setup" data-price="1500" value="Marketing Audit (full assessment of current marketing efforts)">
+            Marketing Audit (full assessment of current marketing efforts) (+$1,500)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Competitor Analysis">
+            Competitor Analysis
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Brand Positioning">
+            Brand Positioning
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Go-To-Market Strategy">
+            Go-To-Market Strategy
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Quarterly Marketing Planning">
+            Quarterly Marketing Planning
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Campaign Strategy">
+            Campaign Strategy
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="setup" data-price="0" value="KPI Framework Development">
+            KPI Framework Development
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Analytics & Data Interpretation">
+            Analytics & Data Interpretation
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="setup" data-price="0" value="Marketing Roadmap Development">
+            Marketing Roadmap Development
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="0" value="Consulting & Advisory">
+            Consulting & Advisory
+          </label>
+        </div>
+      </details>
+      <details class="service-category">
+        <summary><h3>💻 Software & Tech Stack</h3></summary>
+        <div class="checkbox-group">
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="800" value="HubSpot Marketing Hub">
+            HubSpot Marketing Hub (+$800/mo)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="250" value="Sprout Social Seat">
+            Sprout Social Seat (+$250/mo)
+          </label>
+          <label class="cb-label">
+            <input type="checkbox" class="service-cb" data-fee="monthly" data-price="50" value="Klaviyo Base Plan">
+            Klaviyo Base Plan (+$50/mo)
+          </label>
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-color);">
+            <label style="display:block; font-size: 0.9rem; margin-bottom: 6px; color: var(--color-text-primary);">Misc Software Pass-through ($/mo)</label>
+            <input type="number" id="miscSoftware" value="0" min="0" class="num-input">
+          </div>
+        </div>
+      </details>
+
+        <div class="input-section" style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border-color);">
+          <h3>➕ Add Custom Item</h3>
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px;">
+            <input type="text" id="customName" class="num-input" placeholder="Item Name (e.g. Ad-hoc Consulting)">
+            <div style="display: flex; gap: 10px;">
+              <input type="number" id="customPrice" class="num-input" placeholder="Price ($)" style="flex: 1;">
+              <select id="customType" class="select-input" style="flex: 1;">
+                <option value="monthly">Monthly</option>
+                <option value="setup">One-Time</option>
+              </select>
+            </div>
+            <button id="addCustomBtn" class="btn-copy" style="padding: 10px; font-size: 0.9rem;">Add Line Item</button>
+          </div>
+          <ul id="customItemsList" style="list-style: none; margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+            <!-- Custom items will render here -->
+          </ul>
+        </div>
+      <br>
+
+      <!-- Admin Controls -->
+      <div class="input-section" id="adminControlsPanel" style="display: none; border: 1px solid var(--warning); background: rgba(245, 158, 11, 0.05); padding: 16px; border-radius: var(--radius-md); margin-top: 32px;">
+        <h3 style="margin-top: 0; color: var(--warning); display: flex; align-items: center; gap: 8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          Admin Controls
+        </h3>
+        <label class="cb-label" style="font-weight: 500; color: var(--text-title); margin-bottom: 0;">
+          <input type="checkbox" id="toggleMargin" class="service-cb" style="margin-right: 8px;">
+          Show Internal Profit Margin
+        </label>
+      </div>
+
+      <br>
+      <button id="resetBtn" class="btn-reset">Reset Calculator</button>
+    </aside>
+
+    <!-- Right Pane: Output -->
+    <main class="calc-output">
+      <div class="output-paper">
+        <div class="paper-header">
+          <h2>Scope of Work & Pricing</h2>
+          <div class="date-badge" id="currentDate">Jan 1, 2026</div>
+        </div>
+
+        <div class="pricing-summary">
+          <div class="price-box">
+            <span class="price-label">Monthly Retainer</span>
+            <span class="price-value" id="totalMonthly">$0</span>
+          </div>
+          <div class="price-box outline">
+            <span class="price-label">One-Time Setup Fee</span>
+            <span class="price-value" id="totalSetup">$0</span>
+          </div>
+
+          <div class="price-box outline" id="marginBox" style="display: none; border-color: var(--warning);">
+            <span class="price-label" style="color: var(--warning);">Est. Hard Costs</span>
+            <span class="price-value" id="totalHardCosts" style="color: var(--warning);">$0</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 4px;">Margin: <span id="profitMarginPercent">0%</span></span>
+          </div>
+
+        </div>
+
+        <div class="sow-container">
+          <h3>Included Services</h3>
+          <ul id="sowList" class="sow-list">
+            <!-- Rendered via JS -->
+          </ul>
+        </div>
+        
+<div style="display: flex; gap: 12px; margin-top: 24px;" id="actionButtons">
+          <button id="copyBtn" class="btn-copy" style="flex: 1;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            Copy SOW to Clipboard
+          </button>
+          
+          <button id="pdfBtn" class="btn-copy" style="flex: 1; background: var(--color-brand-secondary); border-color: var(--color-brand-secondary);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+            Download PDF
+          </button>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+
+  <script src="js/app.js?v=66"></script>
+</body>
+</html>

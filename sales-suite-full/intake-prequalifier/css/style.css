@@ -1,0 +1,93 @@
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+}
+
+.form-section { margin-bottom: 32px; border-top: 1px solid var(--color-border); padding-top: 24px; }
+.form-section:first-of-type { border-top: none; padding-top: 0; }
+.form-section h3 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); font-weight: 700; margin-bottom: 16px; }
+.highlight-section { background: var(--color-surface-2); padding: 16px; border-radius: 8px; border: 1px solid var(--color-border); }
+.highlight-section h3 { color: var(--color-accent); }
+
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 6px; }
+.form-group input[type="text"],
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border-md);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+.form-group textarea { resize: vertical; }
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-dim);
+}
+.help-text { font-size: 12px; color: var(--color-text-muted); margin-top: 4px; }
+
+.checkbox-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.checkbox-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border: 1px solid var(--color-border-md); border-radius: 100px;
+  font-size: 13px; color: var(--color-text-secondary); cursor: pointer; transition: all var(--transition);
+}
+.checkbox-pill:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+.checkbox-pill input { accent-color: var(--color-accent); width: 14px; height: 14px; }
+.checkbox-pill:has(input:checked) {
+  background: var(--color-accent-dim);
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+  box-shadow: 0 0 0 1px var(--color-accent) inset;
+}
+
+/* ── Fit Score Card ── */
+.fit-score-card {
+  text-align: center; padding: 28px 16px; border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border); margin-bottom: 20px; transition: all 0.2s ease;
+}
+.fit-score-emoji { font-size: 34px; line-height: 1; margin-bottom: 6px; }
+.fit-score-number { font-family: var(--font-display); font-size: 44px; font-weight: 400; line-height: 1; margin-bottom: 6px; }
+.fit-score-label { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.fit-score-note { font-size: 13px; color: var(--color-text-secondary); }
+
+.fit-score-unknown { background: var(--color-surface-2); border-color: var(--color-border); }
+.fit-score-unknown .fit-score-number, .fit-score-unknown .fit-score-label { color: var(--color-text-muted); }
+
+.fit-score-good { background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.4); box-shadow: 0 8px 24px rgba(34, 197, 94, 0.12); }
+.fit-score-good .fit-score-number, .fit-score-good .fit-score-label { color: #22c55e; }
+
+.fit-score-maybe { background: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.4); box-shadow: 0 8px 24px rgba(234, 179, 8, 0.12); }
+.fit-score-maybe .fit-score-number, .fit-score-maybe .fit-score-label { color: #eab308; }
+
+.fit-score-poor { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.4); box-shadow: 0 8px 24px rgba(239, 68, 68, 0.12); }
+.fit-score-poor .fit-score-number, .fit-score-poor .fit-score-label { color: #ef4444; }
+
+.redflags-card {
+  background: var(--color-surface-2); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); padding: 16px;
+}
+.redflags-card h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); font-weight: 700; margin-bottom: 10px; }
+.redflags-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.redflags-list li {
+  font-size: 13px; color: var(--color-text-primary); background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 6px; padding: 8px 10px;
+}
+.redflags-list li.redflags-empty {
+  color: var(--color-text-muted); background: transparent; border: 1px dashed var(--color-border-md); font-style: italic;
+}

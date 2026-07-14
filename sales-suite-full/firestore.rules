@@ -1,0 +1,75 @@
+rules_version = '2';
+
+// Revital Hub — Firestore security rules
+//
+// Data model:
+//   agency/clientsDb   — full internal client database (every tool's data).
+//                         Admin-only. Never read by the public portal.
+//   hub/settings       — internal hub settings. Admin-only.
+//   clients/{clientId} — public "capability" projection. One document per
+//                         client, containing ONLY what the client portal
+//                         needs (branding + checklist). The document ID
+//                         *is* the crypto-secure magic link token, so
+//                         holding the link is what grants access — the
+//                         same model as an "anyone with the link" share.
+//                         Listing the collection is always denied, so it
+//                         can't be enumerated/scraped.
+//
+// Deploy with: firebase deploy --only firestore:rules
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      // Any @revitalproductions.com Google account counts as admin, not
+      // just one hardcoded address - keeps this in sync with the same
+      // domain-wide check in app.js / _worker.js. Without this, employees
+      // could sign in but every Firestore read/write would still 403.
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email.lower().matches('.*@revitalproductions[.]com$');
+    }
+
+    // Covers every document under agency/ (clientsDb, activityLog, and any
+    // future admin-only document), instead of allow-listing each one by
+    // name and silently 403'ing new ones added later.
+    match /agency/{document} {
+      allow read, write: if isAdmin();
+    }
+
+    match /hub/settings {
+      allow read, write: if isAdmin();
+    }
+
+    match /clients/{clientId} {
+      // Anyone holding the exact document ID (the magic token) can fetch it.
+      allow get: if true;
+
+      // Nobody can list/browse the collection — this is what stops the
+      // "download the whole clients list" exposure.
+      allow list: if false;
+
+      // The admin (the hub) can always fully write this doc - branding,
+      // both checklists, the published report archive, anything. This is
+      // deliberately unconditional on which fields changed, unlike the
+      // public rule below, so a hub save that touches several fields at
+      // once (or introduces a brand new field like reportArchive) never
+      // gets silently rejected.
+      allow write: if isAdmin();
+
+      // Unauthenticated portal visitors may ONLY ever touch their own
+      // client-facing checklist (checking off their own items) and their
+      // own content approval decisions (pendingApprovals shrinks,
+      // approvalHistory grows, as items move from one to the other). The
+      // internal onboardingChecklist, branding, embed URLs, report
+      // archive, etc. all stay immutable to public writes.
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['clientChecklist', 'pendingApprovals', 'approvalHistory']);
+    }
+
+    // Deny everything else by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
