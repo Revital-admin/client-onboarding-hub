@@ -104,7 +104,14 @@ document.addEventListener('DOMContentLoaded', () => {
       image:        { type: 'jpeg', quality: 0.92 },
       html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
-      pagebreak:    { mode: 'avoid-all' }
+      // pagebreak avoid-all forces page-break-inside:avoid onto every
+      // single element in the container, which turned out to conflict
+      // with jsPDF's page-slicing math and was actively pushing this to
+      // 3 pages instead of fixing it (this was a 2-page bug before
+      // avoid-all was added). Now that .pdf-page has overflow:hidden
+      // guaranteeing it measures as exactly one true page, the default
+      // slicing behavior (no explicit pagebreak option) should have
+      // nothing left to slice.
     };
 
     generateBtn.innerHTML = 'Generating...';
