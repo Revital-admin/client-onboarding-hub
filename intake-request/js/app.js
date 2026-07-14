@@ -137,41 +137,33 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Capture from a copy of the preview content, appended off-screen,
-    // instead of the live pdfContainer inside the sticky/scrollable
-    // preview panel. A completely un-attached element (never appended
-    // anywhere) has no real position in the document, which can leave
-    // html2canvas unable to correctly scope its capture to just that
-    // element - appending it off-screen gives it an actual, measurable
-    // position/size while staying invisible to the user.
+    // Capture from a detached copy of the preview content (never
+    // attached to the page) instead of the live pdfContainer sitting
+    // inside the sticky/scrollable preview panel. Appending it to
+    // document.body (even off-screen) was tried and made things worse -
+    // it produced a genuinely empty capture, so reverted to this simpler
+    // in-memory-only approach, which does reliably capture real content.
     const exportContainer = document.createElement('div');
-    exportContainer.style.position = 'absolute';
-    exportContainer.style.top = '0';
-    exportContainer.style.left = '-9999px';
     exportContainer.innerHTML = pdfContainer.innerHTML;
-    document.body.appendChild(exportContainer);
 
-    // Appending to the DOM doesn't guarantee the browser has actually
-    // laid out/painted the new element before the next line runs - layout
-    // is batched, not synchronous. Capturing immediately was producing a
-    // genuinely empty result with no thrown error at all (html2canvas
-    // just found nothing to draw yet). A double requestAnimationFrame
-    // waits for two real paint cycles, the standard reliable way to
-    // guarantee layout has happened before capturing.
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        html2pdf().set(opt).from(exportContainer).save().then(() => {
-          exportContainer.remove();
-          generateBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Download PDF';
-          generateBtn.disabled = false;
-        }).catch((err) => {
-          console.error('PDF generation failed:', err);
-          exportContainer.remove();
-          alert('PDF generation failed - check the browser console for details.');
-          generateBtn.innerHTML = 'Download PDF';
-          generateBtn.disabled = false;
-        });
-      });
+    // Rather than continuing to guess at why this occasionally renders
+    // one extra blank leading page, detect and remove it directly via
+    // jsPDF's own page API before saving. This tool's content is always
+    // exactly 1 real page - if jsPDF produced more, the earlier ones are
+    // always blank, so trim from the front until exactly 1 page remains.
+    const EXPECTED_PAGES = 1;
+    html2pdf().set(opt).from(exportContainer).toPdf().get('pdf').then((pdf) => {
+      while (pdf.internal.getNumberOfPages() > EXPECTED_PAGES) {
+        pdf.deletePage(1);
+      }
+      pdf.save(opt.filename);
+      generateBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Download PDF';
+      generateBtn.disabled = false;
+    }).catch((err) => {
+      console.error('PDF generation failed:', err);
+      alert('PDF generation failed - check the browser console for details.');
+      generateBtn.innerHTML = 'Download PDF';
+      generateBtn.disabled = false;
     });
   });
 
