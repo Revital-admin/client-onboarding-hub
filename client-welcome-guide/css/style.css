@@ -5,7 +5,18 @@
 .alert-box svg { color: #3b82f6; flex-shrink: 0; }
 
 /* PDF Output Styling */
-.pdf-page { width: 8.5in; height: 11in; background: var(--color-surface); padding: 1in; box-sizing: border-box; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.1); flex-shrink: 0; display: flex; flex-direction: column; page-break-inside: avoid; }
+.pdf-page {
+  width: 8.5in; height: 11in; overflow: hidden; background: var(--color-surface);
+  padding: 1in; box-sizing: border-box; position: relative;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1); flex-shrink: 0;
+  display: flex; flex-direction: column; page-break-inside: avoid;
+  /* overflow: hidden is the real fix for the multi-page/blank-page bug -
+     without it, content even a hair taller than 11in silently overflows
+     past this fixed height, and html2canvas measures the full overflowed
+     scrollHeight instead of clamping to the box, producing extra pages
+     regardless of scroll context or container attachment (which is why
+     patching those didn'''t fully resolve it). This hard-clips instead. */
+}
 .pdf-logo {
   /* Explicit width (not "auto") pinned to the logo's real 739x257
      aspect ratio. Relying on width:auto meant the box wasn't sized
