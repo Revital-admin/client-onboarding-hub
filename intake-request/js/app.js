@@ -116,9 +116,33 @@ document.addEventListener('DOMContentLoaded', () => {
       generateBtn.innerHTML = 'Download PDF';
       return;
     }
+
+    // The live preview sits inside .preview-scroll, a capped/scrollable
+    // box (max-height: 80vh; overflow-y: auto) so it fits on screen next
+    // to the form. html2canvas clones the DOM including that ancestor's
+    // clipping and scroll position, so it was capturing whatever was
+    // currently visible in the scrolled viewport instead of the full
+    // document - blank space above, content cut off below. Temporarily
+    // remove the clipping and reset scroll before capturing, then restore
+    // it right after so the on-screen preview is unaffected.
+    const scrollWrap = pdfContainer.closest('.preview-scroll');
+    const prevOverflow = scrollWrap ? scrollWrap.style.overflowY : null;
+    const prevMaxHeight = scrollWrap ? scrollWrap.style.maxHeight : null;
+    const prevScrollTop = scrollWrap ? scrollWrap.scrollTop : null;
+    if (scrollWrap) {
+      scrollWrap.scrollTop = 0;
+      scrollWrap.style.overflowY = 'visible';
+      scrollWrap.style.maxHeight = 'none';
+    }
+
     html2pdf().set(opt).from(pdfContainer).save().then(() => {
       generateBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Download PDF';
       generateBtn.disabled = false;
+      if (scrollWrap) {
+        scrollWrap.style.overflowY = prevOverflow;
+        scrollWrap.style.maxHeight = prevMaxHeight;
+        scrollWrap.scrollTop = prevScrollTop;
+      }
     });
   });
 
