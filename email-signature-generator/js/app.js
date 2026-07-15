@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
   <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px; background-color: #ffffff;">
     <tr>
       <td valign="top" align="center" style="padding-right: 28px; border-right: 2px solid #f68d5f;">
-        <img src="${logoUrl}" alt="Revital Productions" width="190" style="display: block; max-width: 100%; height: auto; object-fit: contain;" />
+        <img src="${logoUrl}" alt="Revital Productions" width="220" style="display: block; max-width: 100%; height: auto; object-fit: contain;" />
       </td>
       <td valign="top" style="padding-left: 28px;">
         <div style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; color: #f68d5f;">${name}</div>
