@@ -366,46 +366,51 @@ document.addEventListener('DOMContentLoaded', () => {
   // as "...Account ManagerTrigger:...". Table cells are skipped since
   // their own cell boundaries already provide real separation.
   function preserveGluedInlineRuns(container) {
-    const PROTECTED_WORDS = ['ClickUp'];
-    function isProtectedBoundary(beforeText, afterText) {
-      return PROTECTED_WORDS.some(word => {
-        const splitPoint = word.length - 1;
-        return beforeText.endsWith(word.slice(0, splitPoint)) &&
-          afterText.startsWith(word.slice(splitPoint));
-      });
+     const PROTECTED_WORDS = ['ClickUp'];
+  function isProtectedBoundary(beforeText, afterText) {
+    return PROTECTED_WORDS.some(word => {
+      const splitPoint = word.length - 1;
+      return beforeText.endsWith(word.slice(0, splitPoint)) &&
+        afterText.startsWith(word.slice(splitPoint));
+    });
+  }
+  const BLOCK_GROUPING_TAGS = new Set(['P', 'LI', 'H1', 'H2', 'H3', 'H4', 'BLOCKQUOTE', 'TD', 'TH', 'PRE']);
+  function nearestBlock(node) {
+    let el = node.parentNode;
+    while (el && el !== container) {
+      if (BLOCK_GROUPING_TAGS.has(el.tagName)) return el;
+      el = el.parentNode;
     }
-
-    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
-    const textNodes = [];
-    let n;
-    while ((n = walker.nextNode())) {
-      let inTable = false;
-      let anc = n.parentNode;
-      while (anc && anc !== container) {
-        if (anc.tagName === 'TABLE') { inTable = true; break; }
-        anc = anc.parentNode;
-      }
-      if (!inTable) textNodes.push(n);
+    return container;
+  }
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
+  const textNodes = [];
+  let n;
+  while ((n = walker.nextNode())) {
+    let inTable = false;
+    let anc = n.parentNode;
+    while (anc && anc !== container) {
+      if (anc.tagName === 'TABLE') { inTable = true; break; }
+      anc = anc.parentNode;
     }
-
-    for (let i = 0; i < textNodes.length - 1; i++) {
-      const cur = textNodes[i];
-      const next = textNodes[i + 1];
-      const curVal = cur.nodeValue;
-      const nextVal = next.nodeValue;
-      if (!curVal || !nextVal) continue;
-      // Raw (untrimmed) boundary chars - a real space between nodes means
-      // curVal ends in whitespace or nextVal starts with it, which
-      // correctly leaves already-well-spaced text alone.
-      const lastChar = curVal[curVal.length - 1];
-      const firstChar = nextVal[0];
-      if (/[a-z\)\]:]/.test(lastChar) && /[A-Z]/.test(firstChar)) {
-        if (isProtectedBoundary(curVal, nextVal)) continue;
-        const br = document.createElement('br');
-        next.parentNode.insertBefore(br, next);
-      }
+    if (!inTable) textNodes.push(n);
+  }
+  for (let i = 0; i < textNodes.length - 1; i++) {
+    const cur = textNodes[i];
+    const next = textNodes[i + 1];
+    if (nearestBlock(cur) !== nearestBlock(next)) continue;
+    const curVal = cur.nodeValue;
+    const nextVal = next.nodeValue;
+    if (!curVal || !nextVal) continue;
+    const lastChar = curVal[curVal.length - 1];
+    const firstChar = nextVal[0];
+    if (/[a-z\)\]:]/.test(lastChar) && /[A-Z]/.test(firstChar)) {
+      if (isProtectedBoundary(curVal, nextVal)) continue;
+      const br = document.createElement('br');
+      next.parentNode.insertBefore(br, next);
     }
   }
+}
 
   function sanitizeHtml(rawHtml) {
     const container = document.createElement('div');
