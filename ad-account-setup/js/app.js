@@ -277,6 +277,33 @@
 
   const PLATFORM_ORDER = ['meta', 'google', 'tiktok', 'linkedin'];
 
+  // ── Agency reference IDs ─────────────────────────────────────────────
+  // Revital Productions' own account IDs, shown at the top of each
+  // platform tab so whoever runs the setup doesn't have to go look them
+  // up in another tab or ask around.
+  const AGENCY_REFERENCE = {
+    meta: {
+      label: 'Revital Productions BM ID',
+      id: '2045808186164908',
+      note: 'Clients enter this ID when granting partner access. Guide them to: their BM → Settings → Partners → Add Partner → enter this ID.'
+    },
+    google: {
+      label: 'Revital Productions MCC ID',
+      id: '105-994-0837',
+      note: 'Clients enter this ID when linking their account. Guide them to: their Google Ads → Admin → Access and Security → Managers → Link to Manager Account → enter this ID.'
+    },
+    tiktok: {
+      label: 'Revital Productions TikTok Business Center ID',
+      id: '7663129717964324880',
+      note: 'Clients enter this ID when granting access. Guide them to: TikTok Business Center → Members → Invite Partner → enter this ID.'
+    },
+    linkedin: {
+      label: 'Revital Productions LinkedIn Campaign Manager ID',
+      id: '547184478',
+      note: 'Share this ID with clients when setting up partner access in LinkedIn Campaign Manager.'
+    }
+  };
+
   // ── Summary tab config ──────────────────────────────────────────────
   // Which fields from each platform's schema surface on the Summary tab
   // (account IDs, pixel/tag IDs, budgets — the stuff worth a quick glance
@@ -366,6 +393,10 @@
     }
 
     panel.innerHTML = '';
+
+    const idCard = renderAgencyIdCard(platform);
+    if (idCard) panel.appendChild(idCard);
+
     schema.sections.forEach(section => {
       const sectionEl = document.createElement('div');
       sectionEl.className = 'aas-section';
@@ -381,6 +412,58 @@
 
       panel.appendChild(sectionEl);
     });
+  }
+
+  function renderAgencyIdCard(platform) {
+    const ref = AGENCY_REFERENCE[platform];
+    if (!ref) return null;
+
+    const card = document.createElement('div');
+    card.className = 'aas-agency-id-card';
+
+    const label = document.createElement('div');
+    label.className = 'aas-agency-id-label';
+    label.textContent = ref.label;
+    card.appendChild(label);
+
+    const row = document.createElement('div');
+    row.className = 'aas-agency-id-row';
+
+    const value = document.createElement('span');
+    value.className = 'aas-agency-id-value';
+    value.textContent = ref.id;
+    row.appendChild(value);
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'aas-agency-id-copy-btn';
+    copyBtn.type = 'button';
+    copyBtn.textContent = 'Copy';
+    copyBtn.addEventListener('click', () => {
+      const text = ref.id;
+      const done = () => {
+        copyBtn.textContent = 'Copied!';
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+          copyBtn.textContent = 'Copy';
+          copyBtn.classList.remove('copied');
+        }, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+      } else {
+        fallbackCopy(text, done);
+      }
+    });
+    row.appendChild(copyBtn);
+
+    card.appendChild(row);
+
+    const note = document.createElement('div');
+    note.className = 'aas-agency-id-note';
+    note.textContent = ref.note;
+    card.appendChild(note);
+
+    return card;
   }
 
   function renderItem(platform, item) {

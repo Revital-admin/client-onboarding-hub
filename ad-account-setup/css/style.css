@@ -275,6 +275,72 @@ body {
   margin-top: 4px;
 }
 
+/* Agency reference ID card (top of each platform tab) */
+.aas-agency-id-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.aas-agency-id-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.aas-agency-id-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.aas-agency-id-value {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary, #6366f1);
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 8px;
+  padding: 8px 14px;
+  letter-spacing: 0.02em;
+  word-break: break-all;
+}
+
+.aas-agency-id-copy-btn {
+  background: var(--primary, #6366f1);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.aas-agency-id-copy-btn:hover {
+  background: var(--primary-hover, #4f46e5);
+}
+
+.aas-agency-id-copy-btn.copied {
+  background: var(--success, #10b981);
+}
+
+.aas-agency-id-note {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
 /* Coming soon placeholder for not-yet-built platforms */
 .aas-coming-soon {
   text-align: center;
