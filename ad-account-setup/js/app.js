@@ -277,6 +277,32 @@
 
   const PLATFORM_ORDER = ['meta', 'google', 'tiktok', 'linkedin'];
 
+  // ── Summary tab config ──────────────────────────────────────────────
+  // Which fields from each platform's schema surface on the Summary tab
+  // (account IDs, pixel/tag IDs, budgets — the stuff worth a quick glance
+  // or copying into ClickUp without digging through each platform tab).
+  const SUMMARY_FIELDS = {
+    meta: [
+      { key: 'adAccountId', label: 'Ad Account ID' },
+      { key: 'pixelId', label: 'Pixel ID' },
+      { key: 'monthlySpendLimit', label: 'Monthly Spend Limit', prefix: '$' }
+    ],
+    google: [
+      { key: 'googleAdsAccountId', label: 'Customer ID' },
+      { key: 'gtmContainerId', label: 'GTM Container ID' },
+      { key: 'monthlyBudget', label: 'Monthly Budget', prefix: '$' }
+    ],
+    tiktok: [
+      { key: 'adAccountId', label: 'Ad Account ID' },
+      { key: 'pixelId', label: 'Pixel ID' },
+      { key: 'monthlySpendLimit', label: 'Monthly Spend Limit', prefix: '$' }
+    ],
+    linkedin: [
+      { key: 'accountId', label: 'Account ID' },
+      { key: 'monthlyBudget', label: 'Monthly Budget', prefix: '$' }
+    ]
+  };
+
   // ── Cross-frame Hub access ──────────────────────────────────────────
   let getActiveClient = null;
   let saveDatabase = null;
@@ -440,30 +466,186 @@
   }
 
   // ── Progress ─────────────────────────────────────────────────────────
+  // Returns {done, total} check-item counts for a single platform.
+  function getPlatformProgress(platform) {
+    const schema = PLATFORM_SCHEMAS[platform];
+    let total = 0;
+    let done = 0;
+    if (!schema) return { done, total };
+    schema.sections.forEach(section => {
+      section.items.forEach(item => {
+        if (item.type === 'check') {
+          total++;
+          if (getValue(platform, item.key)) done++;
+        }
+      });
+    });
+    return { done, total };
+  }
+
+  function getOverallProgress() {
+    let total = 0;
+    let done = 0;
+    PLATFORM_ORDER.forEach(p => {
+      const prog = getPlatformProgress(p);
+      total += prog.total;
+      done += prog.done;
+    });
+    return { done, total };
+  }
+
   function updateProgress() {
-    const schema = PLATFORM_SCHEMAS[currentPlatform];
     const fill = document.getElementById('progressFill');
     const label = document.getElementById('progressLabel');
+
+    if (currentPlatform === 'summary') {
+      const { done, total } = getOverallProgress();
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+      if (fill) fill.style.width = pct + '%';
+      if (label) label.textContent = done + ' / ' + total + ' steps complete — all platforms';
+      return;
+    }
+
+    const schema = PLATFORM_SCHEMAS[currentPlatform];
     if (!schema) {
       if (fill) fill.style.width = '0%';
       if (label) label.textContent = 'Not built yet';
       return;
     }
 
-    let total = 0;
-    let done = 0;
-    schema.sections.forEach(section => {
-      section.items.forEach(item => {
-        if (item.type === 'check') {
-          total++;
-          if (getValue(currentPlatform, item.key)) done++;
-        }
-      });
-    });
-
+    const { done, total } = getPlatformProgress(currentPlatform);
     const pct = total > 0 ? Math.round((done / total) * 100) : 0;
     if (fill) fill.style.width = pct + '%';
     if (label) label.textContent = done + ' / ' + total + ' steps complete';
+  }
+
+  // ── Summary tab ──────────────────────────────────────────────────────
+  function buildSummaryText() {
+    const lines = [];
+    const clientName = (client && client.name) || 'Untitled Client';
+    lines.push('AD ACCOUNT SETUP SUMMARY — ' + clientName);
+    lines.push('Generated ' + new Date().toLocaleDateString());
+    lines.push('');
+
+    PLATFORM_ORDER.forEach(p => {
+      const schema = PLATFORM_SCHEMAS[p];
+      const { done, total } = getPlatformProgress(p);
+      lines.push(schema.label.toUpperCase());
+      lines.push((done === total && total > 0 ? '✅ ' : '⚠️ ') + done + '/' + total + ' steps complete');
+      (SUMMARY_FIELDS[p] || []).forEach(f => {
+        const val = getValue(p, f.key);
+        const display = val ? (f.prefix || '') + val : '—';
+        lines.push(f.label + ': ' + display);
+      });
+      lines.push('');
+    });
+
+    return lines.join('\n').trim();
+  }
+
+  function renderSummary() {
+    const panel = document.getElementById('panel-summary');
+    if (!panel) return;
+
+    const overall = getOverallProgress();
+    const completePlatforms = PLATFORM_ORDER.filter(p => {
+      const prog = getPlatformProgress(p);
+      return prog.total > 0 && prog.done === prog.total;
+    }).length;
+    const allComplete = completePlatforms === PLATFORM_ORDER.length;
+
+    panel.innerHTML = '';
+
+    const header = document.createElement('div');
+    header.className = 'aas-summary-header';
+
+    const badge = document.createElement('span');
+    badge.className = 'aas-summary-badge' + (allComplete ? ' complete' : '');
+    badge.textContent = allComplete
+      ? '✓ All Platforms Complete'
+      : completePlatforms + ' of ' + PLATFORM_ORDER.length + ' platforms complete';
+    header.appendChild(badge);
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'btn-secondary';
+    copyBtn.textContent = 'Copy Account Summary';
+    copyBtn.addEventListener('click', () => {
+      const text = buildSummaryText();
+      const done = () => {
+        const original = copyBtn.textContent;
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = original; }, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+      } else {
+        fallbackCopy(text, done);
+      }
+    });
+    header.appendChild(copyBtn);
+
+    panel.appendChild(header);
+
+    const grid = document.createElement('div');
+    grid.className = 'aas-summary-grid';
+
+    PLATFORM_ORDER.forEach(p => {
+      const schema = PLATFORM_SCHEMAS[p];
+      const { done, total } = getPlatformProgress(p);
+      const isComplete = total > 0 && done === total;
+
+      const card = document.createElement('div');
+      card.className = 'aas-summary-card';
+
+      const cardHeader = document.createElement('div');
+      cardHeader.className = 'aas-summary-card-header';
+
+      const title = document.createElement('span');
+      title.className = 'aas-summary-card-title';
+      title.textContent = schema.label;
+      cardHeader.appendChild(title);
+
+      const progressPill = document.createElement('span');
+      progressPill.className = 'aas-summary-card-progress' + (isComplete ? ' complete' : '');
+      progressPill.textContent = done + '/' + total;
+      cardHeader.appendChild(progressPill);
+
+      card.appendChild(cardHeader);
+
+      (SUMMARY_FIELDS[p] || []).forEach(f => {
+        const val = getValue(p, f.key);
+        const row = document.createElement('div');
+        row.className = 'aas-summary-field';
+
+        const label = document.createElement('span');
+        label.className = 'aas-summary-field-label';
+        label.textContent = f.label;
+        row.appendChild(label);
+
+        const value = document.createElement('span');
+        value.className = 'aas-summary-field-value' + (val ? '' : ' empty');
+        value.textContent = val ? (f.prefix || '') + val : 'Not set';
+        row.appendChild(value);
+
+        card.appendChild(row);
+      });
+
+      grid.appendChild(card);
+    });
+
+    panel.appendChild(grid);
+  }
+
+  function fallbackCopy(text, done) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) { /* no-op */ }
+    document.body.removeChild(ta);
+    if (done) done();
   }
 
   // ── Tab switching ────────────────────────────────────────────────────
@@ -475,6 +657,9 @@
     document.querySelectorAll('.aas-platform-panel').forEach(panel => {
       panel.style.display = (panel.id === 'panel-' + platform) ? '' : 'none';
     });
+    if (platform === 'summary') {
+      renderSummary();
+    }
     updateProgress();
   }
 
