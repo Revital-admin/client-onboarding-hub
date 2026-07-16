@@ -450,6 +450,9 @@ body {
 }
 
 .tab-section.active {
+  #tab-adaccountsetup.active {
+  height: calc(100vh - 160px);
+}
   position: relative;
   visibility: visible;
   opacity: 1;
