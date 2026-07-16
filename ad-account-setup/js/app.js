@@ -86,8 +86,193 @@
           ]
         }
       ]
+    },
+    google: {
+      label: 'Google Ads',
+      sections: [
+        {
+          title: 'Section 1 — Google Ads Account',
+          items: [
+            { type: 'check', key: 'hasGoogleAdsAccount', label: 'Client has a Google Ads account',
+              guide: 'If no: Go to ads.google.com → Start Now → Create an account without a campaign (Switch to Expert Mode first)' },
+            { type: 'text', key: 'googleAdsAccountId', label: 'Google Ads Customer ID (XXX-XXX-XXXX)' },
+            { type: 'check', key: 'mccLinked', label: 'Revital Productions MCC linked to account',
+              guide: 'From your MCC: Account Access → Managers → Link → enter client Customer ID, or ask client to accept your link request' },
+            { type: 'check', key: 'mccConfirmed', label: 'MCC access confirmed — can see the account' },
+            { type: 'check', key: 'paymentConfirmed', label: 'Billing / payment method set up on account' },
+            { type: 'number', key: 'monthlyBudget', label: 'Monthly Budget ($)' }
+          ]
+        },
+        {
+          title: 'Section 2 — Conversion Tracking',
+          items: [
+            { type: 'check', key: 'gtagInstalled', label: 'Google tag (gtag.js) installed on website',
+              guide: 'In Google Ads → Tools → Conversions → Google tag → install via Google Tag Manager or site code' },
+            { type: 'check', key: 'gtmUsed', label: 'Installed via Google Tag Manager' },
+            { type: 'text', key: 'gtmContainerId', label: 'GTM Container ID (if used)' },
+            { type: 'check', key: 'conversionActionsCreated', label: 'Key conversion actions created (leads, purchases, calls, etc.)' },
+            { type: 'textarea', key: 'conversionActionsList', label: 'Conversion Actions Configured', hint: 'List each conversion action and its category' },
+            { type: 'check', key: 'conversionsVerified', label: 'Conversions verified firing correctly (Tag Assistant / Ads diagnostics)' },
+            { type: 'check', key: 'enhancedConversions', label: 'Enhanced Conversions enabled (if applicable)' }
+          ]
+        },
+        {
+          title: 'Section 3 — Analytics & Merchant Center',
+          items: [
+            { type: 'check', key: 'ga4Linked', label: 'Google Analytics 4 property linked to Ads account' },
+            { type: 'text', key: 'ga4PropertyId', label: 'GA4 Property ID' },
+            { type: 'check', key: 'merchantCenterNeeded', label: 'Google Merchant Center required (ecommerce client)' },
+            { type: 'check', key: 'merchantCenterLinked', label: 'Merchant Center linked to Ads account (if applicable)' }
+          ]
+        },
+        {
+          title: 'Section 4 — Audience Setup',
+          items: [
+            { type: 'check', key: 'remarketingTagInstalled', label: 'Remarketing tag installed / audience source created' },
+            { type: 'check', key: 'websiteAudienceCreated', label: 'Website visitor remarketing audience created (180 days)' },
+            { type: 'check', key: 'customerMatchUploaded', label: 'Customer Match list uploaded (if client has one)' }
+          ]
+        },
+        {
+          title: 'Section 5 — Campaign Foundations',
+          items: [
+            { type: 'select', key: 'campaignType', label: 'Primary campaign type', options: [
+              { value: '', label: 'Select…' },
+              { value: 'search', label: 'Search' },
+              { value: 'pmax', label: 'Performance Max' },
+              { value: 'display', label: 'Display' },
+              { value: 'shopping', label: 'Shopping' },
+              { value: 'video', label: 'Video' }
+            ] },
+            { type: 'check', key: 'keywordResearchDone', label: 'Keyword research / asset groups completed' },
+            { type: 'check', key: 'negativeKeywordsAdded', label: 'Negative keyword list applied' }
+          ]
+        },
+        {
+          title: 'Section 6 — Account Notes',
+          items: [
+            { type: 'textarea', key: 'notes', label: 'Ad Account Notes', hint: 'Any account-specific details, restrictions, or context' }
+          ]
+        }
+      ]
+    },
+    tiktok: {
+      label: 'TikTok Ads',
+      sections: [
+        {
+          title: 'Section 1 — TikTok Business Center Setup',
+          items: [
+            { type: 'check', key: 'hasBusinessCenter', label: 'Client has a TikTok Business Center account',
+              guide: 'If no: Go to business.tiktok.com → Create Business Center account' },
+            { type: 'text', key: 'businessCenterId', label: 'Business Center ID' },
+            { type: 'check', key: 'partnerAdded', label: 'Revital Productions added as a Partner / Admin',
+              guide: 'Business Center → Users → Partners → Add → enter Revital Productions Business Center ID' },
+            { type: 'check', key: 'partnerConfirmed', label: 'Partner access confirmed — can see the account' }
+          ]
+        },
+        {
+          title: 'Section 2 — Ad Account',
+          items: [
+            { type: 'check', key: 'hasAdAccount', label: 'Ad account created inside Business Center',
+              guide: 'If no: Business Center → Ad Accounts → Create → follow setup wizard' },
+            { type: 'text', key: 'adAccountId', label: 'Ad Account ID' },
+            { type: 'check', key: 'paymentConfirmed', label: 'Payment method confirmed on Ad Account' },
+            { type: 'number', key: 'monthlySpendLimit', label: 'Monthly Spend Limit ($)' }
+          ]
+        },
+        {
+          title: 'Section 3 — TikTok Pixel',
+          items: [
+            { type: 'check', key: 'pixelCreated', label: 'TikTok Pixel created in Events Manager',
+              guide: "If no: Assets → Events → Web Events → Set Up Web Events → name it [Client Name] Website Pixel" },
+            { type: 'text', key: 'pixelId', label: 'Pixel ID' },
+            { type: 'select', key: 'pixelInstallMethod', label: "Pixel installed on client's website", options: [
+              { value: '', label: 'Select…' },
+              { value: 'code', label: 'Installed via code' },
+              { value: 'partner', label: 'Installed via partner integration (Shopify, WordPress, etc.)' },
+              { value: 'none', label: 'Not yet installed' }
+            ] },
+            { type: 'check', key: 'pixelVerified', label: 'Pixel verified firing correctly in Events Manager' },
+            { type: 'check', key: 'eventsApiSetup', label: 'Events API (server-side) set up (if applicable)' }
+          ]
+        },
+        {
+          title: 'Section 4 — Conversion Events',
+          items: [
+            { type: 'textarea', key: 'conversionEvents', label: 'Conversion Events Set Up', hint: 'List the key conversion events configured in Events Manager' },
+            { type: 'check', key: 'testEventsConfirmed', label: 'Test Events confirmed firing correctly' }
+          ]
+        },
+        {
+          title: 'Section 5 — Audience Setup',
+          items: [
+            { type: 'check', key: 'websiteAudienceCreated', label: 'Website Custom Audience created (all website visitors)' },
+            { type: 'check', key: 'customerListUploaded', label: 'Customer list uploaded (if client has one)' },
+            { type: 'check', key: 'lookalikeCreated', label: 'Lookalike Audiences created from website visitors or customer list' }
+          ]
+        },
+        {
+          title: 'Section 6 — Account Notes',
+          items: [
+            { type: 'textarea', key: 'notes', label: 'Ad Account Notes', hint: 'Any account-specific details, restrictions, or context' }
+          ]
+        }
+      ]
+    },
+    linkedin: {
+      label: 'LinkedIn Ads',
+      sections: [
+        {
+          title: 'Section 1 — Campaign Manager Setup',
+          items: [
+            { type: 'check', key: 'hasCampaignManager', label: 'Client has a LinkedIn Campaign Manager account',
+              guide: 'If no: Go to linkedin.com/campaignmanager → Create Account' },
+            { type: 'text', key: 'accountId', label: 'Campaign Manager Account ID' },
+            { type: 'check', key: 'partnerAdded', label: 'Revital Productions added as Account Manager',
+              guide: 'Campaign Manager → Account Settings → Manage Access → Add Partner → enter Revital Productions account ID' },
+            { type: 'check', key: 'partnerConfirmed', label: 'Partner access confirmed — can see the account' }
+          ]
+        },
+        {
+          title: 'Section 2 — Ad Account',
+          items: [
+            { type: 'check', key: 'paymentConfirmed', label: 'Payment method confirmed on account' },
+            { type: 'number', key: 'monthlyBudget', label: 'Monthly Budget ($)' },
+            { type: 'check', key: 'companyPageLinked', label: "Client's LinkedIn Company Page linked to account" }
+          ]
+        },
+        {
+          title: 'Section 3 — LinkedIn Insight Tag',
+          items: [
+            { type: 'check', key: 'insightTagInstalled', label: 'LinkedIn Insight Tag installed on website',
+              guide: 'Account Assets → Insight Tag → Install → via Google Tag Manager or site code' },
+            { type: 'check', key: 'gtmUsed', label: 'Installed via Google Tag Manager' },
+            { type: 'check', key: 'insightTagVerified', label: 'Insight Tag verified firing correctly' }
+          ]
+        },
+        {
+          title: 'Section 4 — Conversion Tracking',
+          items: [
+            { type: 'textarea', key: 'conversionsList', label: 'Conversion Actions Configured', hint: 'List each conversion action set up in Campaign Manager' },
+            { type: 'check', key: 'conversionsVerified', label: 'Conversions verified firing correctly' }
+          ]
+        },
+        {
+          title: 'Section 5 — Audience Setup (Matched Audiences)',
+          items: [
+            { type: 'check', key: 'websiteRetargetingCreated', label: 'Website retargeting audience created' },
+            { type: 'check', key: 'companyListUploaded', label: 'Company / contact list uploaded (if client has one, ABM)' },
+            { type: 'check', key: 'lookalikeCreated', label: 'Lookalike audience created' }
+          ]
+        },
+        {
+          title: 'Section 6 — Account Notes',
+          items: [
+            { type: 'textarea', key: 'notes', label: 'Ad Account Notes', hint: 'Any account-specific details, restrictions, or context' }
+          ]
+        }
+      ]
     }
-    // google, tiktok, linkedin schemas are added here in later passes.
   };
 
   const PLATFORM_ORDER = ['meta', 'google', 'tiktok', 'linkedin'];
