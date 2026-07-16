@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const editorCategory = document.getElementById('editorCategory');
   const editorTitle = document.getElementById('editorTitle');
   const editorContent = document.getElementById('editorContent'); // contenteditable rich-text area
+  const editorNewCategory = document.getElementById('editorNewCategory');
   const editorToolbar = document.getElementById('editorToolbar');
   const closeEditorBtn = document.getElementById('closeEditorBtn');
   const cancelEditorBtn = document.getElementById('cancelEditorBtn');
@@ -479,10 +480,59 @@ function unwrapEmptyHeadingShells(container) {
   });
 
   // ── Editor open/close/save/delete ──
+  function getDistinctCategories() {
+    const set = new Set();
+    sops.forEach(s => { if (s.category) set.add(s.category); });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }
+
+  function populateCategoryDropdown(selectedValue) {
+    const categories = getDistinctCategories();
+    editorCategory.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Select a category…';
+    editorCategory.appendChild(placeholder);
+    categories.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = cat;
+      editorCategory.appendChild(opt);
+    });
+    const newOpt = document.createElement('option');
+    newOpt.value = '__new__';
+    newOpt.textContent = '+ Add new category…';
+    editorCategory.appendChild(newOpt);
+
+    if (selectedValue && categories.includes(selectedValue)) {
+      editorCategory.value = selectedValue;
+    } else if (selectedValue) {
+      const opt = document.createElement('option');
+      opt.value = selectedValue;
+      opt.textContent = selectedValue;
+      editorCategory.insertBefore(opt, editorCategory.lastChild);
+      editorCategory.value = selectedValue;
+    } else {
+      editorCategory.value = '';
+    }
+    toggleNewCategoryInput();
+  }
+
+  function toggleNewCategoryInput() {
+    const isNew = editorCategory.value === '__new__';
+    editorNewCategory.style.display = isNew ? 'block' : 'none';
+    if (isNew) {
+      editorNewCategory.value = '';
+      editorNewCategory.focus();
+    }
+  }
+
+  editorCategory.addEventListener('change', toggleNewCategoryInput);
+
   function openNewSopForm() {
     editingSopId = null;
     editorModalTitle.textContent = 'New SOP';
-    editorCategory.value = '';
+    populateCategoryDropdown('');
     editorTitle.value = '';
     editorContent.innerHTML = '';
     editorOverlay.style.display = 'flex';
@@ -492,7 +542,7 @@ function unwrapEmptyHeadingShells(container) {
   function openEditForm(sop) {
     editingSopId = sop.id;
     editorModalTitle.textContent = 'Edit SOP';
-    editorCategory.value = sop.category;
+    populateCategoryDropdown(sop.category);
     editorTitle.value = sop.title;
     // Legacy Markdown entries get auto-converted to HTML the moment they're
     // opened in the editor; saving completes the one-time migration for
@@ -511,7 +561,13 @@ function unwrapEmptyHeadingShells(container) {
   }
 
   function handleSaveSop() {
-    const category = editorCategory.value.trim();
+    let category = editorCategory.value === '__new__'
+      ? editorNewCategory.value.trim()
+      : editorCategory.value.trim();
+    if (category) {
+      const existingMatch = getDistinctCategories().find(c => c.toLowerCase() === category.toLowerCase());
+      if (existingMatch) category = existingMatch;
+    }
     const title = editorTitle.value.trim();
     const content = editorContent.innerHTML.trim();
 
