@@ -2103,52 +2103,192 @@ function saveDatabase() {
   }, 500);
 }
 
+// ── clientsDb Firestore storage (sharded) ──
+//
+// HISTORY: clientsDb lived in a single agency/clientsDb document holding
+// every client's full state (onboarding, audits, competitor grids,
+// proposals, etc.) keyed by client name. That's the same single-document
+// pattern that caused the SOP & Wiki Library to hit Firestore's
+// 1,048,576-byte per-document hard limit once its combined content grew
+// past it - every save AND every load started failing, invisibly, until
+// someone happened to notice. clientsDb is well under that limit today
+// (roughly 15% as of this writing), but the failure mode when it
+// eventually crosses it is identical.
+//
+// FIX: the same sharding approach used for the SOP wiki. clientsDb is
+// bin-packed by client key across as many agency/clientsDb-shard-N
+// documents as needed to keep each one safely under a byte threshold,
+// plus one tiny agency/clientsDbShardMeta document ({ count: N })
+// tracking how many shards currently exist. Every shard is still a single
+// document directly under /agency/, so this needs no Firestore rules
+// changes. Everything else - loadDatabase(), saveDatabase(), every screen
+// that reads or writes clientsDb - keeps working against the same
+// in-memory `clientsDb` object as before and doesn't need to know shards
+// exist at all.
+const CLIENTS_DB_SHARD_PREFIX = "clientsDb-shard-";
+const CLIENTS_DB_MAX_SHARD_BYTES = 700000;
+
+let clientsDbShardData = {};          // { [shardIndex]: { clientName: state, ... } }
+let clientsDbShardUnsubscribers = [];
+let lastKnownClientsDbShardCount = 0;
+
+function getClientsDbShardMetaDocRef() {
+  if (!window.firebaseDb || !window.firebaseDoc) return null;
+  return window.firebaseDoc(window.firebaseDb, "agency", "clientsDbShardMeta");
+}
+
+function getClientsDbShardDocRef(shardIndex) {
+  if (!window.firebaseDb || !window.firebaseDoc) return null;
+  return window.firebaseDoc(window.firebaseDb, "agency", CLIENTS_DB_SHARD_PREFIX + shardIndex);
+}
+
+// Legacy pre-sharding location. Only ever read once, during the one-time
+// migration in loadDatabase() below - never written to again after that.
+function getLegacyClientsDbDocRef() {
+  if (!window.firebaseDb || !window.firebaseDoc) return null;
+  return window.firebaseDoc(window.firebaseDb, "agency", "clientsDb");
+}
+
+// Greedily bin-packs clientsDb's entries into shard-sized chunks, each
+// kept under CLIENTS_DB_MAX_SHARD_BYTES when serialized the same way
+// it's actually saved.
+function packClientsDbIntoShards(fullDb) {
+  const entries = Object.entries(fullDb);
+  const shards = [];
+  let current = {};
+  let currentCount = 0;
+  for (const [key, value] of entries) {
+    const trial = Object.assign({}, current, { [key]: value });
+    const size = new Blob([JSON.stringify(trial)]).size;
+    if (size > CLIENTS_DB_MAX_SHARD_BYTES && currentCount > 0) {
+      shards.push(current);
+      current = { [key]: value };
+      currentCount = 1;
+    } else {
+      current = trial;
+      currentCount++;
+    }
+  }
+  if (currentCount > 0 || shards.length === 0) shards.push(current);
+  return shards;
+}
+
+function rebuildClientsDbFromShards() {
+  const merged = {};
+  for (let i = 0; i < lastKnownClientsDbShardCount; i++) {
+    if (clientsDbShardData[i] && typeof clientsDbShardData[i] === 'object') {
+      Object.assign(merged, clientsDbShardData[i]);
+    }
+  }
+
+  const cloudStr = JSON.stringify(merged);
+  const localStr = JSON.stringify(clientsDb);
+  if (cloudStr === localStr) return;
+
+  clientsDb = merged;
+  localStorage.setItem("REVITAL_HUB_CLIENTS", JSON.stringify(clientsDb));
+
+  if (!clientsDb[activeClientName]) {
+    activeClientName = Object.keys(clientsDb)[0] || "";
+  }
+
+  buildClientDropdown();
+  refreshAllViews();
+  renderDashboard();
+}
+
+function listenToClientsDbShard(shardIndex) {
+  const docRef = getClientsDbShardDocRef(shardIndex);
+  if (!docRef || !window.firebaseOnSnapshot) return;
+  const unsubscribe = window.firebaseOnSnapshot(docRef, (docSnap) => {
+    // Skip echoes of our own unconfirmed writes for this shard - if the
+    // admin is actively editing (every keystroke triggers a debounced
+    // save), a later keystroke can update clientsDb in memory before an
+    // earlier keystroke's echo arrives here, and applying that stale
+    // echo would clobber the newer edit.
+    if (docSnap.metadata && docSnap.metadata.hasPendingWrites) return;
+    clientsDbShardData[shardIndex] = docSnap.exists ? docSnap.data() : {};
+    rebuildClientsDbFromShards();
+  }, (err) => {
+    console.error("clientsDb shard listener error:", err);
+    showBanner("error", "Couldn't sync with the cloud database: " + err.message);
+  });
+  clientsDbShardUnsubscribers.push(unsubscribe);
+}
+
+function setClientsDbShardListenerCount(count) {
+  if (count === lastKnownClientsDbShardCount && clientsDbShardUnsubscribers.length === count) return;
+  clientsDbShardUnsubscribers.forEach(unsubscribe => {
+    if (typeof unsubscribe === 'function') unsubscribe();
+  });
+  clientsDbShardUnsubscribers = [];
+  clientsDbShardData = {};
+  lastKnownClientsDbShardCount = count;
+  for (let i = 0; i < count; i++) listenToClientsDbShard(i);
+}
+
 function commitDatabaseToCloud() {
   const indicator = document.getElementById("autosaveIndicator");
 
-  // Save to Firebase
-  if (window.firebaseSetDoc && window.firebaseDoc && window.firebaseDb) {
-    const docRef = window.firebaseDoc(window.firebaseDb, "agency", "clientsDb");
-    const cleanDb = JSON.parse(JSON.stringify(clientsDb));
-    
-    // Add a manual timeout to detect hanging
-    let resolved = false;
-    setTimeout(() => {
-      if (!resolved && indicator) {
-        indicator.innerHTML = "Cloud Timeout ❌";
-        setTimeout(() => { indicator.style.opacity = "0"; }, 3000);
-      }
-    }, 10000);
-
-    window.firebaseSetDoc(docRef, cleanDb).then(() => {
-      resolved = true;
-      if (indicator) {
-        indicator.innerHTML = "Saved to Cloud ✅";
-        setTimeout(() => { indicator.style.opacity = "0"; }, 2000);
-      }
-    }).catch(err => {
-      resolved = true;
-      console.error("Firebase save failed:", err);
-      if (indicator) {
-        indicator.innerHTML = "Cloud Error ❌: " + err.message;
-        setTimeout(() => { indicator.style.opacity = "0"; }, 5000);
-      }
-    });
-
-    // Mirror only the portal-facing subset of each client into its own
-    // public document (see syncPublicPortalDocs). The full clientsDb doc
-    // above is admin-only under Firestore rules; this is what the
-    // unauthenticated client portal is allowed to read.
-    syncPublicPortalDocs(cleanDb).catch(err => {
-      console.error("Public portal sync failed:", err);
-    });
-  } else {
+  if (!(window.firebaseSetDoc && window.firebaseDoc && window.firebaseDb)) {
     // Firebase is not loaded!
     if (indicator) {
       indicator.innerHTML = "Firebase Not Loaded ❌";
       setTimeout(() => { indicator.style.opacity = "0"; }, 3000);
     }
+    return;
   }
+
+  const cleanDb = JSON.parse(JSON.stringify(clientsDb));
+  const shards = packClientsDbIntoShards(cleanDb);
+
+  const writes = shards.map((shardObj, i) => {
+    const docRef = getClientsDbShardDocRef(i);
+    return window.firebaseSetDoc(docRef, shardObj);
+  });
+
+  // If the client list just got shorter (client deleted) and now needs
+  // fewer shards than last time, blank out the now-unused trailing shard
+  // documents instead of leaving stale client data sitting in them.
+  for (let i = shards.length; i < lastKnownClientsDbShardCount; i++) {
+    const docRef = getClientsDbShardDocRef(i);
+    writes.push(window.firebaseSetDoc(docRef, {}));
+  }
+
+  const metaRef = getClientsDbShardMetaDocRef();
+  writes.push(window.firebaseSetDoc(metaRef, { count: shards.length }));
+
+  // Add a manual timeout to detect hanging
+  let resolved = false;
+  setTimeout(() => {
+    if (!resolved && indicator) {
+      indicator.innerHTML = "Cloud Timeout ❌";
+      setTimeout(() => { indicator.style.opacity = "0"; }, 3000);
+    }
+  }, 10000);
+
+  Promise.all(writes).then(() => {
+    resolved = true;
+    if (indicator) {
+      indicator.innerHTML = "Saved to Cloud ✅";
+      setTimeout(() => { indicator.style.opacity = "0"; }, 2000);
+    }
+  }).catch(err => {
+    resolved = true;
+    console.error("Firebase save failed:", err);
+    if (indicator) {
+      indicator.innerHTML = "Cloud Error ❌: " + err.message;
+      setTimeout(() => { indicator.style.opacity = "0"; }, 5000);
+    }
+  });
+
+  // Mirror only the portal-facing subset of each client into its own
+  // public document (see syncPublicPortalDocs). The full clientsDb data
+  // above is admin-only under Firestore rules; this is what the
+  // unauthenticated client portal is allowed to read.
+  syncPublicPortalDocs(cleanDb).catch(err => {
+    console.error("Public portal sync failed:", err);
+  });
 }
 
 // Push the portal-facing subset (branding + checklist) of every client that
@@ -2380,51 +2520,44 @@ function loadDatabase() {
   refreshAllViews();
   renderDashboard();
 
-  // 2. Setup Firebase real-time listener
-  if (window.firebaseOnSnapshot && window.firebaseDoc && window.firebaseDb) {
-    const docRef = window.firebaseDoc(window.firebaseDb, "agency", "clientsDb");
-    window.firebaseOnSnapshot(docRef, (docSnap) => {
-      if (docSnap.exists) {
-        // Firestore delivers a snapshot immediately for our own writes too,
-        // before the server has confirmed them ("pending write" / optimistic
-        // echo). If the admin is actively editing (e.g. typing in the Client
-        // Portal Manager, where every keystroke triggers a save), a later
-        // keystroke can update clientsDb in memory before an earlier
-        // keystroke's echo arrives here - and applying that stale echo would
-        // clobber the newer edit, making it look like the change "didn't
-        // save" until a full page reload re-fetched the true latest state.
-        // Skip echoes of our own unconfirmed writes; only rebuild from
-        // snapshots that reflect data the server has actually confirmed.
-        if (docSnap.metadata && docSnap.metadata.hasPendingWrites) {
-          return;
-        }
+    // 2. Setup Firebase real-time listener (sharded - see the
+  // "clientsDb Firestore storage (sharded)" comment block above
+  // commitDatabaseToCloud for why).
+  if (window.firebaseOnSnapshot && window.firebaseDoc && window.firebaseDb && window.firebaseGetDoc) {
+    const metaRef = getClientsDbShardMetaDocRef();
+    window.firebaseOnSnapshot(metaRef, async (metaSnap) => {
+      if (metaSnap.exists && typeof metaSnap.data().count === 'number') {
+        setClientsDbShardListenerCount(metaSnap.data().count);
+        return;
+      }
 
-        const cloudData = docSnap.data();
-        
-        const cloudStr = JSON.stringify(cloudData);
-        const localStr = JSON.stringify(clientsDb);
-        
-        if (cloudStr !== localStr) {
-          clientsDb = cloudData;
+      // No shard metadata yet - either a brand-new install, or a Hub
+      // still on the old single-document format that needs a one-time
+      // migration into shards.
+      try {
+        const legacyRef = getLegacyClientsDbDocRef();
+        const legacySnap = legacyRef ? await window.firebaseGetDoc(legacyRef) : null;
+        if (legacySnap && legacySnap.exists) {
+          clientsDb = legacySnap.data();
           localStorage.setItem("REVITAL_HUB_CLIENTS", JSON.stringify(clientsDb));
-          
           if (!clientsDb[activeClientName]) {
             activeClientName = Object.keys(clientsDb)[0] || "";
           }
-          
           buildClientDropdown();
           refreshAllViews();
           renderDashboard();
         }
-      } else {
-        // Doc doesn't exist yet, we push our local DB to seed it
-        saveDatabase();
+        // Writes the migrated (or first-ever, brand-new-install) state
+        // into shards + shard metadata. The metadata write above will
+        // re-trigger this listener with metaSnap.exists === true next
+        // time, switching over to the normal per-shard listeners.
+        commitDatabaseToCloud();
+      } catch (err) {
+        console.error("clientsDb migration failed:", err);
+        showBanner("error", "Couldn't migrate the client database to the new format: " + err.message);
       }
     }, (err) => {
-      // Previously silent: a permission-denied or network error here would
-      // just leave the dropdown stuck on whatever rendered first, with no
-      // indication anything was wrong. Now it's at least visible/debuggable.
-      console.error("Client DB Firestore listener error:", err);
+      console.error("clientsDb shard meta listener error:", err);
       showBanner("error", "Couldn't sync with the cloud database: " + err.message);
     });
   }
