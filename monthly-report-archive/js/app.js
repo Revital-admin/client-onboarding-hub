@@ -41,6 +41,14 @@ function populateClientSelect() {
 
 function renderState() {
   const clientName = el('clientSelect').value;
+
+  // Before a client is picked, .left-panel only holds the selector but
+  // still reserves its full column width, which visually shoves the
+  // empty-state placeholder off-center. This class (see css/style.css)
+  // stacks the panels full-width instead while a client is unselected.
+  const splitLayout = document.querySelector('.split-layout');
+  if (splitLayout) splitLayout.classList.toggle('no-client', !clientName);
+
   if (!clientName) {
     el('emptyState').style.display = 'flex';
     el('reportsInterface').style.display = 'none';
@@ -57,10 +65,10 @@ function renderState() {
 
   const clients = getClients();
   const reports = clients[clientName].reportArchive || [];
-  
+
   const listEl = el('reportsList');
   listEl.innerHTML = '';
-  
+
   if (reports.length === 0) {
     listEl.innerHTML = '<p style="color: var(--color-text-secondary)">No reports published yet.</p>';
     return;
@@ -70,7 +78,7 @@ function renderState() {
   [...reports].reverse().forEach(r => {
     const card = document.createElement('div');
     card.className = 'report-card';
-    
+
     card.innerHTML = `
       <div class="report-info">
         <h4>${(r.monthYear || 'Unknown').replace(/</g, '&lt;')}</h4>
@@ -109,7 +117,7 @@ function saveReport() {
   const monthYear = el('newMonth').value.trim();
   const url = el('newUrl').value.trim();
   const notes = el('newNotes').value.trim();
-  
+
   if (!monthYear || !url) {
     if (isEmbedded && window.parent.showBanner) {
       window.parent.showBanner('error', 'Please provide a Month and a URL.');
@@ -137,7 +145,7 @@ function saveReport() {
   // Reset form
   el('newUrl').value = '';
   el('newNotes').value = '';
-  
+
   if (isEmbedded && window.parent.showBanner) {
     window.parent.showBanner('success', 'Report published to Client Portal!');
   }
@@ -149,4 +157,5 @@ document.addEventListener('DOMContentLoaded', () => {
   populateClientSelect();
   el('clientSelect').addEventListener('change', renderState);
   el('saveReportBtn').addEventListener('click', saveReport);
+  renderState();
 });

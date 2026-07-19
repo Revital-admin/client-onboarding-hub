@@ -47,6 +47,14 @@ function populateClientSelect() {
 
 function renderState() {
   const clientName = el('clientSelect').value;
+
+  // Before a client is picked, .left-panel only holds the selector but
+  // still reserves its full column width, which visually shoves the
+  // empty-state placeholder off-center. This class (see css/style.css)
+  // stacks the panels full-width instead while a client is unselected.
+  const splitLayout = document.querySelector('.split-layout');
+  if (splitLayout) splitLayout.classList.toggle('no-client', !clientName);
+
   if (!clientName) {
     el('emptyState').style.display = 'flex';
     el('notesInterface').style.display = 'none';
@@ -61,7 +69,7 @@ function renderState() {
 
   const clients = getClients();
   const notes = clients[clientName].meetingNotes || [];
-  
+
   // Calculate stats
   let open = 0;
   let completed = 0;
@@ -78,7 +86,7 @@ function renderState() {
   // Render past meetings
   const listEl = el('meetingsList');
   listEl.innerHTML = '';
-  
+
   if (notes.length === 0) {
     listEl.innerHTML = '<p style="color: var(--color-text-secondary)">No meetings logged yet.</p>';
     return;
@@ -88,7 +96,7 @@ function renderState() {
   [...notes].sort((a, b) => b.date.localeCompare(a.date)).forEach(m => {
     const card = document.createElement('div');
     card.className = 'meeting-card';
-    
+
     let aiHtml = '';
     if (m.actionItems && m.actionItems.length > 0) {
       aiHtml = '<div class="action-items-list mt-3"><h4 style="margin:0 0 8px 0; font-size:12px; color:var(--color-text-secondary)">ACTION ITEMS</h4>';
@@ -173,7 +181,7 @@ function saveMeeting() {
   const date = el('newDate').value;
   const title = el('newTitle').value.trim();
   const summary = el('newSummary').value.trim();
-  
+
   if (!date || !summary) {
     if (isEmbedded && window.parent.showBanner) {
       window.parent.showBanner('error', 'Please provide a date and meeting notes.');
@@ -210,7 +218,7 @@ function saveMeeting() {
   el('newTitle').value = '';
   el('newSummary').value = '';
   el('newActionItemsList').innerHTML = '';
-  
+
   if (isEmbedded && window.parent.showBanner) {
     window.parent.showBanner('success', 'Meeting logged successfully.');
   }
@@ -223,4 +231,5 @@ document.addEventListener('DOMContentLoaded', () => {
   el('clientSelect').addEventListener('change', renderState);
   el('addActionItemBtn').addEventListener('click', addActionItemRow);
   el('saveMeetingBtn').addEventListener('click', saveMeeting);
+  renderState();
 });

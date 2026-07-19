@@ -1,3 +1,64 @@
+/* ── Hub-native hero header (matches Client Onboarding / Ad Account Setup
+   and the rest of the Hub's core modules) ── */
+:root {
+  --primary: #6366f1;
+  --secondary: #a855f7;
+  --text-bright: #ffffff;
+  --text-muted: #94a3b8;
+  --font-heading: 'Space Grotesk', sans-serif;
+}
+
+.site-header {
+  margin-bottom: 0;
+}
+
+.header-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 100px;
+  padding: 4px 12px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--primary);
+  margin-bottom: 12px;
+}
+
+.header-eyebrow .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  box-shadow: 0 0 6px var(--primary);
+}
+
+.site-title {
+  font-family: var(--font-heading);
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text-bright);
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+
+.site-title em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.site-subtitle {
+  font-size: 1rem;
+  color: var(--text-muted);
+  max-width: 800px;
+  margin: 0;
+}
+
 .module-body {
   margin: 0;
   padding: 0;
@@ -81,15 +142,23 @@
   color: var(--color-text-secondary);
 }
 
-/* Before a client is picked, the left panel is empty but still reserves
-   300px, which visually shoves the "Select a client" placeholder off to
-   the right instead of centering it in the module. Hide the empty left
-   panel and let the placeholder center in the full width instead. */
-.split-layout:has(.right-panel .empty-state) .left-panel {
-  display: none;
+/* Before a client is picked, the left panel only holds the client
+   selector but still reserves the full 300px column, which visually
+   shoves the "Select a client" placeholder off to the right instead of
+   centering it. app.js toggles a "no-client" class on .split-layout to
+   stack both panels full-width instead - this keeps the client selector
+   visible (a fixed-hide-left-panel approach was tried first and broke
+   the selector - see commit history) while fixing the centering. */
+.split-layout.no-client {
+  flex-direction: column;
 }
-.split-layout:has(.right-panel .empty-state) .right-panel {
-  flex: 1 1 100%;
+.split-layout.no-client .left-panel {
+  flex: none;
+  width: 100%;
+  max-width: 400px;
+}
+.split-layout.no-client .right-panel {
+  width: 100%;
 }
 
 .create-card {
