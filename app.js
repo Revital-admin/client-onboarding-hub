@@ -2134,8 +2134,19 @@ const CLIENTS_DB_SHARD_PREFIX = "clientsDb-shard-";
 const CLIENTS_DB_MAX_SHARD_BYTES = 700000;
 
 let clientsDbShardData = {};          // { [shardIndex]: { clientName: state, ... } }
+clientsDbShardsLoadedIndices = new Set();
+  clientsDbAllShardsLoaded = (count === 0);
 let clientsDbShardUnsubscribers = [];
 let lastKnownClientsDbShardCount = 0;
+// SAFETY GUARD (see commitDatabaseToCloud below): tracks which shard
+// indices have received at least one real snapshot since the listener
+// count was last (re)set, and whether that adds up to every shard we
+// expect. Prevents writing a partial in-memory clientsDb - built from
+// only some shards having loaded yet - back over the full set in
+// Firestore, which would silently delete whichever clients only lived
+// in a shard that hadn't arrived yet.
+let clientsDbShardsLoadedIndices = new Set();
+let clientsDbAllShardsLoaded = false;
 
 function getClientsDbShardMetaDocRef() {
   if (!window.firebaseDb || !window.firebaseDoc) return null;
@@ -2213,6 +2224,8 @@ function listenToClientsDbShard(shardIndex) {
     // echo would clobber the newer edit.
     if (docSnap.metadata && docSnap.metadata.hasPendingWrites) return;
     clientsDbShardData[shardIndex] = docSnap.exists ? docSnap.data() : {};
+    clientsDbShardsLoadedIndices.add(shardIndex);
+    clientsDbAllShardsLoaded = clientsDbShardsLoadedIndices.size >= lastKnownClientsDbShardCount;
     rebuildClientsDbFromShards();
   }, (err) => {
     console.error("clientsDb shard listener error:", err);
@@ -2243,9 +2256,55 @@ function commitDatabaseToCloud() {
     }
     return;
   }
-
+// SAFETY GUARD: if we're supposed to be listening to cloud shards
+  // (lastKnownClientsDbShardCount > 0) but haven't yet received a first
+  // snapshot from every one of them, clientsDb in memory is only a
+  // partial picture assembled from whichever shards have loaded so far.
+  // Writing it back to Firestore now would re-shard that partial picture
+  // and blank out whichever clients live in a shard we haven't heard
+  // from yet - this is how "Reginald White" and "Evry Intention LLC"
+  // silently disappeared. Skip the cloud write until every shard has
+  // reported in at least once; the local save above already protects
+  // this session's edits in the meantime, and this function gets called
+  // again on the next debounced save.
+  if (lastKnownClientsDbShardCount > 0 && !clientsDbAllShardsLoaded) {
+    console.warn("commitDatabaseToCloud: skipped - not all clientsDb shards have loaded yet (" +
+      clientsDbShardsLoadedIndices.size + "/" + lastKnownClientsDbShardCount + ")");
+    if (indicator) {
+      indicator.innerHTML = "Waiting for cloud sync… ⏳";
+      setTimeout(() => { indicator.style.opacity = "0"; }, 3000);
+    }
+    return;
+  }
   const cleanDb = JSON.parse(JSON.stringify(clientsDb));
   const shards = packClientsDbIntoShards(cleanDb);
+  // Safety-net backup: a "last known good" full snapshot, written
+  // alongside the real shards whenever we're confident clientsDb is
+  // complete (guard above). If the live shards ever get corrupted again
+  // for any reason, this is always a recent, complete copy to recover
+  // from - see agency/clientsDbBackup-shard-0, -1, etc. and
+  // agency/clientsDbBackupShardMeta. Sharded the exact same way as the
+  // live data (reusing the `shards` array above) so it can't hit
+  // Firestore's ~1MB per-document limit as the client roster grows.
+  // Fire-and-forget: a backup failure shouldn't block or alarm the user
+  // about the actual save below.
+  const backupMetaRef = window.firebaseDoc(window.firebaseDb, "agency", "clientsDbBackupShardMeta");
+  window.firebaseGetDoc(backupMetaRef).then((backupMetaSnap) => {
+    const prevBackupShardCount = (backupMetaSnap.exists && typeof backupMetaSnap.data().count === 'number')
+      ? backupMetaSnap.data().count : 0;
+
+    const backupWrites = shards.map((shardObj, i) => {
+      const ref = window.firebaseDoc(window.firebaseDb, "agency", "clientsDbBackup-shard-" + i);
+      return window.firebaseSetDoc(ref, shardObj);
+    });
+    for (let i = shards.length; i < prevBackupShardCount; i++) {
+      const ref = window.firebaseDoc(window.firebaseDb, "agency", "clientsDbBackup-shard-" + i);
+      backupWrites.push(window.firebaseSetDoc(ref, {}));
+    }
+    backupWrites.push(window.firebaseSetDoc(backupMetaRef, { count: shards.length, savedAt: new Date().toISOString() }));
+
+    return Promise.all(backupWrites);
+  }).catch(err => console.error("clientsDb backup write failed:", err));
 
   const writes = shards.map((shardObj, i) => {
     const docRef = getClientsDbShardDocRef(i);
