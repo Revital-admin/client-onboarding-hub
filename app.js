@@ -240,7 +240,10 @@ let iframeNeedsReload = {
   "tab-intakequalifier": true,
   "tab-discoverycall": true,
   "tab-packagerecommend": true,
-  "tab-followuptracker": true
+  "tab-followuptracker": true,
+  "tab-contractinvoice": true,
+  "tab-referraltracker": true,
+  "tab-renewaltracker": true
 };
 
 // ── Initial State Blueprint ──
@@ -662,6 +665,15 @@ function refreshIframeTab(tabId) {
       break;
     case "tab-roiprojector":
       renderRoiProjector();
+      break;
+    case "tab-contractinvoice":
+      renderContractInvoiceTracker();
+      break;
+    case "tab-referraltracker":
+      renderReferralTracker();
+      break;
+    case "tab-renewaltracker":
+      renderRenewalTracker();
       break;
     case "tab-sopwiki":
       renderSopWiki();
@@ -1437,6 +1449,21 @@ function renderRoiProjector() {
   setIframeAbsoluteSrc('#tab-roiprojector iframe', "roi-projector/index.html");
 }
 
+// ── Contract & Invoice Status Tracker Controller ──
+function renderContractInvoiceTracker() {
+  setIframeAbsoluteSrc('#tab-contractinvoice iframe', "contract-invoice-tracker/index.html");
+}
+
+// ── Referral Tracker Controller ──
+function renderReferralTracker() {
+  setIframeAbsoluteSrc('#tab-referraltracker iframe', "referral-tracker/index.html");
+}
+
+// ── Client Renewal Tracker Controller ──
+function renderRenewalTracker() {
+  setIframeAbsoluteSrc('#tab-renewaltracker iframe', "renewal-tracker/index.html");
+}
+
 // ── SOP Wiki Controller ──
 function renderSopWiki() {
   setIframeAbsoluteSrc('#tab-sopwiki iframe', "sop-wiki/index.html?v=1.7");
@@ -2134,10 +2161,9 @@ const CLIENTS_DB_SHARD_PREFIX = "clientsDb-shard-";
 const CLIENTS_DB_MAX_SHARD_BYTES = 700000;
 
 let clientsDbShardData = {};          // { [shardIndex]: { clientName: state, ... } }
-clientsDbShardsLoadedIndices = new Set();
-  clientsDbAllShardsLoaded = (count === 0);
 let clientsDbShardUnsubscribers = [];
 let lastKnownClientsDbShardCount = 0;
+
 // SAFETY GUARD (see commitDatabaseToCloud below): tracks which shard
 // indices have received at least one real snapshot since the listener
 // count was last (re)set, and whether that adds up to every shard we
@@ -2224,8 +2250,10 @@ function listenToClientsDbShard(shardIndex) {
     // echo would clobber the newer edit.
     if (docSnap.metadata && docSnap.metadata.hasPendingWrites) return;
     clientsDbShardData[shardIndex] = docSnap.exists ? docSnap.data() : {};
+
     clientsDbShardsLoadedIndices.add(shardIndex);
     clientsDbAllShardsLoaded = clientsDbShardsLoadedIndices.size >= lastKnownClientsDbShardCount;
+
     rebuildClientsDbFromShards();
   }, (err) => {
     console.error("clientsDb shard listener error:", err);
@@ -2241,6 +2269,8 @@ function setClientsDbShardListenerCount(count) {
   });
   clientsDbShardUnsubscribers = [];
   clientsDbShardData = {};
+  clientsDbShardsLoadedIndices = new Set();
+  clientsDbAllShardsLoaded = (count === 0);
   lastKnownClientsDbShardCount = count;
   for (let i = 0; i < count; i++) listenToClientsDbShard(i);
 }
@@ -2256,7 +2286,8 @@ function commitDatabaseToCloud() {
     }
     return;
   }
-// SAFETY GUARD: if we're supposed to be listening to cloud shards
+
+  // SAFETY GUARD: if we're supposed to be listening to cloud shards
   // (lastKnownClientsDbShardCount > 0) but haven't yet received a first
   // snapshot from every one of them, clientsDb in memory is only a
   // partial picture assembled from whichever shards have loaded so far.
@@ -2276,8 +2307,10 @@ function commitDatabaseToCloud() {
     }
     return;
   }
+
   const cleanDb = JSON.parse(JSON.stringify(clientsDb));
   const shards = packClientsDbIntoShards(cleanDb);
+
   // Safety-net backup: a "last known good" full snapshot, written
   // alongside the real shards whenever we're confident clientsDb is
   // complete (guard above). If the live shards ever get corrupted again
@@ -2285,9 +2318,12 @@ function commitDatabaseToCloud() {
   // from - see agency/clientsDbBackup-shard-0, -1, etc. and
   // agency/clientsDbBackupShardMeta. Sharded the exact same way as the
   // live data (reusing the `shards` array above) so it can't hit
-  // Firestore's ~1MB per-document limit as the client roster grows.
-  // Fire-and-forget: a backup failure shouldn't block or alarm the user
-  // about the actual save below.
+  // Firestore's ~1MB per-document limit as the client roster grows -
+  // an earlier version of this wrote one big document and had the same
+  // size ceiling the old pre-sharding format did. Fire-and-forget: a
+  // backup failure shouldn't block or alarm the user about the actual
+  // save below. (agency/clientsDbBackup, the old single-document
+  // location, is no longer written to - safe to ignore/delete.)
   const backupMetaRef = window.firebaseDoc(window.firebaseDb, "agency", "clientsDbBackupShardMeta");
   window.firebaseGetDoc(backupMetaRef).then((backupMetaSnap) => {
     const prevBackupShardCount = (backupMetaSnap.exists && typeof backupMetaSnap.data().count === 'number')
@@ -2297,6 +2333,8 @@ function commitDatabaseToCloud() {
       const ref = window.firebaseDoc(window.firebaseDb, "agency", "clientsDbBackup-shard-" + i);
       return window.firebaseSetDoc(ref, shardObj);
     });
+    // Blank out any trailing backup shards left over from a larger
+    // previous backup, same reasoning as the live-shard cleanup below.
     for (let i = shards.length; i < prevBackupShardCount; i++) {
       const ref = window.firebaseDoc(window.firebaseDb, "agency", "clientsDbBackup-shard-" + i);
       backupWrites.push(window.firebaseSetDoc(ref, {}));

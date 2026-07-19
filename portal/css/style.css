@@ -314,6 +314,19 @@ body {
   font-weight: 500;
   margin-bottom: 8px;
 }
+/* Shown instead of the old hardcoded traffic/social numbers when no
+   live analytics embed is configured for this client - honest "not
+   set up yet" state instead of numbers that never move. */
+.stat-card-placeholder {
+  grid-column: 1 / -1;
+}
+.stat-card-placeholder .placeholder-copy {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  max-width: 640px;
+  margin: 0;
+}
 .stat-number {
   font-size: 2.5rem;
   font-family: var(--font-heading);

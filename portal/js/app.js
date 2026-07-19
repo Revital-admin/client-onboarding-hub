@@ -161,9 +161,13 @@ function renderPortal() {
   renderReportArchive();
 
   const analyticsEmbed = document.getElementById("analyticsEmbedContainer");
+  const statsPlaceholder = document.getElementById("dashboardStatsPlaceholder");
   if (config.liveAnalyticsUrl) {
     analyticsEmbed.style.display = "block";
     document.getElementById("analyticsIframe").src = config.liveAnalyticsUrl;
+    if (statsPlaceholder) statsPlaceholder.style.display = "none";
+  } else if (statsPlaceholder) {
+    statsPlaceholder.style.display = "grid";
   }
 
   const btnFeedback = document.getElementById("btnFeedback");
