@@ -116,3 +116,24 @@
 .row-actions button.lose-btn:hover { border-color: #ef4444; color: #ef4444; box-shadow: 0 3px 8px rgba(239, 68, 68, 0.2); }
 
 .empty-state { text-align: center; padding: 40px 20px; color: var(--color-text-muted); font-size: 14px; }
+
+/* ── Mobile responsiveness ── */
+@media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden;
+  }
+
+  .site-title {
+    font-size: 1.6rem;
+    overflow-wrap: break-word;
+  }
+
+  .container, .container-wide {
+    width: 100%;
+    padding: 2rem 1rem 3rem;
+  }
+
+  .summary-stat {
+    min-width: 130px;
+  }
+}

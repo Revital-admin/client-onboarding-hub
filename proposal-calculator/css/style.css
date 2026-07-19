@@ -496,3 +496,40 @@ body {
   visibility: visible;
   bottom: 130%;
 }
+/* ── Mobile responsiveness ── */
+@media (max-width: 768px) {
+  body {
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .calc-layout {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .calc-inputs {
+    width: 100%;
+    min-width: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .calc-output {
+    padding: 20px;
+  }
+
+  .output-paper {
+    padding: 24px;
+  }
+
+  .pricing-summary {
+    flex-direction: column;
+  }
+
+  .price-value {
+    font-size: 2.2rem;
+  }
+}
