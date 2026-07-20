@@ -1,0 +1,52 @@
+MAKE PROPOSAL FOLLOW-UP TRACKER + CONTRACT & INVOICE TRACKER STANDALONE
+=========================================================================
+
+WHAT CHANGED AND WHY
+-----------------------------------
+You noticed the Proposal Follow-Up Tracker's client dropdown was pulling
+from the same client list as the rest of the Hub - meaning to track a
+follow-up for someone who hasn't signed yet, you'd have to create them
+as a full Client Workspace first. Same issue applied to Contract &
+Invoice Tracker (a contract often goes out before someone's a real
+client too).
+
+Both tools are now standalone: type a name directly (with autocomplete
+suggestions pulled from your existing clients, for the occasional
+upsell/renewal proposal to someone you already work with) - no need to
+create a Client Workspace just to track a proposal or contract. Each
+keeps its own list in the cloud, so nothing gets mixed into your real
+client data.
+
+Client Renewal Tracker was left as-is - that one is specifically about
+renewing an existing signed client, so it makes sense for it to stay
+tied to your real client list.
+
+INSTALL - FULL FILE REPLACEMENTS
+-------------------------------------------------------------------
+  1. proposal-followup-tracker/index.html      → replace
+  2. proposal-followup-tracker/js/app.js        → replace
+  3. proposal-followup-tracker/css/style.css    → replace
+  4. contract-invoice-tracker/index.html        → replace
+  5. contract-invoice-tracker/js/app.js         → replace
+  6. contract-invoice-tracker/css/style.css     → replace
+
+6 files, all straight replacements in their existing folders. No new
+folders, no changes to app.js or index.html at the repo root.
+
+HEADS UP - EXISTING DATA
+-------------------------------------------------------------------
+If you already have proposals or contracts being tracked against real
+Client Workspaces from before this change, that data lives inside
+those clients' records and won't automatically show up in the new
+standalone lists (they're reading from a different place now). If you
+had anything actively tracked in either tool, let me know and I'll
+write a one-time migration to carry it over - otherwise you're starting
+both trackers fresh from a clean list.
+
+VERIFICATION
+------------
+Confirmed via node --check that both new app.js files parse cleanly.
+Confirmed no leftover references to the old client-select dropdown
+IDs anywhere in either module. Both follow the same standalone-storage
+pattern Referral Tracker already used successfully (own Firestore doc
+under agency/*, no clientsDb rules changes needed).
