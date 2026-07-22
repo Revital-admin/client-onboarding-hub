@@ -19,9 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderPreview() {
     const name = document.getElementById('empName').value || '[Your Name]';
-    const title = document.getElementById('empTitle').value || '[Your Title]';
+    const title = document.getElementById('empTitle').value || '';
     const email = document.getElementById('empEmail').value || '[yourname@revitalproductions.com]';
-    const phone = document.getElementById('empPhone').value || '[Phone Number]';
+    const phone = document.getElementById('empPhone').value || '';
     const calendar = document.getElementById('empCalendar').value || '';
     
     // Use an absolute URL for the logo so it works in emails
@@ -38,6 +38,29 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }
 
+    // Title (under the name) and Phone (in the info table) are both
+    // optional now - role-based aliases (e.g. "Revital Productions -
+    // Client Care") don't need a job title, and not every alias needs a
+    // direct phone number listed. Previously these always rendered with a
+    // literal "[Your Title]" / "[Phone Number]" placeholder when left
+    // blank, which would have gone out in a real signature if someone
+    // forgot to fill them in - now they just cleanly disappear, matching
+    // how the Calendar/Book row already behaved.
+    let titleRow = '';
+    if (title) {
+      titleRow = `<div style="font-family: Arial, sans-serif; font-size: 14px; color: #f68d5f; margin-bottom: 12px; font-weight: bold;">${title}</div>`;
+    }
+
+    let phoneRow = '';
+    if (phone) {
+      phoneRow = `
+        <tr>
+          <td style="padding: 0; padding-right: 12px; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #f68d5f; padding-top: 4px;">Phone</td>
+          <td style="padding: 0; font-family: Arial, sans-serif; font-size: 13px; padding-top: 4px; color: #414141;">${phone}</td>
+        </tr>
+      `;
+    }
+
     const html = `
 <div style="font-family: Arial, sans-serif; font-size: 13px; color: #414141; max-width: 600px;">
   <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px; background-color: #ffffff;">
@@ -47,17 +70,14 @@ document.addEventListener('DOMContentLoaded', () => {
       </td>
       <td valign="top" style="padding-left: 28px;">
         <div style="font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; color: #f68d5f;">${name}</div>
-        <div style="font-family: Arial, sans-serif; font-size: 14px; color: #f68d5f; margin-bottom: 12px; font-weight: bold;">${title}</div>
-        
+        ${titleRow}
+
         <table cellpadding="0" cellspacing="0" border="0">
           <tr>
             <td style="padding: 0; padding-right: 12px; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #f68d5f;">Email</td>
             <td style="padding: 0; font-family: Arial, sans-serif; font-size: 13px;"><a href="mailto:${email}" style="color: #414141; text-decoration: none;">${email}</a></td>
           </tr>
-          <tr>
-            <td style="padding: 0; padding-right: 12px; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #f68d5f; padding-top: 4px;">Phone</td>
-            <td style="padding: 0; font-family: Arial, sans-serif; font-size: 13px; padding-top: 4px; color: #414141;">${phone}</td>
-          </tr>
+          ${phoneRow}
           <tr>
             <td style="padding: 0; padding-right: 12px; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; color: #f68d5f; padding-top: 4px;">Website</td>
             <td style="padding: 0; font-family: Arial, sans-serif; font-size: 13px; padding-top: 4px;"><a href="https://revitalproductions.com" style="color: #f68d5f; text-decoration: none;">revitalproductions.com</a></td>
