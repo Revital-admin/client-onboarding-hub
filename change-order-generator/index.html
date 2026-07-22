@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Change Order Generator</title>
+<link rel="stylesheet" href="../style.css?v=1">
+<link rel="stylesheet" href="css/style.css?v=1">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<main class="container container-wide">
+<div class="brand-bar">
+<div class="brand-logo-container"></div>
+</div>
+
+<header class="site-header">
+<div class="header-eyebrow">
+<span class="dot"></span>
+<span>Account Management</span>
+</div>
+<h1 class="site-title">Change Order <em>Generator</em></h1>
+<p class="site-subtitle">Standardize what happens when a client request falls outside the signed SOW — log the ask, why it's out of scope, and the cost/timeline impact, then generate a one-page PDF to send for their sign-off.</p>
+</header>
+
+<div class="summary-bar" id="summaryBar">
+<div class="summary-stat"><span class="summary-num" id="summaryPending">0</span><span class="summary-label">Pending</span></div>
+<div class="summary-stat"><span class="summary-num" id="summaryApproved">0</span><span class="summary-label">Approved</span></div>
+<div class="summary-stat"><span class="summary-num" id="summaryDeclined">0</span><span class="summary-label">Declined</span></div>
+</div>
+
+<div class="step-card">
+<div class="section-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 8px;">
+<h2 style="font-family: var(--font-heading); color: var(--color-accent);">New Change Order</h2>
+</div>
+
+<div class="form-grid">
+<div class="form-group"><label for="clientName">Client Name</label><input type="text" id="clientName" list="clientOptions" placeholder="Client / company name..."><datalist id="clientOptions"></datalist></div>
+<div class="form-group"><label for="deliverableName">Deliverable / Project</label><input type="text" id="deliverableName" placeholder="e.g. Q3 Brand Video"></div>
+<div class="form-group"><label for="additionalCost">Additional Cost ($)</label><input type="number" id="additionalCost" min="0" step="50" placeholder="0"></div>
+<div class="form-group"><label for="additionalTimelineDays">Additional Timeline (days)</label><input type="number" id="additionalTimelineDays" min="0" step="1" placeholder="0"></div>
+<div class="form-group"><label for="dateCreated">Date Created</label><input type="date" id="dateCreated"></div>
+<div class="form-group"><label for="status">Status</label>
+<select id="status">
+<option value="Pending">Pending</option>
+<option value="Approved">Approved</option>
+<option value="Declined">Declined</option>
+</select>
+</div>
+</div>
+<div class="form-group"><label for="originalScope">Original Scope (what the SOW covers)</label><textarea id="originalScope" rows="2" placeholder="Brief summary of what was originally agreed to..."></textarea></div>
+<div class="form-group"><label for="requestedChange">Requested Change</label><textarea id="requestedChange" rows="2" placeholder="What the client is asking for..."></textarea></div>
+<div class="form-group"><label for="reasonOutOfScope">Why It's Out of Scope</label><textarea id="reasonOutOfScope" rows="2" placeholder="Why this falls outside the signed SOW..."></textarea></div>
+
+<button id="saveEntryBtn" class="btn-primary">Log Change Order</button>
+</div>
+
+<div class="step-card">
+<div class="tracker-controls-row" style="flex-wrap: wrap; gap: 14px;">
+<input type="text" id="filterClientInput" placeholder="Filter by client name..." style="flex:1; min-width:220px;">
+<label class="show-closed-toggle">
+<input type="checkbox" id="showResolvedToggle"> Show approved/declined
+</label>
+</div>
+</div>
+
+<div class="step-card table-card">
+<div class="tracker-table-wrap">
+<table class="tracker-table">
+<thead>
+<tr>
+<th>Client</th>
+<th>Deliverable</th>
+<th>Requested Change</th>
+<th>Cost</th>
+<th>Timeline</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="logTableBody"></tbody>
+</table>
+<p id="emptyState" class="empty-state" style="display:none;">No change orders logged yet.</p>
+</div>
+</div>
+
+</main>
+<script src="js/app.js?v=1"></script>
+</body>
+</html>

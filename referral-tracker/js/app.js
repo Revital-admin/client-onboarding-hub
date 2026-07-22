@@ -45,10 +45,14 @@ async function loadReferrals() {
 }
 
 async function persist() {
-  if (isEmbedded && window.parent.firebaseSetDoc) {
+  if (isEmbedded && window.parent.firebaseSetDocFromJSON) {
     try {
       const ref = getReferralsDocRef();
-      await window.parent.firebaseSetDoc(ref, { list: referrals });
+      // A plain object literal built in this iframe's own JS realm gets
+      // rejected by Firestore ("a custom Object object") when handed
+      // straight to a Firestore call bound to the parent page - pass a
+      // JSON string instead so the parent parses it in its own realm.
+      await window.parent.firebaseSetDocFromJSON(ref, JSON.stringify({ list: referrals }));
       return true;
     } catch (e) {
       console.error("Couldn't save referrals to the cloud:", e);

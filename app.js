@@ -96,6 +96,7 @@ function initAdminAuthGate() {
       if (gate) gate.style.display = "none";
       firebaseAuthReady = true;
       window.currentAdminEmail = user.email.toLowerCase();
+      recordLastSeen(window.currentAdminEmail);
       boot();
     } else if (user) {
       // Signed into Firebase with the wrong account - sign back out.
@@ -105,6 +106,22 @@ function initAdminAuthGate() {
       attemptSilentSignIn();
     }
   });
+}
+
+// Records a lightweight "last seen in the Hub" timestamp per teammate,
+// in agency/teamActivity: { users: { "email": { lastSeen: isoString } } }.
+// Written with merge:true so each login only touches that one person's
+// key rather than overwriting everyone else's last-seen data at once.
+// Purely informational (shown in Team Access Manager) - never gates access.
+function recordLastSeen(email) {
+  if (!window.firebaseDb || !window.firebaseDoc || !window.firebaseSetDoc || !email) return;
+  try {
+    const ref = window.firebaseDoc(window.firebaseDb, "agency", "teamActivity");
+    window.firebaseSetDoc(ref, { users: { [email]: { lastSeen: new Date().toISOString() } } }, { merge: true })
+      .catch(err => console.warn("Couldn't record last-seen:", err));
+  } catch (e) {
+    console.warn("Couldn't record last-seen:", e);
+  }
 }
 
 // ── Team Access restrictions (sidebar-level) ──
@@ -137,6 +154,24 @@ function applyTeamAccessRestrictions(allowedSections) {
   const teamAccessBtn = document.getElementById('teamAccessFooterBtn');
   if (teamAccessBtn) {
     teamAccessBtn.style.display = allowedSections ? 'none' : '';
+  }
+
+  // Service Pricing Admin controls default pricing for every proposal -
+  // same admin/leadership-only visibility rule as Team Access above, and
+  // lives right next to it in the footer for the same reason (only
+  // full-access/unrestricted accounts see either one). Export All Data /
+  // Import Backups / Delete Client stay visible to everyone, unchanged.
+  const servicePricingBtn = document.getElementById('servicePricingFooterBtn');
+  if (servicePricingBtn) {
+    servicePricingBtn.style.display = allowedSections ? 'none' : '';
+  }
+
+  // Subscription & Tool Cost Tracker is financial info too - same
+  // admin/leadership-only footer gating as Team Access and Service
+  // Pricing Admin right next to it.
+  const subscriptionTrackerBtn = document.getElementById('subscriptionTrackerFooterBtn');
+  if (subscriptionTrackerBtn) {
+    subscriptionTrackerBtn.style.display = allowedSections ? 'none' : '';
   }
 
   // If restrictions just hid whatever tab the user was looking at,
@@ -295,13 +330,32 @@ let iframeNeedsReload = {
   "tab-roiprojector": true,
   "tab-sopwiki": true,
   "tab-proposal": true,
+  "tab-servicepricing": true,
+  "tab-redflag": true,
+  "tab-healthdashboard": true,
+  "tab-changeorder": true,
+  "tab-casestudy": true,
+  "tab-portfolioshowcase": true,
+  "tab-emailtemplates": true,
+  "tab-subscriptiontracker": true,
+  "tab-teamroster": true,
+  "tab-testimonialtracker": true,
   "tab-intakequalifier": true,
   "tab-discoverycall": true,
   "tab-packagerecommend": true,
   "tab-followuptracker": true,
   "tab-contractinvoice": true,
   "tab-referraltracker": true,
-  "tab-renewaltracker": true
+  "tab-renewaltracker": true,
+  "tab-offboarding": true,
+  "tab-qc": true,
+  "tab-weeklycheckin": true,
+  "tab-accesslog": true,
+  "tab-adaccountlog": true,
+  "tab-revisionfeedback": true,
+  "tab-callsheet": true,
+  "tab-rawfootage": true,
+  "tab-releaseforms": true
 };
 
 // ── Initial State Blueprint ──
@@ -736,11 +790,68 @@ function refreshIframeTab(tabId) {
     case "tab-renewaltracker":
       renderRenewalTracker();
       break;
+    case "tab-offboarding":
+      renderOffboardingChecklistTab();
+      break;
+    case "tab-qc":
+      renderQcChecklistTab();
+      break;
+    case "tab-weeklycheckin":
+      renderWeeklyCheckinTab();
+      break;
+    case "tab-accesslog":
+      renderAccessLoginLogTab();
+      break;
+    case "tab-adaccountlog":
+      renderAdAccountLogTab();
+      break;
+    case "tab-revisionfeedback":
+      renderRevisionFeedbackTab();
+      break;
+    case "tab-callsheet":
+      renderCallSheetTab();
+      break;
+    case "tab-rawfootage":
+      renderRawFootageTab();
+      break;
+    case "tab-releaseforms":
+      renderReleaseFormsTab();
+      break;
     case "tab-sopwiki":
       renderSopWiki();
       break;
     case "tab-proposal":
       renderProposalCalculator();
+      break;
+    case "tab-servicepricing":
+      renderServicePricingAdmin();
+      break;
+    case "tab-redflag":
+      renderRedFlagChecklist();
+      break;
+    case "tab-healthdashboard":
+      renderHealthDashboard();
+      break;
+    case "tab-changeorder":
+      renderChangeOrderGenerator();
+      break;
+    case "tab-casestudy":
+      renderCaseStudyBuilder();
+      break;
+    case "tab-portfolioshowcase":
+      renderPortfolioShowcase();
+      break;
+    case "tab-emailtemplates":
+      renderEmailTemplateLibrary();
+      break;
+    case "tab-subscriptiontracker":
+      renderSubscriptionTracker();
+      break;
+    case "tab-teamroster":
+      renderTeamRoster();
+      break;
+    case "tab-testimonialtracker":
+      renderTestimonialTracker();
       break;
     case "tab-strategy":
       renderContentStrategy();
@@ -952,6 +1063,30 @@ function renderDashboard() {
       dashClickupBtn.style.display = "flex";
     } else {
       dashClickupBtn.style.display = "none";
+    }
+  }
+
+  // Client Health — pulled from the latest Weekly Account Check-In, if any
+  const healthVal = document.getElementById("dashHealthVal");
+  const healthDesc = document.getElementById("dashHealthDesc");
+  const healthProgress = document.getElementById("dashHealthProgress");
+  if (healthVal && healthDesc && healthProgress) {
+    const checkins = Array.isArray(client.weeklyCheckins) ? client.weeklyCheckins : [];
+    const latest = checkins.length ? checkins[0] : null; // already kept newest-first
+    if (latest && latest.healthRating) {
+      const colors = { Green: "#22c55e", Yellow: "#eab308", Red: "#ef4444" };
+      const color = colors[latest.healthRating] || "var(--color-text-secondary)";
+      healthVal.textContent = latest.healthRating;
+      healthVal.style.color = color;
+      healthDesc.textContent = `Week of ${latest.date}${latest.q1_responsive ? ' — client ' + latest.q1_responsive.toLowerCase() : ''}`;
+      healthProgress.style.width = "100%";
+      healthProgress.style.background = color;
+    } else {
+      healthVal.textContent = "No check-in yet";
+      healthVal.style.color = "";
+      healthDesc.textContent = "Run a Weekly Account Check-In to populate this";
+      healthProgress.style.width = "0%";
+      healthProgress.style.background = "";
     }
   }
 
@@ -1530,6 +1665,51 @@ function renderRenewalTracker() {
   setIframeAbsoluteSrc('#tab-renewaltracker iframe', "renewal-tracker/index.html");
 }
 
+// ── Client Offboarding Checklist Controller ──
+function renderOffboardingChecklistTab() {
+  setIframeAbsoluteSrc('#tab-offboarding iframe', "client-offboarding-checklist/index.html");
+}
+
+// ── QC Checklist Controller ──
+function renderQcChecklistTab() {
+  setIframeAbsoluteSrc('#tab-qc iframe', "qc-checklist/index.html");
+}
+
+// ── Weekly Account Check-In Controller ──
+function renderWeeklyCheckinTab() {
+  setIframeAbsoluteSrc('#tab-weeklycheckin iframe', "weekly-account-checkin/index.html");
+}
+
+// ── Access & Login Log Controller ──
+function renderAccessLoginLogTab() {
+  setIframeAbsoluteSrc('#tab-accesslog iframe', "access-login-log/index.html");
+}
+
+// ── Client Ad Account Log Controller ──
+function renderAdAccountLogTab() {
+  setIframeAbsoluteSrc('#tab-adaccountlog iframe', "ad-account-log/index.html");
+}
+
+// ── Revision & Feedback Tracker Controller ──
+function renderRevisionFeedbackTab() {
+  setIframeAbsoluteSrc('#tab-revisionfeedback iframe', "revision-feedback-tracker/index.html");
+}
+
+// ── Call Sheet Builder Controller ──
+function renderCallSheetTab() {
+  setIframeAbsoluteSrc('#tab-callsheet iframe', "call-sheet-builder/index.html");
+}
+
+// ── Raw Footage & Delivery Tracker Controller ──
+function renderRawFootageTab() {
+  setIframeAbsoluteSrc('#tab-rawfootage iframe', "raw-footage-tracker/index.html");
+}
+
+// ── Release Forms Tracker Controller ──
+function renderReleaseFormsTab() {
+  setIframeAbsoluteSrc('#tab-releaseforms iframe', "release-forms-tracker/index.html");
+}
+
 // ── SOP Wiki Controller ──
 function renderSopWiki() {
   setIframeAbsoluteSrc('#tab-sopwiki iframe', "sop-wiki/index.html?v=1.7");
@@ -1537,7 +1717,57 @@ function renderSopWiki() {
 
 // ── Proposal Calculator Controller ──
 function renderProposalCalculator() {
-  setIframeAbsoluteSrc('#tab-proposal iframe', "proposal-calculator/index.html?v=10");
+  setIframeAbsoluteSrc('#tab-proposal iframe', "proposal-calculator/index.html?v=12");
+}
+
+// ── Service Pricing Admin Controller ──
+function renderServicePricingAdmin() {
+  setIframeAbsoluteSrc('#tab-servicepricing iframe', "service-pricing-admin/index.html?v=3");
+}
+
+// ── Red Flag Checklist Controller ──
+function renderRedFlagChecklist() {
+  setIframeAbsoluteSrc('#tab-redflag iframe', "red-flag-checklist/index.html");
+}
+
+// ── Agency Health Dashboard Controller ──
+function renderHealthDashboard() {
+  setIframeAbsoluteSrc('#tab-healthdashboard iframe', "agency-health-dashboard/index.html");
+}
+
+// ── Change Order Generator Controller ──
+function renderChangeOrderGenerator() {
+  setIframeAbsoluteSrc('#tab-changeorder iframe', "change-order-generator/index.html");
+}
+
+// ── Case Study Builder Controller ──
+function renderCaseStudyBuilder() {
+  setIframeAbsoluteSrc('#tab-casestudy iframe', "case-study-builder/index.html");
+}
+
+// ── Portfolio Showcase Controller ──
+function renderPortfolioShowcase() {
+  setIframeAbsoluteSrc('#tab-portfolioshowcase iframe', "portfolio-showcase/index.html");
+}
+
+// ── Email Template Library Controller ──
+function renderEmailTemplateLibrary() {
+  setIframeAbsoluteSrc('#tab-emailtemplates iframe', "email-template-library/index.html");
+}
+
+// ── Subscription & Tool Cost Tracker Controller ──
+function renderSubscriptionTracker() {
+  setIframeAbsoluteSrc('#tab-subscriptiontracker iframe', "subscription-tracker/index.html");
+}
+
+// ── Team Roster & Capacity Controller ──
+function renderTeamRoster() {
+  setIframeAbsoluteSrc('#tab-teamroster iframe', "team-roster/index.html");
+}
+
+// ── Testimonial & Review Requests Controller ──
+function renderTestimonialTracker() {
+  setIframeAbsoluteSrc('#tab-testimonialtracker iframe', "testimonial-tracker/index.html");
 }
 
 // ── Content Strategy Guide Controller ──
@@ -2528,6 +2758,23 @@ function foldInClientChecklistChecked(targetItems, existingItems) {
 // or a throwaway wrapper around an outgoing-write clone
 // (syncPublicPortalDocs), since both just need their two array
 // properties reassigned in place.
+// Pull in a client's testimonial submission (written straight to the
+// public clients/{token} doc via the portal's Leave a Testimonial view,
+// same as checklist/approvals above) into a target object's
+// .testimonialSubmission property. Simpler than foldInApprovalDecisions
+// since it's a single write-once object, not two arrays to reconcile -
+// just copy it over if the target doesn't have it yet or it's changed.
+function foldInTestimonialSubmission(target, publicData) {
+  if (!target || !publicData || !publicData.testimonialSubmission) return false;
+  const incoming = publicData.testimonialSubmission;
+  const current = target.testimonialSubmission;
+  if (current && current.submittedDate === incoming.submittedDate && current.quote === incoming.quote) {
+    return false; // already have this exact submission, nothing changed
+  }
+  target.testimonialSubmission = incoming;
+  return true;
+}
+
 function foldInApprovalDecisions(target, publicData) {
   if (!target || !publicData || !Array.isArray(publicData.approvalHistory)) return false;
   if (!Array.isArray(target.pendingApprovals)) target.pendingApprovals = [];
@@ -2577,6 +2824,7 @@ async function syncPublicPortalDocs(dbSnapshot) {
         foldInOnboardingChecked(localChecklist, existingData.onboardingChecklist);
         foldInClientChecklistChecked(localClientChecklist, existingData.clientChecklist);
         foldInApprovalDecisions(approvalsWrapper, existingData);
+        foldInTestimonialSubmission(client, existingData);
       }
     } catch (e) {
       console.warn("Could not read existing public portal doc for", name, e);
@@ -2588,6 +2836,10 @@ async function syncPublicPortalDocs(dbSnapshot) {
       clientChecklist: localClientChecklist,
       pendingApprovals: approvalsWrapper.pendingApprovals,
       approvalHistory: approvalsWrapper.approvalHistory,
+      // The client's own testimonial submission (Leave a Testimonial view)
+      // - folded in above from the existing public doc first so this save
+      // never stomps on a submission that just came in.
+      testimonialSubmission: client.testimonialSubmission || null,
       // Published report snapshots (see competitor-analysis/script.js's
       // publishToClientPortal). Admin-only to create - clients never write
       // this field, so no fold-in-existing-progress step is needed here
@@ -2641,8 +2893,9 @@ function ensureClientPortalListeners() {
       const changedOnboarding = foldInOnboardingChecked(currentClient.onboardingChecklist, data.onboardingChecklist);
       const changedClientChecklist = foldInClientChecklistChecked(currentClient.clientChecklist, data.clientChecklist);
       const changedApprovals = foldInApprovalDecisions(currentClient, data);
+      const changedTestimonial = foldInTestimonialSubmission(currentClient, data);
 
-      if (changedOnboarding || changedClientChecklist || changedApprovals) {
+      if (changedOnboarding || changedClientChecklist || changedApprovals || changedTestimonial) {
         localStorage.setItem("REVITAL_HUB_CLIENTS", JSON.stringify(clientsDb));
         try { renderOnboardingChecklist(); } catch (e) {}
         try { renderDashboard(); } catch (e) {}
@@ -2684,6 +2937,14 @@ function loadDatabase() {
       clientsDb = {};
     }
   }
+
+  // Bug fix (Hub-wide stress test): this schema-migration/defaults pass
+  // was defined but never actually called anywhere, so legacy client
+  // records missing newer fields (e.g. older copywriting/onboarding
+  // formats) were never backfilled. Every write inside it is guarded to
+  // only fill in genuinely missing/undefined data, so it's safe to run
+  // on every load.
+  migrateSchemaAndDefaults();
 
   // Set active client
   const storedActive = localStorage.getItem("REVITAL_HUB_ACTIVE_CLIENT");
@@ -2774,7 +3035,15 @@ document.addEventListener('DOMContentLoaded', () => {
     { id: 'tab-creativebrief', title: 'Creative Brief', icon: 'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7 M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z' },
     { id: 'tab-proposal', title: 'Proposal Calculator', icon: 'M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6' },
     { id: 'tab-emailsig', title: 'Email Signature', icon: 'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6' },
-    { id: 'tab-sopwiki', title: 'SOP Wiki', icon: 'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z' }
+    { id: 'tab-sopwiki', title: 'SOP Wiki', icon: 'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z' },
+    { id: 'tab-redflag', title: 'Red Flag Checklist', icon: 'M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z M4 22v-7' },
+    { id: 'tab-healthdashboard', title: 'Agency Health Dashboard', icon: 'M22 12h-4l-3 9L9 3l-3 9H2' },
+    { id: 'tab-changeorder', title: 'Change Order Generator', icon: 'M12 20h9 M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z' },
+    { id: 'tab-casestudy', title: 'Case Study Builder', icon: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M9 15l2 2 4-4' },
+    { id: 'tab-portfolioshowcase', title: 'Portfolio Showcase', icon: 'M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z' },
+    { id: 'tab-emailtemplates', title: 'Email Template Library', icon: 'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6' },
+    { id: 'tab-teamroster', title: 'Team Roster & Capacity', icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8' },
+    { id: 'tab-testimonialtracker', title: 'Testimonial & Review Requests', icon: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' }
   ];
 
   function openCmdK() {

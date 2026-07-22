@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Contract & Invoice Status Tracker</title>
-<link rel="stylesheet" href="../style.css?v=1">
-<link rel="stylesheet" href="css/style.css?v=1">
+<link rel="stylesheet" href="../style.css?v=2">
+<link rel="stylesheet" href="css/style.css?v=2">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
 </head>
 <body>
@@ -27,6 +27,7 @@
 
 <div class="summary-bar" id="summaryBar">
 <div class="summary-stat"><span class="summary-num" id="summaryAwaitingSignature">0</span><span class="summary-label">Contracts Awaiting Signature</span></div>
+<div class="summary-stat"><span class="summary-num" id="summaryRenewalsDue">0</span><span class="summary-label">Renewals Due Within 30 Days</span></div>
 <div class="summary-stat"><span class="summary-num" id="summaryDueSoon">0</span><span class="summary-label">Invoices Due Within 7 Days</span></div>
 <div class="summary-stat"><span class="summary-num" id="summaryOverdue">0</span><span class="summary-label">Invoices Overdue</span></div>
 </div>
@@ -51,6 +52,7 @@
 <th>Contract</th>
 <th>Contract Sent</th>
 <th>Contract Signed</th>
+<th>Renewal Date</th>
 <th>Invoice</th>
 <th>Invoice Due</th>
 <th>Invoice Paid</th>
@@ -66,6 +68,6 @@
 </div>
 </main>
 
-<script src="js/app.js?v=1"></script>
+<script src="js/app.js?v=5"></script>
 </body>
 </html>

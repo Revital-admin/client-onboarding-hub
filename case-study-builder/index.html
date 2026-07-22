@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Case Study Builder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../vars.css">
+  <link rel="stylesheet" href="../shared-components.css">
+  <link rel="stylesheet" href="../forms.css?v=2">
+  <link rel="stylesheet" href="css/style.css?v=1">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body class="module-body">
+  <div class="module-container">
+    <div class="module-header">
+      <div class="module-header-left">
+        <div class="site-header">
+          <div class="header-eyebrow"><span class="dot"></span><span>Sales</span></div>
+          <h1 class="site-title">Case Study <em>Builder</em></h1>
+          <p class="site-subtitle">Turn completed client work into a shareable case study for sales and the website — challenge, solution, results, and testimonial in one place.</p>
+        </div>
+      </div>
+      <div class="module-header-right">
+        <select id="clientSelect" class="form-control" style="width: 250px;"></select>
+      </div>
+    </div>
+
+    <div class="card empty-state" id="emptyState" style="margin-top: 24px;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+      <h3>Select a client</h3>
+      <p>Choose a client above to build a case study from their work.</p>
+    </div>
+
+    <div id="caseStudyInterface" style="display: none; margin-top: 24px;">
+
+      <div class="card">
+        <h3 id="formTitle">New Case Study</h3>
+        <div class="form-row mt-3">
+          <div class="form-group" style="flex:2">
+            <label>Title</label>
+            <input type="text" id="csTitle" class="form-control" placeholder="e.g. 40% Revenue Growth in 6 Months">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>Industry</label>
+            <input type="text" id="csIndustry" class="form-control" placeholder="e.g. Healthcare">
+          </div>
+        </div>
+        <div class="form-group mt-3">
+          <label>Services Provided</label>
+          <input type="text" id="csServices" class="form-control" placeholder="e.g. Paid Social, Website Redesign, SEO">
+        </div>
+        <div class="form-group mt-3">
+          <label>The Challenge</label>
+          <textarea id="csChallenge" class="form-control" rows="2" placeholder="What problem was the client facing before working with us..."></textarea>
+        </div>
+        <div class="form-group mt-3">
+          <label>Our Solution</label>
+          <textarea id="csSolution" class="form-control" rows="2" placeholder="What we did..."></textarea>
+        </div>
+        <div class="form-group mt-3">
+          <label>The Results</label>
+          <textarea id="csResults" class="form-control" rows="2" placeholder="Metrics and outcomes - e.g. 40% increase in leads, 2x ROAS..."></textarea>
+        </div>
+        <div class="form-row mt-3">
+          <div class="form-group" style="flex:2">
+            <label>Client Testimonial (optional)</label>
+            <textarea id="csTestimonial" class="form-control" rows="2" placeholder="Direct quote from the client..."></textarea>
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>Testimonial Author</label>
+            <input type="text" id="csTestimonialAuthor" class="form-control" placeholder="e.g. Jane Doe, CEO">
+          </div>
+        </div>
+
+        <div class="form-group mt-3">
+          <label>Reference / Embed Links</label>
+          <div class="form-row">
+            <input type="text" id="embedLabel" class="form-control" placeholder="Label (e.g. Before/After images)" style="flex:1">
+            <input type="url" id="embedUrl" class="form-control" placeholder="https://..." style="flex:2">
+            <button id="addEmbedBtn" class="btn-secondary" style="white-space:nowrap;">+ Add Link</button>
+          </div>
+          <ul id="embedLinksList" style="list-style:none; margin-top:12px; display:flex; flex-direction:column; gap:8px;"></ul>
+        </div>
+
+        <div class="form-group mt-3">
+          <label class="cb-label" style="display:flex; align-items:center; gap:8px; font-weight:500;">
+            <input type="checkbox" id="csFeatured">
+            Mark as portfolio-ready (approved to share externally)
+          </label>
+        </div>
+
+        <div class="form-actions mt-3">
+          <button class="btn-primary" id="saveCaseStudyBtn">Save Case Study</button>
+          <button class="btn-secondary" id="cancelEditBtn" style="display:none;">Cancel Edit</button>
+        </div>
+      </div>
+
+      <div class="card mt-4">
+        <h3>Case Studies for This Client</h3>
+        <div id="caseStudiesList" style="display:flex; flex-direction:column; gap:12px; margin-top:16px;"></div>
+        <p id="caseStudiesEmptyState" class="empty-state" style="display:none; padding: 24px;">No case studies yet for this client.</p>
+      </div>
+
+    </div>
+  </div>
+  <script src="js/app.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekly Account Check-In</title>
+<link rel="stylesheet" href="../style.css?v=1">
+<link rel="stylesheet" href="css/style.css?v=1">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<main class="container">
+<div class="brand-bar">
+<div class="brand-logo-container"></div>
+</div>
+
+<header class="site-header">
+<div class="header-eyebrow">
+<span class="dot"></span>
+<span>Account Management</span>
+</div>
+<h1 class="site-title">Weekly Account <em>Check-In</em></h1>
+<p class="site-subtitle">The Monday morning questionnaire from the CRM Guidelines SOP, for the active client workspace. Client Health from this feeds the Overview Dashboard.</p>
+</header>
+
+<div id="notEmbeddedState" class="step-card" style="display:none; text-align:center; color: var(--color-text-secondary);">
+Open this from inside the Hub with a client workspace selected.
+</div>
+
+<div id="checkinContent">
+
+<div class="step-card">
+<div class="tracker-controls-row" style="justify-content: space-between;">
+<div>
+<span style="font-size:12px; text-transform:uppercase; letter-spacing:0.5px; color: var(--color-text-muted);">Client</span>
+<div id="clientNameLabel" style="font-family: var(--font-heading); font-size:20px; color: var(--color-text-primary);"></div>
+</div>
+<div class="form-group" style="margin:0;">
+<label for="checkinDate">Week of</label>
+<input type="date" id="checkinDate">
+</div>
+</div>
+</div>
+
+<div class="step-card">
+<h3 class="section-heading">Section 1 — Client Relationship &amp; Communication</h3>
+<div class="form-group">
+<label for="q1_communication">Did we have any communication with this client last week? (email, call, meeting)</label>
+<input type="text" id="q1_communication" placeholder="Summary of communication...">
+</div>
+<div class="form-group">
+<label for="q1_responsive">Is the client responsive and engaged?</label>
+<select id="q1_responsive"><option>Yes</option><option>Slow</option><option>Not responding</option></select>
+</div>
+<div class="form-group">
+<label for="q1_unresolved">Any unresolved client questions or requests from last week?</label>
+<input type="text" id="q1_unresolved">
+</div>
+<div class="form-group">
+<label for="q1_feedback">Did the client submit any feedback or revision requests? If yes, logged in the portal?</label>
+<input type="text" id="q1_feedback">
+</div>
+<div class="form-group">
+<label for="q1_actOn">Is there anything the client said — formally or informally — that we need to act on?</label>
+<input type="text" id="q1_actOn">
+</div>
+</div>
+
+<div class="step-card">
+<h3 class="section-heading">Section 2 — Deliverables &amp; Production</h3>
+<div class="form-group">
+<label for="q2_onTime">Were all scheduled deliverables for last week completed and delivered on time?</label>
+<select id="q2_onTime"><option>Yes</option><option>No</option></select>
+</div>
+<div class="form-group">
+<label for="q2_behind">Any deliverables behind schedule? If yes, reason and new ETA?</label>
+<input type="text" id="q2_behind">
+</div>
+<div class="form-group">
+<label for="q2_technical">Are active campaigns running without technical issues? (ads live, emails sending, posts going out)</label>
+<select id="q2_technical"><option>Yes</option><option>No</option></select>
+</div>
+<div class="form-group">
+<label for="q2_reviewedData">Did we review performance data from last week?</label>
+<select id="q2_reviewedData"><option>Yes</option><option>No</option></select>
+</div>
+<div class="form-group">
+<label for="q2_trending">Are results trending in the right direction compared to the client's objective?</label>
+<select id="q2_trending"><option>Yes</option><option>No</option><option>Unsure</option></select>
+</div>
+<div class="form-group">
+<label for="q2_budgetPacing">Any budget pacing issues on paid campaigns? (overspending or underspending)</label>
+<input type="text" id="q2_budgetPacing">
+</div>
+<div class="form-group">
+<label for="q2_optimizations">Do we need to make any optimizations or adjustments this week?</label>
+<input type="text" id="q2_optimizations">
+</div>
+</div>
+
+<div class="step-card">
+<h3 class="section-heading">Section 4 — Client Health &amp; Risk Assessment</h3>
+<div class="form-group">
+<label for="healthRating">Current Client Health rating for this account</label>
+<select id="healthRating"><option>Green</option><option>Yellow</option><option>Red</option></select>
+</div>
+<div class="form-group">
+<label for="healthChanged">Has Client Health changed from last week? If yes, why?</label>
+<input type="text" id="healthChanged">
+</div>
+<div class="form-group">
+<label for="warningSigns">Any warning signs this client may be at risk? (slow replies, complaints, missed payments)</label>
+<input type="text" id="warningSigns">
+</div>
+<div class="form-group">
+<label for="seeingValue">Is the client seeing value in our work? Do they feel informed and supported?</label>
+<select id="seeingValue"><option>Yes</option><option>No</option><option>Unsure</option></select>
+</div>
+<div class="form-group">
+<label for="proactiveIdeas">Anything we could proactively do this week to strengthen the relationship?</label>
+<input type="text" id="proactiveIdeas">
+</div>
+</div>
+
+<div class="step-card">
+<h3 class="section-heading">Section 5 — Internal &amp; Billing</h3>
+<div class="form-group">
+<label for="deliveryLeadOk">Is the Delivery Lead still the right person on this account, or does it need reassignment?</label>
+<select id="deliveryLeadOk"><option>Yes</option><option>No</option></select>
+</div>
+<div class="form-group">
+<label for="billingUpToDate">Is billing up to date? Has this month's invoice been sent and confirmed?</label>
+<select id="billingUpToDate"><option>Yes</option><option>No</option></select>
+</div>
+<div class="form-group">
+<label for="billingStatus">Billing status</label>
+<select id="billingStatus"><option>Monthly</option><option>1 of 3</option><option>2 of 3</option><option>3 of 3</option></select>
+</div>
+<div class="form-group">
+<label for="scopeCreep">Any scope creep issues — work being done outside the contract?</label>
+<input type="text" id="scopeCreep">
+</div>
+<div class="form-group">
+<label for="upsellOpportunity">Is there an upsell or expansion opportunity worth discussing?</label>
+<input type="text" id="upsellOpportunity">
+</div>
+</div>
+
+<div class="step-card">
+<h3 class="section-heading">Section 6 — This Week's Priorities</h3>
+<div class="form-group"><label for="priority1">Priority 1</label><input type="text" id="priority1"></div>
+<div class="form-group"><label for="priority2">Priority 2</label><input type="text" id="priority2"></div>
+<div class="form-group"><label for="priority3">Priority 3</label><input type="text" id="priority3"></div>
+</div>
+
+<div class="step-card">
+<button id="saveCheckinBtn" class="btn-primary">Save This Week's Check-In</button>
+<span id="formStatus" class="form-status"></span>
+</div>
+
+<div class="step-card table-card">
+<div class="section-title" style="margin: 0; padding: 20px 20px 0; border: none;">
+<h2 style="font-family: var(--font-heading); color: var(--color-accent);">Check-In History</h2>
+</div>
+<div class="tracker-table-wrap">
+<table class="tracker-table">
+<thead>
+<tr>
+<th>Week Of</th>
+<th>Health</th>
+<th>Responsive</th>
+<th>On Time</th>
+<th>Top Priority</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="historyBody"></tbody>
+</table>
+<p id="historyEmpty" class="empty-state" style="display:none;">No check-ins logged yet for this client.</p>
+</div>
+</div>
+
+</div>
+
+</main>
+<script src="js/app.js?v=1"></script>
+</body>
+</html>

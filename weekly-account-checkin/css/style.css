@@ -1,0 +1,80 @@
+.container { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+
+.section-heading {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  color: var(--color-accent);
+  margin: 0 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.form-status {
+  display: inline-block;
+  margin-left: 12px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.form-status.success { color: #22c55e; }
+.form-status.error { color: #ef4444; }
+
+.table-card { padding: 0; overflow: hidden; margin-top: 24px; }
+.tracker-table-wrap { overflow-x: auto; }
+.tracker-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 16px; }
+.tracker-table th {
+  text-align: left;
+  padding: 12px 14px;
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+.tracker-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  vertical-align: top;
+}
+.tracker-table tr:last-child td { border-bottom: none; }
+.date-cell { white-space: nowrap; color: var(--color-text-secondary); }
+
+.section-tag {
+  display: inline-block;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border-md);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+.section-tag.health-green { border-color: #22c55e; color: #22c55e; }
+.section-tag.health-yellow { border-color: #eab308; color: #eab308; }
+.section-tag.health-red { border-color: #ef4444; color: #ef4444; }
+
+.row-actions { display: flex; flex-direction: column; gap: 4px; min-width: 80px; }
+.row-actions button {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 100px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition);
+}
+.row-actions button:hover {
+  background: var(--color-surface-2);
+  border-color: var(--color-border-md);
+  color: var(--color-accent);
+}
+.row-actions button.delete-btn:hover { border-color: #ef4444; color: #ef4444; }
+
+.empty-state { text-align: center; padding: 40px 20px; color: var(--color-text-muted); font-size: 14px; }

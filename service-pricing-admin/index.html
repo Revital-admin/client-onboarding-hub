@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Service Pricing Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../proposal-calculator/css/style.css" />
+<link rel="stylesheet" href="css/style.css?v=2" />
+</head>
+<body>
+
+<div id="notAuthorizedState" class="pricing-admin-layout" style="display:none; text-align:center; padding-top: 80px; color: var(--color-text-secondary);">
+  You don't have access to Service Pricing Admin.
+</div>
+
+<div id="pricingAdminContent" class="pricing-admin-layout">
+
+  <header class="pricing-admin-header">
+    <div>
+      <h1 class="calc-title">Service Pricing Admin</h1>
+      <p>Set the default price agents see when they check a service in the Proposal Calculator. Changes apply to every new proposal — they don't touch proposals already in progress.</p>
+    </div>
+    <div class="pricing-admin-header-actions">
+      <span id="unsavedBadge" class="unsaved-badge" style="display:none;">Unsaved changes</span>
+      <button id="saveAllBtn" class="btn-copy" style="background: var(--primary); color: #fff;">Save All Changes</button>
+    </div>
+  </header>
+
+  <div id="statusBanner" class="status-banner" style="display:none;"></div>
+
+  <div class="pricing-admin-toolbar">
+    <input type="text" id="searchInput" class="num-input" placeholder="Search services...">
+    <label class="cb-label" style="margin-bottom:0;">
+      <input type="checkbox" id="showOverriddenOnly" class="service-cb" style="margin-right:6px;">
+      Show only edited services
+    </label>
+    <span class="pricing-admin-count" id="serviceCount"></span>
+  </div>
+
+  <div id="catalogContainer"></div>
+
+</div>
+
+<script src="../proposal-calculator/js/service-catalog.js"></script>
+<script src="js/app.js?v=4"></script>
+</body>
+</html>

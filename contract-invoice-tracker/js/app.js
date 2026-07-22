@@ -18,6 +18,7 @@ try {
 }
 
 let records = [];
+let docVersion = 0; // optimistic-concurrency guard, see persist() below
 
 const CONTRACT_STATUSES = ['Not Sent', 'Sent', 'Signed'];
 const INVOICE_STATUSES = ['Not Sent', 'Sent', 'Paid', 'Overdue'];
@@ -34,7 +35,9 @@ async function loadRecords() {
     try {
       const ref = getRecordsDocRef();
       const snap = await window.parent.firebaseGetDoc(ref);
-      records = (snap && snap.exists && snap.data().list) || [];
+      const data = snap && snap.exists ? snap.data() : null;
+      records = (data && data.list) || [];
+      docVersion = (data && data.version) || 0;
       return;
     } catch (e) {
       console.error("Couldn't load contract/invoice records from the cloud:", e);
@@ -51,11 +54,30 @@ async function loadRecords() {
   } catch (e) { records = []; }
 }
 
+// Optimistic-concurrency guard: this saves by overwriting the whole doc
+// on every edit, so re-check the version right before writing and
+// refuse to clobber a newer save made elsewhere in the meantime.
 async function persist() {
-  if (isEmbedded && window.parent.firebaseSetDoc) {
+  if (isEmbedded && window.parent.firebaseSetDoc && window.parent.firebaseGetDoc) {
     try {
       const ref = getRecordsDocRef();
-      await window.parent.firebaseSetDoc(ref, { list: records });
+      const freshSnap = await window.parent.firebaseGetDoc(ref);
+      const freshData = freshSnap && freshSnap.exists ? freshSnap.data() : null;
+      const freshVersion = (freshData && freshData.version) || 0;
+
+      if (freshVersion !== docVersion) {
+        if (window.parent.showBanner) {
+          window.parent.showBanner('error', "Someone else updated this list while you had it open. Reload the page to see their changes, then redo your edit.");
+        }
+        return false;
+      }
+
+      docVersion = freshVersion + 1;
+      // A plain object literal built in this iframe's own JS realm gets
+      // rejected by Firestore ("a custom Object object") when handed
+      // straight to a Firestore call bound to the parent page - pass a
+      // JSON string instead so the parent parses it in its own realm.
+      await window.parent.firebaseSetDocFromJSON(ref, JSON.stringify({ list: records, version: docVersion }));
       return true;
     } catch (e) {
       console.error("Couldn't save contract/invoice records to the cloud:", e);
@@ -107,11 +129,20 @@ function reconcileOverdueInvoices() {
 }
 
 function getUrgency(r) {
-  const settled = r.contractStatus === 'Signed' && (r.invoiceStatus === 'Paid' || r.invoiceStatus === 'Not Sent');
-  if (settled) return 'closed';
-  if (r.invoiceStatus === 'Overdue') return 'red';
+  // Renewal urgency takes priority over the "settled/closed" shortcut
+  // below - a signed, fully-paid contract that's about to expire still
+  // needs to surface, not get hidden with the fully-settled rows.
+  const renewalDays = (r.contractStatus === 'Signed' && r.contractRenewalDate) ? daysBetween(todayStr(), r.contractRenewalDate) : null;
+  const renewalOverdue = renewalDays !== null && renewalDays <= 0;
+  const renewalSoon = renewalDays !== null && renewalDays > 0 && renewalDays <= 30;
+
+  if (renewalOverdue || r.invoiceStatus === 'Overdue') return 'red';
+  if (renewalSoon) return 'yellow';
   if (r.invoiceStatus === 'Sent' && r.invoiceDueDate && daysBetween(todayStr(), r.invoiceDueDate) <= 7) return 'yellow';
   if (r.contractStatus === 'Sent') return 'yellow';
+
+  const settled = r.contractStatus === 'Signed' && (r.invoiceStatus === 'Paid' || r.invoiceStatus === 'Not Sent');
+  if (settled) return 'closed';
   return 'green';
 }
 
@@ -131,10 +162,16 @@ function populateClientDatalist() {
 
 function renderSummary() {
   const awaitingSignature = records.filter(r => r.contractStatus === 'Sent');
+  const renewalsDue = records.filter(r => {
+    if (r.contractStatus !== 'Signed' || !r.contractRenewalDate) return false;
+    const d = daysBetween(todayStr(), r.contractRenewalDate);
+    return d <= 30;
+  });
   const dueSoon = records.filter(r => r.invoiceStatus === 'Sent' && r.invoiceDueDate && daysBetween(todayStr(), r.invoiceDueDate) <= 7 && daysBetween(todayStr(), r.invoiceDueDate) >= 0);
   const overdue = records.filter(r => r.invoiceStatus === 'Overdue');
 
   el('summaryAwaitingSignature').textContent = awaitingSignature.length;
+  el('summaryRenewalsDue').textContent = renewalsDue.length;
   el('summaryDueSoon').textContent = dueSoon.length;
   el('summaryOverdue').textContent = overdue.length;
 }
@@ -173,6 +210,7 @@ function renderTable() {
       <td><select class="contract-select" data-id="${r.id}">${optionsHtml(CONTRACT_STATUSES, r.contractStatus)}</select></td>
       <td class="date-cell">${r.contractSentDate || '--'}</td>
       <td class="date-cell">${r.contractSignedDate || '--'}</td>
+      <td><input type="date" class="renewal-date-input" data-id="${r.id}" value="${r.contractRenewalDate || ''}"></td>
       <td><select class="invoice-select" data-id="${r.id}">${optionsHtml(INVOICE_STATUSES, r.invoiceStatus)}</select></td>
       <td><input type="date" class="due-date-input" data-id="${r.id}" value="${r.invoiceDueDate || ''}"></td>
       <td class="date-cell">${r.invoicePaidDate || '--'}</td>
@@ -221,6 +259,16 @@ function wireRowListeners() {
     });
   });
 
+  document.querySelectorAll('.renewal-date-input').forEach(inp => {
+    inp.addEventListener('change', async () => {
+      const r = findRecord(inp.getAttribute('data-id'));
+      if (!r) return;
+      r.contractRenewalDate = inp.value;
+      await persist();
+      renderTable();
+    });
+  });
+
   document.querySelectorAll('.due-date-input').forEach(inp => {
     inp.addEventListener('change', async () => {
       const r = findRecord(inp.getAttribute('data-id'));
@@ -258,14 +306,15 @@ async function resetCycle(id) {
   r.contractStatus = 'Not Sent';
   r.contractSentDate = '';
   r.contractSignedDate = '';
+  r.contractRenewalDate = '';
   r.invoiceStatus = 'Not Sent';
   r.invoiceSentDate = '';
   r.invoiceDueDate = '';
   r.invoicePaidDate = '';
-  await persist();
+  const ok = await persist();
   renderTable();
 
-  if (isEmbedded && window.parent.showBanner) {
+  if (ok && isEmbedded && window.parent.showBanner) {
     window.parent.showBanner('success', `Reset contract/invoice cycle for ${r.clientName}.`);
   }
 }
@@ -300,6 +349,7 @@ async function addTrackedClient() {
     contractStatus: 'Not Sent',
     contractSentDate: '',
     contractSignedDate: '',
+    contractRenewalDate: '',
     invoiceStatus: 'Not Sent',
     invoiceSentDate: '',
     invoiceDueDate: '',

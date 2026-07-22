@@ -1,0 +1,39 @@
+.container { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.category-header h3 {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  color: var(--color-accent);
+  margin: 0;
+}
+.category-progress {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
+.section-checkbox-grid.vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#categoriesList { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+
+#offboardingNotes {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border-md);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  resize: vertical;
+}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Client Offboarding Checklist</title>
+<link rel="stylesheet" href="../style.css?v=1">
+<link rel="stylesheet" href="css/style.css?v=1">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<main class="container">
+<div class="brand-bar">
+<div class="brand-logo-container"></div>
+</div>
+
+<header class="site-header">
+<div class="header-eyebrow">
+<span class="dot"></span>
+<span>Client Journey</span>
+</div>
+<h1 class="site-title">Client Offboarding <em>Checklist</em></h1>
+<p class="site-subtitle">Follow the full Client Offboarding SOP step by step so nothing falls through when a client relationship ends. Tied to the active client workspace — switch clients in the sidebar to see a different checklist.</p>
+</header>
+
+<div id="notEmbeddedState" class="step-card" style="display:none; text-align:center; color: var(--color-text-secondary);">
+Open this from inside the Hub with a client workspace selected.
+</div>
+
+<div id="offboardingContent">
+
+<div class="step-card">
+<div class="tracker-controls-row" style="justify-content: space-between; margin-bottom: 16px;">
+<div>
+<span class="section-label" style="font-size:12px; text-transform:uppercase; letter-spacing:0.5px; color: var(--color-text-muted);">Client</span>
+<div id="clientNameLabel" style="font-family: var(--font-heading); font-size:20px; color: var(--color-text-primary);"></div>
+</div>
+<div class="form-group" style="margin:0;">
+<label for="startedDateInput">Offboarding started</label>
+<input type="date" id="startedDateInput">
+</div>
+</div>
+
+<div class="progress-wrap">
+<div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+<div class="progress-meta">
+<span id="progressText">0 of 0 items complete</span>
+<span id="progressPct">0%</span>
+</div>
+</div>
+
+<button id="resetBtn" class="btn-secondary-outline">Reset Checklist</button>
+</div>
+
+<div id="categoriesList"></div>
+
+<div class="step-card">
+<div class="form-group" style="margin:0;">
+<label for="offboardingNotes">Notes</label>
+<textarea id="offboardingNotes" rows="4" placeholder="Anything specific about this offboarding — reason, timeline, special handling..."></textarea>
+</div>
+</div>
+
+</div>
+
+</main>
+<script src="js/data.js"></script>
+<script src="js/app.js?v=1"></script>
+</body>
+</html>

@@ -95,6 +95,10 @@ window.addEventListener('error', function(e) {
           Approvals
           <span id="navApprovalsBadge" class="nav-badge" style="display:none;">0</span>
         </button>
+        <button class="nav-btn" data-target="view-moodboards" id="navMoodBoards" style="display:none;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>
+          Mood Boards
+        </button>
         <button class="nav-btn" data-target="view-guide" id="navGuide">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
           Guide &amp; FAQ
@@ -102,6 +106,10 @@ window.addEventListener('error', function(e) {
         <button class="nav-btn" data-target="view-referral" id="navReferral">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="8" width="18" height="4" rx="1"></rect><path d="M12 8v13"></path><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8"></path><path d="M16.5 8a2.5 2.5 0 0 0 0-5C13 3 12 8 12 8"></path></svg>
           Referral Program
+        </button>
+        <button class="nav-btn" data-target="view-testimonial" id="navTestimonial">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          Leave a Testimonial
         </button>
       </nav>
 
@@ -184,20 +192,6 @@ window.addEventListener('error', function(e) {
           </div>
         </header>
         
-        <div id="brandKitContainer" style="display:none; margin-bottom:24px; padding:20px; background:var(--color-bg-elevated); border:1px solid var(--color-border); border-radius:12px;">
-          <h3 style="margin:0 0 16px 0;">Brand Colors & Typography</h3>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
-            <div>
-              <h4 style="font-size:12px; color:var(--color-text-secondary); margin-bottom:8px; text-transform:uppercase;">Brand Colors</h4>
-              <div style="display:flex; gap:12px;" id="brandColorsList"></div>
-            </div>
-            <div>
-              <h4 style="font-size:12px; color:var(--color-text-secondary); margin-bottom:8px; text-transform:uppercase;">Typography & Voice</h4>
-              <div id="typographyInfo" style="font-size:14px;"></div>
-            </div>
-          </div>
-          <div style="margin-top:24px;" id="brandLogoLink"></div>
-        </div>
         <div class="iframe-wrapper full-height">
           <iframe id="projectsIframe" src="" frameborder="0"></iframe>
         </div>
@@ -209,20 +203,6 @@ window.addEventListener('error', function(e) {
           <h2>Content Calendar</h2>
         </header>
         
-        <div id="brandKitContainer" style="display:none; margin-bottom:24px; padding:20px; background:var(--color-bg-elevated); border:1px solid var(--color-border); border-radius:12px;">
-          <h3 style="margin:0 0 16px 0;">Brand Colors & Typography</h3>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
-            <div>
-              <h4 style="font-size:12px; color:var(--color-text-secondary); margin-bottom:8px; text-transform:uppercase;">Brand Colors</h4>
-              <div style="display:flex; gap:12px;" id="brandColorsList"></div>
-            </div>
-            <div>
-              <h4 style="font-size:12px; color:var(--color-text-secondary); margin-bottom:8px; text-transform:uppercase;">Typography & Voice</h4>
-              <div id="typographyInfo" style="font-size:14px;"></div>
-            </div>
-          </div>
-          <div style="margin-top:24px;" id="brandLogoLink"></div>
-        </div>
         <div class="iframe-wrapper full-height">
           <iframe id="calendarIframe" src="" frameborder="0"></iframe>
         </div>
@@ -235,20 +215,6 @@ window.addEventListener('error', function(e) {
           <p>Review and approve the active strategy briefs.</p>
         </header>
         
-        <div id="brandKitContainer" style="display:none; margin-bottom:24px; padding:20px; background:var(--color-bg-elevated); border:1px solid var(--color-border); border-radius:12px;">
-          <h3 style="margin:0 0 16px 0;">Brand Colors & Typography</h3>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
-            <div>
-              <h4 style="font-size:12px; color:var(--color-text-secondary); margin-bottom:8px; text-transform:uppercase;">Brand Colors</h4>
-              <div style="display:flex; gap:12px;" id="brandColorsList"></div>
-            </div>
-            <div>
-              <h4 style="font-size:12px; color:var(--color-text-secondary); margin-bottom:8px; text-transform:uppercase;">Typography & Voice</h4>
-              <div id="typographyInfo" style="font-size:14px;"></div>
-            </div>
-          </div>
-          <div style="margin-top:24px;" id="brandLogoLink"></div>
-        </div>
         <div class="iframe-wrapper full-height">
           <iframe id="campaignIframe" src="" frameborder="0"></iframe>
         </div>
@@ -261,20 +227,6 @@ window.addEventListener('error', function(e) {
           <p>An archive of final deliverables and completed tasks.</p>
         </header>
         
-        <div id="brandKitContainer" style="display:none; margin-bottom:24px; padding:20px; background:var(--color-bg-elevated); border:1px solid var(--color-border); border-radius:12px;">
-          <h3 style="margin:0 0 16px 0;">Brand Colors & Typography</h3>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
-            <div>
-              <h4 style="font-size:12px; color:var(--color-text-secondary); margin-bottom:8px; text-transform:uppercase;">Brand Colors</h4>
-              <div style="display:flex; gap:12px;" id="brandColorsList"></div>
-            </div>
-            <div>
-              <h4 style="font-size:12px; color:var(--color-text-secondary); margin-bottom:8px; text-transform:uppercase;">Typography & Voice</h4>
-              <div id="typographyInfo" style="font-size:14px;"></div>
-            </div>
-          </div>
-          <div style="margin-top:24px;" id="brandLogoLink"></div>
-        </div>
         <div class="iframe-wrapper full-height">
           <iframe id="completedIframe" src="" frameborder="0"></iframe>
         </div>
@@ -347,6 +299,17 @@ window.addEventListener('error', function(e) {
           <h3 class="approval-block-heading">Your Decisions</h3>
           <div id="approvalHistoryContainer" class="approval-history"></div>
         </div>
+      </section>
+
+      <!-- MOOD BOARDS VIEW -->
+      <section id="view-moodboards" class="view-section">
+        <header class="view-header">
+          <h2>Mood Boards</h2>
+          <p>The creative direction we're proposing for upcoming work.</p>
+        </header>
+
+        <div id="moodBoardsContainer" style="display:flex; flex-direction:column; gap:24px;"></div>
+        <p id="moodBoardsEmptyState" class="empty-state" style="display:none;">No mood boards have been shared yet.</p>
       </section>
 
       <!-- GUIDE & FAQ VIEW -->
@@ -585,9 +548,49 @@ window.addEventListener('error', function(e) {
         </div>
       </section>
 
+      <!-- TESTIMONIAL VIEW -->
+      <section id="view-testimonial" class="view-section">
+        <header class="view-header">
+          <h2>Leave a Testimonial</h2>
+          <p>If you've had a good experience working with us, we'd love to share your story.</p>
+        </header>
+
+        <div class="guide-content">
+          <div class="guide-section" id="testimonialFormContainer">
+            <p class="guide-intro">A few sentences about your experience and the results you've seen goes a long way &mdash; we may feature it in a case study or on our website (only with your permission below).</p>
+
+            <div class="form-group" style="margin-top:16px;">
+              <label for="testimonialQuote">Your testimonial</label>
+              <textarea id="testimonialQuote" rows="5" placeholder="Tell us about your experience working with Revital Productions..." style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:8px; font-family:inherit; font-size:14px;"></textarea>
+            </div>
+            <div class="form-group" style="margin-top:12px; display:flex; gap:16px; flex-wrap:wrap;">
+              <div style="flex:1; min-width:200px;">
+                <label for="testimonialAuthorName">Your name</label>
+                <input type="text" id="testimonialAuthorName" placeholder="e.g. Jane Doe" style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:8px; font-family:inherit; font-size:14px;">
+              </div>
+              <div style="flex:1; min-width:200px;">
+                <label for="testimonialAuthorTitle">Title / Company (optional)</label>
+                <input type="text" id="testimonialAuthorTitle" placeholder="e.g. CEO, Acme Wellness" style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:8px; font-family:inherit; font-size:14px;">
+              </div>
+            </div>
+            <label style="display:flex; align-items:flex-start; gap:8px; margin-top:14px; font-size:13px; cursor:pointer;">
+              <input type="checkbox" id="testimonialPermission" style="margin-top:3px;">
+              <span>I'm okay with Revital Productions sharing this in a case study, on the website, or in marketing materials.</span>
+            </label>
+            <button id="submitTestimonialBtn" class="btn-primary" style="margin-top:16px;">Submit Testimonial</button>
+          </div>
+
+          <div class="guide-section" id="testimonialSubmittedContainer" style="display:none;">
+            <p class="guide-intro">Thank you &mdash; we've received your testimonial and really appreciate you taking the time.</p>
+            <blockquote id="testimonialSubmittedQuote" style="border-left:3px solid var(--primary); padding-left:16px; margin:16px 0; font-style:italic;"></blockquote>
+            <p id="testimonialSubmittedAuthor" style="font-size:13px; color:var(--text-muted);"></p>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 
-  <script src="js/app.js?v=75"></script>
+  <script src="js/app.js?v=76"></script>
 </body>
 </html>

@@ -1,0 +1,234 @@
+/* ── Hub-native hero header (matches Brand Asset Kit / Mood Board /
+   Brand Guidelines and the rest of the Hub's core modules) ── */
+:root {
+  --primary: #6366f1;
+  --secondary: #a855f7;
+  --text-bright: #ffffff;
+  --text-muted: #94a3b8;
+  --font-heading: 'Space Grotesk', sans-serif;
+}
+
+.site-header {
+  margin-bottom: 0;
+}
+
+.header-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 100px;
+  padding: 4px 12px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--primary);
+  margin-bottom: 12px;
+}
+
+.header-eyebrow .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  box-shadow: 0 0 6px var(--primary);
+}
+
+.site-title {
+  font-family: var(--font-heading);
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text-bright);
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+
+.site-title em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.site-subtitle {
+  font-size: 1rem;
+  color: var(--text-muted);
+  max-width: 800px;
+  margin: 0;
+}
+
+.module-header {
+  align-items: flex-start;
+}
+
+.module-body {
+  margin: 0;
+  padding: 0;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+}
+
+.module-container {
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 64px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: var(--color-text-secondary);
+}
+
+/* ── Red Flag Checklist specific ── */
+.flag-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.rf-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rf-item:last-child {
+  border-bottom: none;
+}
+
+.rf-item-checkbox {
+  flex-shrink: 0;
+  margin-top: 3px;
+  width: 20px;
+  height: 20px;
+  accent-color: #f59e0b;
+  cursor: pointer;
+}
+
+.rf-item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.rf-item-label {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+}
+
+.rf-item-hint {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.rf-item-notes {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--color-text-primary);
+  resize: vertical;
+  min-height: 40px;
+}
+
+.rf-item.is-flagged .rf-item-label {
+  color: #fbbf24;
+}
+
+.rf-item.is-flagged {
+  background: rgba(245, 158, 11, 0.04);
+  margin: 0 -12px;
+  padding: 16px 12px;
+  border-radius: var(--radius-sm);
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.save-status {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.save-status.success { color: #4ade80; }
+.save-status.error { color: #f87171; }
+
+.testimonial-submission-card {
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  background: rgba(34, 197, 94, 0.06);
+  border-radius: var(--radius-sm);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+.testimonial-submission-quote {
+  font-style: italic;
+  font-size: 15px;
+  color: var(--color-text-primary);
+  border-left: 3px solid var(--primary);
+  padding-left: 14px;
+  margin: 8px 0;
+}
+.testimonial-submission-meta {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.testimonial-submission-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.testimonial-none-state {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  padding: 12px 0;
+}
+.permission-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 100px;
+}
+.permission-badge.allowed { background: rgba(34,197,94,0.15); color: #22c55e; }
+.permission-badge.not-allowed { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+/* ── Mobile responsiveness ── */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

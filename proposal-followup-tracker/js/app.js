@@ -19,6 +19,7 @@ try {
 }
 
 let proposals = [];
+let docVersion = 0; // optimistic-concurrency guard, see persist() below
 
 const STAGE_SEQUENCE = ['Sent', 'Day 3 Sent', 'Day 7 Sent', 'Day 12 Sent'];
 const ALL_STAGES = ['Sent', 'Day 3 Sent', 'Day 7 Sent', 'Day 12 Sent', 'Closed Won', 'Closed Lost', 'Expired'];
@@ -36,7 +37,9 @@ async function loadProposals() {
     try {
       const ref = getProposalsDocRef();
       const snap = await window.parent.firebaseGetDoc(ref);
-      proposals = (snap && snap.exists && snap.data().list) || [];
+      const data = snap && snap.exists ? snap.data() : null;
+      proposals = (data && data.list) || [];
+      docVersion = (data && data.version) || 0;
       return;
     } catch (e) {
       console.error("Couldn't load proposals from the cloud:", e);
@@ -53,11 +56,30 @@ async function loadProposals() {
   } catch (e) { proposals = []; }
 }
 
+// Optimistic-concurrency guard: this saves by overwriting the whole doc
+// on every edit, so re-check the version right before writing and
+// refuse to clobber a newer save made elsewhere in the meantime.
 async function persist() {
-  if (isEmbedded && window.parent.firebaseSetDoc) {
+  if (isEmbedded && window.parent.firebaseSetDoc && window.parent.firebaseGetDoc) {
     try {
       const ref = getProposalsDocRef();
-      await window.parent.firebaseSetDoc(ref, { list: proposals });
+      const freshSnap = await window.parent.firebaseGetDoc(ref);
+      const freshData = freshSnap && freshSnap.exists ? freshSnap.data() : null;
+      const freshVersion = (freshData && freshData.version) || 0;
+
+      if (freshVersion !== docVersion) {
+        if (window.parent.showBanner) {
+          window.parent.showBanner('error', "Someone else updated this list while you had it open. Reload the page to see their changes, then redo your edit.");
+        }
+        return false;
+      }
+
+      docVersion = freshVersion + 1;
+      // A plain object literal built in this iframe's own JS realm gets
+      // rejected by Firestore ("a custom Object object") when handed
+      // straight to a Firestore call bound to the parent page - pass a
+      // JSON string instead so the parent parses it in its own realm.
+      await window.parent.firebaseSetDocFromJSON(ref, JSON.stringify({ list: proposals, version: docVersion }));
       return true;
     } catch (e) {
       console.error("Couldn't save proposals to the cloud:", e);
@@ -267,10 +289,10 @@ async function logFollowUp(id) {
     p.nextFollowUpDate = addDays(p.proposalSentDate, EXPIRY_DAYS);
   }
 
-  await persist();
+  const ok = await persist();
   renderTable();
 
-  if (isEmbedded && window.parent.showBanner) {
+  if (ok && isEmbedded && window.parent.showBanner) {
     window.parent.showBanner('success', `Logged follow-up for ${p.prospectName} — now at "${p.followUpStage}".`);
   }
 }
@@ -280,10 +302,10 @@ async function closeProposal(id, outcome) {
   if (!p) return;
   p.status = outcome;
   p.followUpStage = outcome === 'won' ? 'Closed Won' : 'Closed Lost';
-  await persist();
+  const ok = await persist();
   renderTable();
 
-  if (isEmbedded && window.parent.showBanner) {
+  if (ok && isEmbedded && window.parent.showBanner) {
     window.parent.showBanner('success', `Marked ${p.prospectName} as ${outcome === 'won' ? 'Won 🎉' : 'Lost'}.`);
   }
 }

@@ -454,6 +454,25 @@ body {
   flex-direction: column;
 }
 
+/* Full-bleed tool tabs (every iframe-embedded tool - Team Access,
+   Proposal Calculator, trackers, etc.) are meant to use the entire
+   remaining width next to the sidebar. Left as-is, they were still being
+   squeezed into this container's 1200px reading-width column and
+   centered with margin:0 auto, which on wide monitors left a visible gap
+   between the sidebar and the content - looking like the sidebar was
+   "off to the left" with everything else cramped into the middle, and
+   iframe tools (like Team Access's table) feeling tighter than they
+   should. When one of those tabs is active, drop the width cap and
+   centering so the content fills the space next to the sidebar evenly -
+   the top utility bar and the tool's own 40px inset stay the same either
+   way, only the artificial 1200px ceiling and centering go away. Native
+   dashboard-style tabs (client audits, onboarding, etc.) are unaffected
+   and keep the readable 1200px column. */
+.main-content:has(> .tab-fullbleed.active) {
+  max-width: none;
+  margin: 0;
+}
+
 /* Tab Sections */
 .tab-section {
   position: absolute;

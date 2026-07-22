@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Call Sheet / Shoot Schedule Builder</title>
+<link rel="stylesheet" href="../style.css?v=1">
+<link rel="stylesheet" href="css/style.css?v=1">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<main class="container container-wide">
+<div class="brand-bar">
+<div class="brand-logo-container"></div>
+</div>
+
+<header class="site-header">
+<div class="header-eyebrow">
+<span class="dot"></span>
+<span>Production</span>
+</div>
+<h1 class="site-title">Call Sheet / Shoot <em>Schedule Builder</em></h1>
+<p class="site-subtitle">The logistics for every shoot in one place. Crew and equipment are tracked in their own outside apps — this just references who/what is booked so nothing gets missed day-of.</p>
+</header>
+
+<div class="step-card">
+<div class="section-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 8px;">
+<h2 style="font-family: var(--font-heading); color: var(--color-accent);">Build a Call Sheet</h2>
+</div>
+
+<div class="form-grid">
+<div class="form-group"><label for="clientName">Client Name</label><input type="text" id="clientName" list="clientOptions" placeholder="Client / company name..."><datalist id="clientOptions"></datalist></div>
+<div class="form-group"><label for="shootTitle">Shoot / Project Title</label><input type="text" id="shootTitle" placeholder="e.g. Summer Sale Campaign Shoot"></div>
+<div class="form-group"><label for="shootDate">Shoot Date</label><input type="date" id="shootDate"></div>
+<div class="form-group"><label for="callTime">Call Time</label><input type="time" id="callTime"></div>
+<div class="form-group"><label for="wrapTime">Estimated Wrap Time</label><input type="time" id="wrapTime"></div>
+<div class="form-group"><label for="status">Status</label><select id="status"><option>Draft</option><option>Confirmed</option><option>Completed</option><option>Cancelled</option></select></div>
+<div class="form-group"><label for="locationName">Location Name</label><input type="text" id="locationName"></div>
+<div class="form-group"><label for="locationAddress">Location Address</label><input type="text" id="locationAddress"></div>
+<div class="form-group"><label for="onSiteContactName">On-Site Contact Name</label><input type="text" id="onSiteContactName"></div>
+<div class="form-group"><label for="onSiteContactPhone">On-Site Contact Phone</label><input type="text" id="onSiteContactPhone"></div>
+<div class="form-group"><label for="clientAttendees">Client Attendees</label><input type="text" id="clientAttendees" placeholder="Who's showing up from the client side..."></div>
+<div class="form-group"><label for="weatherBackupPlan">Weather / Backup Plan</label><input type="text" id="weatherBackupPlan" placeholder="Rain plan, indoor alternative..."></div>
+</div>
+<div class="form-group"><label for="crewAssigned">Crew Assigned</label><textarea id="crewAssigned" rows="2" placeholder="Names and roles — booked in your crew scheduling app, referenced here for the day-of sheet"></textarea></div>
+<div class="form-group"><label for="equipmentNeeded">Equipment Needed</label><textarea id="equipmentNeeded" rows="2" placeholder="Gear list — checked out in your equipment app, referenced here for the day-of sheet"></textarea></div>
+<div class="form-group"><label for="shotListNotes">Shot List / Notes</label><textarea id="shotListNotes" rows="3" placeholder="Key shots, run of show, anything crew needs to know..."></textarea></div>
+
+<button id="saveEntryBtn" class="btn-primary">Save Call Sheet</button>
+</div>
+
+<div class="step-card">
+<div class="tracker-controls-row" style="flex-wrap: wrap; gap: 14px;">
+<input type="text" id="filterClientInput" placeholder="Filter by client name..." style="flex:1; min-width:220px;">
+<label class="show-closed-toggle">
+<input type="checkbox" id="showCancelledToggle"> Show cancelled
+</label>
+</div>
+</div>
+
+<div class="step-card table-card">
+<div class="tracker-table-wrap">
+<table class="tracker-table">
+<thead>
+<tr>
+<th>Client</th>
+<th>Shoot</th>
+<th>Date</th>
+<th>Call Time</th>
+<th>Location</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="logTableBody"></tbody>
+</table>
+<p id="emptyState" class="empty-state" style="display:none;">No call sheets logged yet.</p>
+</div>
+</div>
+
+</main>
+<script src="js/app.js?v=2"></script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agency Health Dashboard</title>
+<link rel="stylesheet" href="../style.css?v=1">
+<link rel="stylesheet" href="css/style.css?v=1">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<main class="container container-wide">
+<div class="brand-bar">
+<div class="brand-logo-container"></div>
+</div>
+
+<header class="site-header">
+<div class="header-eyebrow">
+<span class="dot"></span>
+<span>Account Management</span>
+</div>
+<h1 class="site-title">Agency Health <em>Dashboard</em></h1>
+<p class="site-subtitle">One glance across every client: health rating, last check-in, renewal timing, and open revisions — pulled from the Weekly Check-In, Contract &amp; Invoice Tracker, and Revision &amp; Feedback Tracker so you don't have to open four different tools to see who needs attention.</p>
+</header>
+
+<div class="summary-bar" id="summaryBar">
+<div class="summary-stat"><span class="summary-num" id="summaryRedHealth">0</span><span class="summary-label">Red Health</span></div>
+<div class="summary-stat"><span class="summary-num" id="summaryNoCheckin">0</span><span class="summary-label">No Recent Check-In</span></div>
+<div class="summary-stat"><span class="summary-num" id="summaryRenewalsDue">0</span><span class="summary-label">Renewals Due 30d</span></div>
+<div class="summary-stat"><span class="summary-num" id="summaryOpenRevisions">0</span><span class="summary-label">Clients w/ 3+ Open Revisions</span></div>
+</div>
+
+<div class="step-card table-card">
+<div class="tracker-controls-row" style="flex-wrap: wrap; gap: 14px;">
+<input type="text" id="filterClientInput" placeholder="Filter by client name..." style="flex:1; min-width:220px;">
+<label class="show-closed-toggle">
+<input type="checkbox" id="showAttentionOnlyToggle"> Needs attention only
+</label>
+</div>
+</div>
+
+<div class="step-card table-card">
+<div class="tracker-table-wrap">
+<table class="tracker-table">
+<thead>
+<tr>
+<th>Client</th>
+<th>Health</th>
+<th>Last Check-In</th>
+<th>Renewal</th>
+<th>Open Revisions</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody id="dashboardTableBody"></tbody>
+</table>
+<p id="emptyState" class="empty-state" style="display:none;">No clients found.</p>
+</div>
+</div>
+
+</main>
+<script src="js/app.js?v=1"></script>
+</body>
+</html>

@@ -12,5 +12,8 @@ node_modules/
 .tmp/
 .temp/
 
+# Wrangler local cache (contains account info, machine-specific)
+.wrangler/
+
 # Log files
 *.log

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subscription & Tool Cost Tracker</title>
+<link rel="stylesheet" href="../style.css?v=1">
+<link rel="stylesheet" href="css/style.css?v=1">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<div id="notAuthorizedState" style="display:none; text-align:center; padding-top: 80px; color: var(--color-text-secondary);">
+  You don't have access to the Subscription &amp; Tool Cost Tracker.
+</div>
+
+<main class="container container-wide" id="trackerContent">
+<div class="brand-bar">
+<div class="brand-logo-container"></div>
+</div>
+
+<header class="site-header">
+<div class="header-eyebrow">
+<span class="dot"></span>
+<span>Agency Globals</span>
+</div>
+<h1 class="site-title">Subscription &amp; Tool <em>Cost Tracker</em></h1>
+<p class="site-subtitle">Every software subscription and vendor tool the agency pays for, in one place — monthly cost, renewal date, and who owns it. Admin/leadership only, since this is financial info.</p>
+</header>
+
+<div class="summary-bar" id="summaryBar">
+<div class="summary-stat"><span class="summary-num" id="summaryMonthlyCost">$0</span><span class="summary-label">Total Monthly Cost</span></div>
+<div class="summary-stat"><span class="summary-num" id="summaryAnnualCost">$0</span><span class="summary-label">Total Annual Cost</span></div>
+<div class="summary-stat"><span class="summary-num" id="summaryActiveCount">0</span><span class="summary-label">Active Subscriptions</span></div>
+<div class="summary-stat"><span class="summary-num" id="summaryRenewingSoon">0</span><span class="summary-label">Renewing in 30 Days</span></div>
+</div>
+
+<div class="step-card">
+<div class="section-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 8px;">
+<h2 style="font-family: var(--font-heading); color: var(--color-accent);">New Subscription / Tool</h2>
+</div>
+
+<div class="form-grid">
+<div class="form-group"><label for="toolName">Tool / Vendor Name</label><input type="text" id="toolName" placeholder="e.g. ClickUp, Zapier, GoDaddy..."></div>
+<div class="form-group"><label for="category">Category</label>
+<select id="category">
+<option value="Project Management">Project Management</option>
+<option value="Automation">Automation</option>
+<option value="Forms">Forms</option>
+<option value="Design">Design</option>
+<option value="Domain / Hosting">Domain / Hosting</option>
+<option value="Analytics">Analytics</option>
+<option value="Productivity">Productivity</option>
+<option value="Social / Marketing">Social / Marketing</option>
+<option value="Other">Other</option>
+</select>
+</div>
+<div class="form-group"><label for="monthlyCost">Cost ($)</label><input type="number" id="monthlyCost" min="0" step="1" placeholder="0"></div>
+<div class="form-group"><label for="billingCycle">Billing Cycle</label>
+<select id="billingCycle">
+<option value="Monthly">Monthly</option>
+<option value="Annual">Annual</option>
+</select>
+</div>
+<div class="form-group"><label for="renewalDate">Next Renewal Date</label><input type="date" id="renewalDate"></div>
+<div class="form-group"><label for="owner">Owner</label><input type="text" id="owner" placeholder="Who manages this account..."></div>
+<div class="form-group"><label for="status">Status</label>
+<select id="status">
+<option value="Active">Active</option>
+<option value="Cancelled">Cancelled</option>
+</select>
+</div>
+</div>
+<div class="form-group"><label for="notes">Notes</label><textarea id="notes" rows="2" placeholder="Login owner, plan tier, anything worth remembering..."></textarea></div>
+
+<button id="saveEntryBtn" class="btn-primary">Add Subscription</button>
+</div>
+
+<div class="step-card">
+<div class="tracker-controls-row" style="flex-wrap: wrap; gap: 14px;">
+<input type="text" id="filterInput" placeholder="Filter by tool name or category...">
+<label class="show-closed-toggle">
+<input type="checkbox" id="showCancelledToggle"> Show cancelled
+</label>
+</div>
+</div>
+
+<div class="step-card table-card">
+<div class="tracker-table-wrap">
+<table class="tracker-table">
+<thead>
+<tr>
+<th>Tool</th>
+<th>Category</th>
+<th>Cost</th>
+<th>Cycle</th>
+<th>Renews</th>
+<th>Owner</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="logTableBody"></tbody>
+</table>
+<p id="emptyState" class="empty-state" style="display:none;">No subscriptions logged yet.</p>
+</div>
+</div>
+
+</main>
+<script src="js/app.js?v=1"></script>
+</body>
+</html>

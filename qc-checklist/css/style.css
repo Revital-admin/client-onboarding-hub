@@ -1,0 +1,77 @@
+.container { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.category-header h3 {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  color: var(--color-accent);
+  margin: 0;
+}
+.category-progress {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
+.section-checkbox-grid.vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#checklistGroups { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+
+#reviewerInput, #deliverableInput, #roundInput, #notesInput, #checklistTypeSelect, #resultSelect {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border-md);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.table-card { padding: 0; overflow: hidden; margin-top: 24px; }
+.tracker-table-wrap { overflow-x: auto; }
+.tracker-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 16px; }
+.tracker-table th {
+  text-align: left;
+  padding: 12px 14px;
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+.tracker-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  vertical-align: top;
+}
+.tracker-table tr:last-child td { border-bottom: none; }
+.date-cell { white-space: nowrap; color: var(--color-text-secondary); }
+
+.section-tag {
+  display: inline-block;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border-md);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+.section-tag.result-pass { border-color: #22c55e; color: #22c55e; }
+.section-tag.result-fail { border-color: #ef4444; color: #ef4444; }
+
+.empty-state { text-align: center; padding: 40px 20px; color: var(--color-text-muted); font-size: 14px; }

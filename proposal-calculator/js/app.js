@@ -10,7 +10,7 @@ try {
   console.log("Embedded check bypassed due to CORS");
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // Inputs
   const baseFee = document.getElementById('baseFee');
   const serviceCheckboxes = document.querySelectorAll('.service-cb');
@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const marginBox = document.getElementById('marginBox');
   const totalHardCosts = document.getElementById('totalHardCosts');
   const profitMarginPercent = document.getElementById('profitMarginPercent');
+  const marginDataQuality = document.getElementById('marginDataQuality');
 
   let customItemsArray = [];
 
@@ -86,6 +87,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   checkAdminIdentity();
+
+  // ── Admin Price Overrides ──
+  // Pulls any admin-set default prices from agency/servicePricing (set via
+  // the Service Pricing Admin tool) and layers them on top of this page's
+  // built-in data-price/data-fee attributes before anything else reads
+  // them, so calculate() and the visible labels both reflect the current
+  // defaults without needing the ~85 checkboxes themselves rewritten.
+  async function applyPricingOverrides() {
+    if (!isEmbedded || !window.parent.firebaseDoc || !window.parent.firebaseDb || !window.parent.firebaseGetDoc) return;
+    try {
+      const ref = window.parent.firebaseDoc(window.parent.firebaseDb, "agency", "servicePricing");
+      const snap = await window.parent.firebaseGetDoc(ref);
+      const data = snap && snap.exists ? snap.data() : null;
+      const overrides = (data && data.prices) || {};
+      document.querySelectorAll('.service-cb').forEach(cb => {
+        const override = overrides[cb.value];
+        if (!override) return;
+        cb.dataset.price = String(override.price);
+        cb.dataset.fee = override.feeType;
+        // Real per-service cost from Service Pricing Admin, when an admin
+        // has actually set one - calculate() below prefers this over its
+        // built-in flat-percentage cost assumption whenever it's > 0.
+        if (override.cost) cb.dataset.cost = String(override.cost);
+        const label = cb.parentElement;
+        if (label && label.classList.contains('cb-label')) {
+          const suffix = override.price > 0
+            ? ` (+$${override.price.toLocaleString()}${override.feeType === 'monthly' ? '/mo' : ''})`
+            : '';
+          // appendChild on a node already in the DOM moves it rather than
+          // cloning it, so the checkbox keeps its checked state and event
+          // listeners (bound later below) intact even though we're
+          // rebuilding the label's text around it.
+          label.innerHTML = '';
+          label.appendChild(cb);
+          label.appendChild(document.createTextNode(cb.value + suffix));
+        }
+      });
+    } catch (e) {
+      console.warn("Couldn't load service pricing overrides, using calculator defaults:", e);
+    }
+  }
+  await applyPricingOverrides();
 
   // Load from localStorage
   loadState();
@@ -138,6 +181,55 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // ── Website & Branding Package Presets ──
+  // These are flat "starting at" bundle prices (logo/branding work isn't
+  // broken out as individual line items in the service catalog above), so
+  // rather than toggling checkboxes we add a single tagged one-time custom
+  // item. They're additive, not exclusive with the social/ads presets or
+  // any other checked services, so existing selections are left alone.
+  // Clicking a different tier (or the same one again) swaps out any
+  // previously-added package item rather than stacking duplicates.
+  const websiteBrandingPresets = {
+    presetWebBasic: {
+      tag: 'pkg-basic-website',
+      name: 'Basic Website Package (up to 5 pages, responsive design, contact form, basic SEO, 2 revision rounds)',
+      price: 700
+    },
+    presetWebBranding: {
+      tag: 'pkg-branding-website',
+      name: 'Branding + Website Package (logo, brand style guide, up to 5-page website, 2 revision rounds)',
+      price: 1400
+    },
+    presetWebComplete: {
+      tag: 'pkg-complete-brand',
+      name: 'Complete Brand Package (full brand guidelines, up to 7-page custom website, social templates, 3 revision rounds)',
+      price: 2100
+    }
+  };
+
+  Object.keys(websiteBrandingPresets).forEach(presetId => {
+    const btn = document.getElementById(presetId);
+    if (btn) {
+      btn.addEventListener('click', () => {
+        const preset = websiteBrandingPresets[presetId];
+        // Remove any previously-added website/branding package item first
+        // (whether it's this same tier or a different one) so re-clicking
+        // swaps instead of stacking.
+        const allTags = Object.values(websiteBrandingPresets).map(p => p.tag);
+        customItemsArray = customItemsArray.filter(item => !allTags.includes(item.presetTag));
+        customItemsArray.push({
+          id: Date.now(),
+          name: preset.name,
+          price: preset.price,
+          type: 'setup',
+          presetTag: preset.tag
+        });
+        renderCustomItems();
+        calculate();
+      });
+    }
+  });
+
   // Bind events
   baseFee.addEventListener('input', calculate);
   if (spendTier) spendTier.addEventListener('change', calculate);
@@ -147,6 +239,14 @@ document.addEventListener('DOMContentLoaded', () => {
   if (rushFee) rushFee.addEventListener('change', calculate);
   if (miscSoftware) miscSoftware.addEventListener('input', calculate);
   if (toggleMargin) toggleMargin.addEventListener('change', calculate);
+  const editDefaultPricesBtn = document.getElementById('editDefaultPricesBtn');
+  if (editDefaultPricesBtn) {
+    editDefaultPricesBtn.addEventListener('click', () => {
+      if (window.parent && window.parent.navigateToTab) {
+        window.parent.navigateToTab('tab-servicepricing');
+      }
+    });
+  }
 
   // New text inputs also trigger saveState
   const textInputs = [propClientName, propContactName, propNote, propWorking, propOpps, propStripeUrl, propAov, propConvRate, propStartDate, propMeetingRecap, propTestimonial];
@@ -224,8 +324,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let monthly = parseInt(baseFee.value) || 0;
     let setup = 0;
     let hardCosts = 0; // Cost of goods sold (freelancers, software)
+    let pricedServiceCount = 0; // how many selected services have a real per-service cost set
     let sowItems = [];
-    
+
     // We assume 10% hard cost on base retainer
     hardCosts += monthly * 0.10;
 
@@ -246,15 +347,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (val.includes('website') || val.includes('landing page')) hasWebDesign = true;
         if (val.includes('seo')) hasSEO = true;
 
+        // A real per-service cost set in Service Pricing Admin always wins
+        // over the flat-percentage guesses below - those guesses only
+        // exist as a fallback for services nobody's entered a real cost
+        // for yet.
+        const realCost = parseInt(cb.dataset.cost) || 0;
+        const hasRealCost = realCost > 0;
+        if (hasRealCost) pricedServiceCount++;
+
         if (feeType === 'setup') {
           setup += price;
           sowItems.push(`[ONE-TIME] ${cb.value}`);
-          hardCosts += price * 0.40; // Assume 40% hard cost for setup projects
+          hardCosts += hasRealCost ? realCost : price * 0.40; // Assume 40% hard cost for setup projects if no real cost set
         } else {
           monthly += price;
           sowItems.push(cb.value);
-          // Special hard costs for software vs labor
-          if (val.includes('hubspot') || val.includes('sprout') || val.includes('klaviyo')) {
+          if (hasRealCost) {
+            hardCosts += realCost;
+          } else if (val.includes('hubspot') || val.includes('sprout') || val.includes('klaviyo')) {
             hardCosts += price; // 100% hard cost for software pass-through
           } else {
             hardCosts += price * 0.30; // 30% hard cost for labor
@@ -347,6 +457,12 @@ document.addEventListener('DOMContentLoaded', () => {
           } else {
             profitMarginPercent.style.color = 'var(--success)';
           }
+        }
+        if (marginDataQuality) {
+          const checkedCount = Array.from(serviceCheckboxes).filter(cb => cb.checked).length;
+          marginDataQuality.textContent = checkedCount > 0
+            ? `Based on real cost data for ${pricedServiceCount} of ${checkedCount} selected service${checkedCount === 1 ? '' : 's'} — the rest use estimated cost percentages. Set real costs in Service Pricing Admin.`
+            : '';
         }
       }
     } else {

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Client Ad Account Log</title>
+<link rel="stylesheet" href="../style.css?v=1">
+<link rel="stylesheet" href="css/style.css?v=1">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<main class="container container-wide">
+<div class="brand-bar">
+<div class="brand-logo-container"></div>
+</div>
+
+<header class="site-header">
+<div class="header-eyebrow">
+<span class="dot"></span>
+<span>Security &amp; Access</span>
+</div>
+<h1 class="site-title">Client Ad Account <em>Log</em></h1>
+<p class="site-subtitle">Every client's ad platforms — Meta, Google, TikTok, LinkedIn, or other — in one place. Never store actual passwords or payment details here.</p>
+</header>
+
+<div class="step-card">
+<div class="section-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 8px;">
+<h2 style="font-family: var(--font-heading); color: var(--color-accent);">Client Info</h2>
+</div>
+<div class="form-grid">
+<div class="form-group"><label for="clientName">Client Name</label><input type="text" id="clientName" list="clientOptions" placeholder="Client / company name..."><datalist id="clientOptions"></datalist></div>
+<div class="form-group"><label for="primaryAdContact">Primary Ad Contact</label><input type="text" id="primaryAdContact"></div>
+<div class="form-group"><label for="contactEmail">Contact Email</label><input type="text" id="contactEmail"></div>
+<div class="form-group"><label for="totalMonthlyBudget">Total Monthly Ad Spend Budget ($)</label><input type="text" id="totalMonthlyBudget" placeholder="e.g. 3500"></div>
+</div>
+<div class="form-group"><label for="overallNotes">Overall Notes</label><input type="text" id="overallNotes" placeholder="Approval process, spend increase thresholds, client-specific rules..."></div>
+</div>
+
+<div class="step-card">
+<div class="section-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 8px;">
+<h2 style="font-family: var(--font-heading); color: var(--color-accent);">Ad Platforms</h2>
+</div>
+<div class="form-grid">
+<div class="form-group"><label for="platformSelect">Platform</label><select id="platformSelect"></select></div>
+<div class="form-group"><label for="platformAccountName">Account Name</label><input type="text" id="platformAccountName"></div>
+<div class="form-group"><label for="platformAccountId">Account ID</label><input type="text" id="platformAccountId"></div>
+<div class="form-group"><label for="platformAccessLevel">Our Access Level</label><input type="text" id="platformAccessLevel" placeholder="e.g. Admin / Advertiser / Analyst"></div>
+<div class="form-group"><label for="platformBillingMethod">Billing Method</label><input type="text" id="platformBillingMethod" placeholder="e.g. Client's card on file"></div>
+<div class="form-group"><label for="platformSpendLimit">Monthly Spend Limit ($)</label><input type="text" id="platformSpendLimit"></div>
+<div class="form-group"><label for="platformStatusSelect">Account Status</label><select id="platformStatusSelect"></select></div>
+</div>
+<div class="form-group"><label for="platformNotes">Platform Notes</label><input type="text" id="platformNotes" placeholder="Pixel firing, restrictions, anything to flag..."></div>
+<button id="addPlatformBtn" class="btn-secondary-outline">+ Add Platform to This Entry</button>
+
+<div id="draftPlatformsList" class="draft-platforms-list"></div>
+
+<button id="saveEntryBtn" class="btn-primary" style="margin-top:16px;">Save Client Entry</button>
+</div>
+
+<div class="step-card">
+<input type="text" id="filterClientInput" placeholder="Filter by client name..." style="width:100%;">
+</div>
+
+<div class="step-card table-card">
+<div class="tracker-table-wrap">
+<table class="tracker-table">
+<thead>
+<tr>
+<th>Client</th>
+<th>Monthly Budget</th>
+<th>Platforms</th>
+<th># Accounts</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="logTableBody"></tbody>
+</table>
+<p id="emptyState" class="empty-state" style="display:none;">No client ad account entries logged yet.</p>
+</div>
+</div>
+
+</main>
+<script src="js/app.js?v=3"></script>
+</body>
+</html>

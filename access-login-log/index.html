@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Access &amp; Login Log</title>
+<link rel="stylesheet" href="../style.css?v=1">
+<link rel="stylesheet" href="css/style.css?v=1">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<main class="container container-wide">
+<div class="brand-bar">
+<div class="brand-logo-container"></div>
+</div>
+
+<header class="site-header">
+<div class="header-eyebrow">
+<span class="dot"></span>
+<span>Security &amp; Access</span>
+</div>
+<h1 class="site-title">Access &amp; Login <em>Log</em></h1>
+<p class="site-subtitle">Every client platform login your team has access to, in one place. Never type an actual password here — reference where it lives in the password manager only.</p>
+</header>
+
+<div class="step-card">
+<div class="section-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 8px;">
+<h2 style="font-family: var(--font-heading); color: var(--color-accent);">Log an Entry</h2>
+</div>
+
+<div class="form-grid">
+<div class="form-group"><label for="clientName">Client Name</label><input type="text" id="clientName" list="clientOptions" placeholder="Client / company name..."><datalist id="clientOptions"></datalist></div>
+<div class="form-group"><label for="platformName">Platform / Tool Name</label><input type="text" id="platformName" placeholder="e.g. Meta Business Manager"></div>
+<div class="form-group"><label for="platformUrl">Platform URL</label><input type="text" id="platformUrl" placeholder="business.facebook.com"></div>
+<div class="form-group"><label for="accountType">Account Type</label><input type="text" id="accountType" placeholder="e.g. Business Manager / CMS / Social Page"></div>
+<div class="form-group"><label for="accountId">Account ID / Number</label><input type="text" id="accountId"></div>
+<div class="form-group"><label for="usernameEmail">Username / Login Email</label><input type="text" id="usernameEmail"></div>
+<div class="form-group"><label for="personType">Granted To</label><select id="personType"><option>Staff</option><option>Freelancer</option><option>Vendor</option></select></div>
+<div class="form-group"><label for="vendorName">Freelancer / Vendor Name (if applicable)</label><input type="text" id="vendorName" placeholder="e.g. Jane Doe (freelance editor)"></div>
+<div class="form-group"><label for="ndaSigned">NDA on File</label><select id="ndaSigned"><option>N/A</option><option>Yes</option><option>No</option></select></div>
+<div class="form-group"><label for="passwordLocation">Password Location (manager only)</label><input type="text" id="passwordLocation" placeholder='e.g. LastPass — folder "Client Name"'></div>
+<div class="form-group"><label for="twoFAEnabled">2FA Enabled</label><select id="twoFAEnabled"><option>No</option><option>Yes</option></select></div>
+<div class="form-group"><label for="twoFAMethod">2FA Method</label><input type="text" id="twoFAMethod" placeholder="e.g. Authenticator app / SMS / Email"></div>
+<div class="form-group"><label for="twoFADeviceOwner">2FA Device Owner</label><input type="text" id="twoFADeviceOwner"></div>
+<div class="form-group"><label for="ourAccessType">Our Access Type</label><input type="text" id="ourAccessType" placeholder="e.g. Admin / Editor / Partner Access"></div>
+<div class="form-group"><label for="canPublish">Can We Publish / Run Ads?</label><select id="canPublish"><option>No</option><option>Yes</option></select></div>
+<div class="form-group"><label for="canManageBilling">Can We Manage Billing?</label><select id="canManageBilling"><option>No</option><option>Yes</option></select></div>
+<div class="form-group"><label for="dateGranted">Date Granted</label><input type="date" id="dateGranted"></div>
+<div class="form-group"><label for="dateRemoved">Date Removed (leave blank if active)</label><input type="date" id="dateRemoved"></div>
+</div>
+<div class="form-group"><label for="accessRestrictions">Access Restrictions</label><input type="text" id="accessRestrictions" placeholder="Anything limited or restricted about this access..."></div>
+<div class="form-group"><label for="notes">Notes &amp; Flags</label><input type="text" id="notes" placeholder="Shared accounts, expiring tokens, client policy notes..."></div>
+
+<button id="saveEntryBtn" class="btn-primary">Add Entry</button>
+</div>
+
+<div class="step-card">
+<div class="tracker-controls-row" style="flex-wrap: wrap; gap: 14px;">
+<input type="text" id="filterClientInput" placeholder="Filter by client name..." style="flex:1; min-width:220px;">
+<label class="show-closed-toggle">
+<input type="checkbox" id="showRemovedToggle"> Show removed access
+</label>
+</div>
+</div>
+
+<div class="step-card table-card">
+<div class="tracker-table-wrap">
+<table class="tracker-table">
+<thead>
+<tr>
+<th>Client</th>
+<th>Granted To</th>
+<th>Platform</th>
+<th>Account Type</th>
+<th>Our Access</th>
+<th>2FA</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="logTableBody"></tbody>
+</table>
+<p id="emptyState" class="empty-state" style="display:none;">No access entries logged yet.</p>
+</div>
+</div>
+
+</main>
+<script src="js/app.js?v=4"></script>
+</body>
+</html>

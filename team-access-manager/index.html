@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Team Access</title>
-<link rel="stylesheet" href="../style.css?v=1">
-<link rel="stylesheet" href="css/style.css?v=1">
+<link rel="stylesheet" href="../style.css?v=6">
+<link rel="stylesheet" href="css/style.css?v=7">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
 </head>
 <body>
@@ -35,6 +35,11 @@ You don't have access to manage Team Access.
 <input type="email" id="restrictEmailInput" placeholder="teammate@revitalproductions.com">
 </div>
 <div class="form-group">
+<label for="roleTierSelect">Quick-fill by access tier (optional)</label>
+<select id="roleTierSelect"></select>
+<p id="roleTierHint" class="role-tier-hint"></p>
+</div>
+<div class="form-group">
 <label>Sections they CAN see</label>
 <div id="sectionCheckboxes" class="section-checkbox-grid"></div>
 </div>
@@ -52,6 +57,7 @@ You don't have access to manage Team Access.
 <tr>
 <th>Email</th>
 <th>Allowed Sections</th>
+<th>Last Seen</th>
 <th>Actions</th>
 </tr>
 </thead>
@@ -64,6 +70,6 @@ You don't have access to manage Team Access.
 </div>
 
 </main>
-<script src="js/app.js?v=1"></script>
+<script src="js/app.js?v=9"></script>
 </body>
 </html>

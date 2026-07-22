@@ -207,6 +207,20 @@ function renderPortal() {
 
   // Content Approvals
   renderApprovalsView();
+
+  // Brand Kit (Lite) - was defined but never called, so it never
+  // actually rendered for any client. Fixed as part of the Hub-wide
+  // bug pass.
+  renderBrandKit();
+
+  // Open Action Items - same dead-call bug as Brand Kit above.
+  renderActionItems();
+
+  // Mood Boards shared by the team
+  renderMoodBoards();
+
+  // Testimonial request
+  renderTestimonialView();
 }
 
 function setupIframe(navId, iframeId, url) {
@@ -731,3 +745,109 @@ function renderBrandKit() {
     logoLink.innerHTML = '';
   }
 }
+
+function renderMoodBoards() {
+  const container = document.getElementById("moodBoardsContainer");
+  const emptyState = document.getElementById("moodBoardsEmptyState");
+  const nav = document.getElementById("navMoodBoards");
+  if (!container || !nav) return;
+
+  const boards = Array.isArray(clientData.moodBoards) ? clientData.moodBoards.filter(b => b.sharedWithClient) : [];
+
+  if (boards.length === 0) {
+    nav.style.display = "none";
+    container.innerHTML = "";
+    if (emptyState) emptyState.style.display = "block";
+    return;
+  }
+
+  nav.style.display = "flex";
+  if (emptyState) emptyState.style.display = "none";
+
+  container.innerHTML = boards.map(board => `
+    <div class="moodboard-card">
+      <div class="moodboard-card-header">
+        <h3>${escapeHtml(board.title || "")}</h3>
+        <span class="moodboard-category-badge">${escapeHtml(board.category || "")}</span>
+      </div>
+      ${board.ideaSummary ? `<p>${escapeHtml(board.ideaSummary)}</p>` : ""}
+      ${board.visualDirection ? `<div class="moodboard-section-label">Visual Direction</div><p>${escapeHtml(board.visualDirection)}</p>` : ""}
+      ${board.keyElements ? `<div class="moodboard-section-label">Key Elements</div><p>${escapeHtml(board.keyElements)}</p>` : ""}
+      ${(board.embedLinks && board.embedLinks.length) ? `
+        <div class="moodboard-section-label">References</div>
+        ${board.embedLinks.map(l => `
+          <div class="moodboard-embed-wrapper">
+            <iframe src="${escapeHtml(l.url)}" loading="lazy"></iframe>
+          </div>
+          <a class="moodboard-embed-link" href="${escapeHtml(l.url)}" target="_blank" rel="noopener">${escapeHtml(l.label || l.url)} ↗</a>
+        `).join("")}
+      ` : ""}
+    </div>
+  `).join("");
+}
+
+// ── Testimonial submission ──
+// Writes directly to this client's own public clients/{token} doc, same
+// merge-write pattern as decideApproval() above - firestore.rules only
+// allows unauthenticated portal writes to touch a short allow-list of
+// fields (clientChecklist, pendingApprovals, approvalHistory,
+// testimonialSubmission), so this is the one new field added to that
+// list for this feature. The internal Hub side picks this up the same
+// way it already picks up approval decisions - see foldInTestimonialSubmission
+// in the root app.js.
+function renderTestimonialView() {
+  const formContainer = document.getElementById("testimonialFormContainer");
+  const submittedContainer = document.getElementById("testimonialSubmittedContainer");
+  if (!formContainer || !submittedContainer) return;
+
+  const submission = clientData.testimonialSubmission;
+  if (submission && submission.quote) {
+    formContainer.style.display = "none";
+    submittedContainer.style.display = "block";
+    document.getElementById("testimonialSubmittedQuote").textContent = "“" + submission.quote + "”";
+    const authorLine = [submission.authorName, submission.authorTitle].filter(Boolean).join(" — ");
+    document.getElementById("testimonialSubmittedAuthor").textContent = authorLine;
+  } else {
+    formContainer.style.display = "block";
+    submittedContainer.style.display = "none";
+  }
+}
+
+function submitTestimonial() {
+  const quoteField = document.getElementById("testimonialQuote");
+  const authorNameField = document.getElementById("testimonialAuthorName");
+  const authorTitleField = document.getElementById("testimonialAuthorTitle");
+  const permissionField = document.getElementById("testimonialPermission");
+
+  const quote = (quoteField.value || "").trim();
+  if (!quote) {
+    alert("Please write a few sentences before submitting.");
+    return;
+  }
+
+  const submission = {
+    quote: quote,
+    authorName: (authorNameField.value || "").trim(),
+    authorTitle: (authorTitleField.value || "").trim(),
+    permissionToUse: !!permissionField.checked,
+    submittedDate: new Date().toISOString().slice(0, 10)
+  };
+
+  const docRef = db.collection("clients").doc(clientToken);
+
+  // Update local state immediately so the UI reflects the submission
+  // without waiting on the round trip, then persist.
+  clientData.testimonialSubmission = submission;
+  renderTestimonialView();
+
+  docRef.set({
+    testimonialSubmission: JSON.parse(JSON.stringify(submission))
+  }, { merge: true }).catch(err => {
+    console.error("Error submitting testimonial:", err);
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const submitBtn = document.getElementById("submitTestimonialBtn");
+  if (submitBtn) submitBtn.addEventListener("click", submitTestimonial);
+});

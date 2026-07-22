@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Roster & Capacity</title>
+<link rel="stylesheet" href="../style.css?v=1">
+<link rel="stylesheet" href="css/style.css?v=2">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<main class="container container-wide">
+<div class="brand-bar">
+<div class="brand-logo-container"></div>
+</div>
+
+<header class="site-header">
+<div class="header-eyebrow">
+<span class="dot"></span>
+<span>Account Management</span>
+</div>
+<h1 class="site-title">Team Roster &amp; <em>Capacity</em></h1>
+<p class="site-subtitle">Every team member — staff and contractors, across account management, delivery, and production — with a quick read on who has room for new client work.</p>
+</header>
+
+<div class="summary-bar" id="summaryBar">
+<div class="summary-stat"><span class="summary-num" id="summaryTeamCount">0</span><span class="summary-label">Team Members</span></div>
+<div class="summary-stat"><span class="summary-num" id="summaryHasRoom">0</span><span class="summary-label">Have Room</span></div>
+<div class="summary-stat"><span class="summary-num" id="summaryNearCapacity">0</span><span class="summary-label">Near Capacity</span></div>
+<div class="summary-stat"><span class="summary-num" id="summaryAtCapacity">0</span><span class="summary-label">At Capacity</span></div>
+</div>
+
+<div class="step-card" id="formCard" style="display:none;">
+<div class="section-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 8px;">
+<h2 id="formTitle" style="font-family: var(--font-heading); color: var(--color-accent);">New Team Member</h2>
+</div>
+
+<div class="form-grid">
+<div class="form-group"><label for="memberName">Name</label><input type="text" id="memberName" placeholder="Full name..."></div>
+<div class="form-group"><label for="role">Role</label>
+<select id="role">
+<option value="Account Manager">Account Manager</option>
+<option value="Delivery Lead">Delivery Lead</option>
+<option value="Content Creator">Content Creator</option>
+<option value="Video Editor">Video Editor</option>
+<option value="Photographer / Videographer">Photographer / Videographer</option>
+<option value="Graphic Designer">Graphic Designer</option>
+<option value="Paid Media Lead">Paid Media Lead</option>
+<option value="Web Developer">Web Developer</option>
+<option value="SEO Specialist">SEO Specialist</option>
+<option value="Copywriter">Copywriter</option>
+<option value="Leadership">Leadership</option>
+<option value="Other">Other</option>
+</select>
+</div>
+<div class="form-group"><label for="employmentType">Employment Type</label>
+<select id="employmentType">
+<option value="Full-Time">Full-Time</option>
+<option value="Part-Time">Part-Time</option>
+<option value="Contractor">Contractor</option>
+</select>
+</div>
+<div class="form-group"><label for="email">Email</label><input type="email" id="email" placeholder="name@revitalproductions.com"></div>
+<div class="form-group"><label for="currentClientCount">Current Client Load</label><input type="number" id="currentClientCount" min="0" step="1" placeholder="0"></div>
+<div class="form-group"><label for="maxClientCount">Max Capacity</label><input type="number" id="maxClientCount" min="0" step="1" placeholder="0"></div>
+</div>
+<div class="form-group"><label for="notes">Notes</label><textarea id="notes" rows="2" placeholder="Specialties, availability notes, time off coming up..."></textarea></div>
+
+<div class="form-actions" style="display:flex; gap:10px; margin-top: 10px;">
+<button id="saveMemberBtn" class="btn-primary">Add Team Member</button>
+<button id="cancelEditBtn" class="btn-secondary" style="display:none;">Cancel</button>
+</div>
+</div>
+
+<div class="step-card">
+<div class="tracker-controls-row" style="flex-wrap: wrap; gap: 14px; justify-content: space-between;">
+<input type="text" id="filterInput" placeholder="Filter by name or role...">
+<button id="newMemberBtn" class="btn-secondary" style="display:none;">+ Add Team Member</button>
+</div>
+</div>
+
+<div class="step-card table-card">
+<div class="tracker-table-wrap">
+<table class="tracker-table">
+<thead>
+<tr>
+<th>Name</th>
+<th>Role</th>
+<th>Type</th>
+<th>Load</th>
+<th>Capacity</th>
+<th>Notes</th>
+<th id="actionsHeader" style="display:none;">Actions</th>
+</tr>
+</thead>
+<tbody id="rosterTableBody"></tbody>
+</table>
+<p id="emptyState" class="empty-state" style="display:none;">No team members added yet.</p>
+</div>
+</div>
+
+</main>
+<script src="js/app.js?v=2"></script>
+</body>
+</html>

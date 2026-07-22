@@ -79,6 +79,12 @@
           <button id="presetGrowth" class="btn-copy" style="flex: 1; padding: 8px; font-size: 0.8rem;">Growth Ads</button>
           <button id="presetFull" class="btn-copy" style="flex: 1; padding: 8px; font-size: 0.8rem;">Full-Stack</button>
         </div>
+        <p class="section-desc" style="margin: 14px 0 8px;">Website &amp; branding packages (added as a one-time line item, stacks with any services above).</p>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button id="presetWebBasic" class="btn-copy" style="flex: 1; padding: 8px; font-size: 0.8rem;">Basic Website ($700)</button>
+          <button id="presetWebBranding" class="btn-copy" style="flex: 1; padding: 8px; font-size: 0.8rem;">Branding + Website ($1,400)</button>
+          <button id="presetWebComplete" class="btn-copy" style="flex: 1; padding: 8px; font-size: 0.8rem;">Complete Brand ($2,100+)</button>
+        </div>
       </div>
 
       <div class="input-section">
@@ -548,6 +554,7 @@
           <input type="checkbox" id="toggleMargin" class="service-cb" style="margin-right: 8px;">
           Show Internal Profit Margin
         </label>
+        <button id="editDefaultPricesBtn" class="btn-copy" style="width: 100%; margin-top: 12px;">Edit Default Prices</button>
       </div>
 
       <br>
@@ -576,6 +583,7 @@
             <span class="price-label" style="color: var(--warning);">Est. Hard Costs</span>
             <span class="price-value" id="totalHardCosts" style="color: var(--warning);">$0</span>
             <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 4px;">Margin: <span id="profitMarginPercent">0%</span></span>
+            <span id="marginDataQuality" style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 6px; font-style: italic;"></span>
           </div>
 
         </div>
@@ -604,6 +612,6 @@
 
   </div>
 
-  <script src="js/app.js?v=67"></script>
+  <script src="js/app.js?v=68"></script>
 </body>
 </html>

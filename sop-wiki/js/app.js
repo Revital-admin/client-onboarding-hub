@@ -875,6 +875,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // ── Edit permission (admin/leadership only) ──
+  // Everyone with Hub access can still read every SOP - this only hides
+  // New/Edit/Delete for teammates who have a Team Access restriction on
+  // their account. Accounts with no entry in agency/teamAccess (full,
+  // unrestricted access) are treated as admin/leadership, same rule used
+  // by Team Access Manager and Service Pricing Admin. Client-side only,
+  // matching the rest of the Hub's Team Access restrictions.
+  function applyWikiEditPermission() {
+    if (!window.parent || !window.parent.firebaseDoc || !window.parent.firebaseDb || !window.parent.firebaseOnSnapshot) return;
+    const ref = window.parent.firebaseDoc(window.parent.firebaseDb, "agency", "teamAccess");
+    window.parent.firebaseOnSnapshot(ref, (docSnap) => {
+      const data = docSnap && docSnap.exists ? docSnap.data() : null;
+      const users = (data && data.users) ? data.users : {};
+      const currentEmail = (window.parent.currentAdminEmail || "").toLowerCase();
+      const isRestricted = currentEmail && Object.prototype.hasOwnProperty.call(users, currentEmail);
+
+      newSopBtn.style.display = isRestricted ? 'none' : '';
+      editSopBtn.style.display = isRestricted ? 'none' : '';
+      deleteSopBtn.style.display = isRestricted ? 'none' : '';
+    }, (err) => {
+      console.error("Wiki edit-permission listener error:", err);
+    });
+  }
+  applyWikiEditPermission();
+
   // Wait a tiny bit for the parent to fully inject its Firebase globals if
   // this iframe just loaded fresh (same pattern used by Client Portal
   // Manager for the same reason).

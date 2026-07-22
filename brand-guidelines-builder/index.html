@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brand Guidelines Builder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../vars.css">
+  <link rel="stylesheet" href="../shared-components.css">
+  <link rel="stylesheet" href="../forms.css?v=2">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="module-body">
+  <div class="module-container">
+    <div class="module-header">
+      <div class="module-header-left">
+        <div class="site-header">
+          <div class="header-eyebrow"><span class="dot"></span><span>Brand Reference</span></div>
+          <h1 class="site-title">Brand Guidelines <em>Builder</em></h1>
+          <p class="site-subtitle">A full brand guideline — logo usage, color system, typography, voice, and messaging. For a quick colors/fonts-only reference, use the Brand Asset Kit (Lite) instead.</p>
+        </div>
+      </div>
+      <div class="module-header-right">
+        <select id="clientSelect" class="form-control" style="width: 250px;"></select>
+      </div>
+    </div>
+
+    <div class="card empty-state" id="emptyState" style="margin-top: 24px;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+      <h3>Select a client</h3>
+      <p>Choose a client above to build out their brand guidelines.</p>
+    </div>
+
+    <div id="guidelineInterface" style="display: none; margin-top: 24px; display:flex; flex-direction:column; gap:24px;">
+
+      <!-- 1. BRAND OVERVIEW -->
+      <div class="card">
+        <h3>1. Brand Overview</h3>
+        <div class="form-group mt-3">
+          <label>Mission Statement</label>
+          <textarea id="bgMission" class="form-control" rows="2" placeholder="Why this company exists..."></textarea>
+        </div>
+        <div class="form-group mt-3">
+          <label>Brand Story</label>
+          <textarea id="bgStory" class="form-control" rows="3" placeholder="The short version of how/why this brand came to be..."></textarea>
+        </div>
+        <div class="form-row mt-3">
+          <div class="form-group" style="flex:1">
+            <label>Core Values</label>
+            <textarea id="bgValues" class="form-control" rows="2" placeholder="One per line..."></textarea>
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>Target Audience</label>
+            <textarea id="bgAudience" class="form-control" rows="2" placeholder="Who this brand speaks to..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. LOGO USAGE -->
+      <div class="card">
+        <h3>2. Logo Usage</h3>
+        <div class="form-group mt-3">
+          <label>Primary Logo URL</label>
+          <input type="url" id="bgPrimaryLogoUrl" class="form-control" placeholder="https://...">
+        </div>
+        <div class="form-group mt-3">
+          <label>Logo Variations (horizontal, icon-only, white version, etc.)</label>
+          <div class="form-row">
+            <input type="text" id="logoVarLabel" class="form-control" placeholder="Label (e.g. Icon Only)" style="flex:1">
+            <input type="url" id="logoVarUrl" class="form-control" placeholder="https://..." style="flex:2">
+            <button id="addLogoVarBtn" class="btn-secondary" style="white-space:nowrap;">+ Add Variation</button>
+          </div>
+          <ul id="logoVariationsList" style="list-style:none; margin-top:12px; display:flex; flex-direction:column; gap:8px;"></ul>
+        </div>
+        <div class="form-row mt-3">
+          <div class="form-group" style="flex:1">
+            <label>Clear Space &amp; Minimum Size</label>
+            <textarea id="bgClearSpace" class="form-control" rows="2" placeholder="e.g. Keep clear space equal to the logo's height on all sides. Never scale below 100px wide."></textarea>
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>Logo Don'ts</label>
+            <textarea id="bgLogoDonts" class="form-control" rows="2" placeholder="e.g. Don't stretch, recolor, or add drop shadows..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. COLOR SYSTEM -->
+      <div class="card">
+        <h3>3. Color System</h3>
+        <div class="brand-color-grid mt-3">
+          <div class="color-field">
+            <label>Primary</label>
+            <div style="display:flex; gap:8px"><input type="color" id="primaryColorPick" class="color-picker"><input type="text" id="primaryColorText" class="form-control" placeholder="#000000"></div>
+            <input type="text" id="primaryColorUsage" class="form-control mt-2" placeholder="Usage notes (e.g. CTAs, headlines)">
+          </div>
+          <div class="color-field">
+            <label>Secondary</label>
+            <div style="display:flex; gap:8px"><input type="color" id="secondaryColorPick" class="color-picker"><input type="text" id="secondaryColorText" class="form-control" placeholder="#FFFFFF"></div>
+            <input type="text" id="secondaryColorUsage" class="form-control mt-2" placeholder="Usage notes">
+          </div>
+          <div class="color-field">
+            <label>Accent</label>
+            <div style="display:flex; gap:8px"><input type="color" id="accentColorPick" class="color-picker"><input type="text" id="accentColorText" class="form-control" placeholder="#FF0000"></div>
+            <input type="text" id="accentColorUsage" class="form-control mt-2" placeholder="Usage notes">
+          </div>
+          <div class="color-field">
+            <label>Neutral / Background</label>
+            <div style="display:flex; gap:8px"><input type="color" id="neutralColorPick" class="color-picker"><input type="text" id="neutralColorText" class="form-control" placeholder="#F5F5F5"></div>
+            <input type="text" id="neutralColorUsage" class="form-control mt-2" placeholder="Usage notes">
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. TYPOGRAPHY -->
+      <div class="card">
+        <h3>4. Typography</h3>
+        <div class="form-row mt-3">
+          <div class="form-group" style="flex:1">
+            <label>Primary Font (Headings)</label>
+            <input type="text" id="bgFontPrimary" class="form-control" placeholder="e.g. Inter">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>Secondary Font (Body)</label>
+            <input type="text" id="bgFontSecondary" class="form-control" placeholder="e.g. Roboto">
+          </div>
+        </div>
+        <div class="form-group mt-3">
+          <label>Type Scale / Hierarchy Notes</label>
+          <textarea id="bgTypeScale" class="form-control" rows="2" placeholder="e.g. H1 48px bold, H2 32px semibold, Body 16px regular..."></textarea>
+        </div>
+        <div class="form-group mt-3">
+          <label>Font Source / License Link</label>
+          <input type="url" id="bgFontLicenseUrl" class="form-control" placeholder="https://fonts.google.com/... or license purchase link">
+        </div>
+      </div>
+
+      <!-- 5. VOICE & TONE -->
+      <div class="card">
+        <h3>5. Voice &amp; Tone</h3>
+        <div class="form-group mt-3">
+          <label>Brand Personality (adjectives)</label>
+          <input type="text" id="bgPersonality" class="form-control" placeholder="e.g. Bold, approachable, expert, a little irreverent">
+        </div>
+        <div class="form-group mt-3">
+          <label>Tone Description</label>
+          <textarea id="bgToneDescription" class="form-control" rows="2" placeholder="How this brand sounds when it talks..."></textarea>
+        </div>
+        <div class="form-row mt-3">
+          <div class="form-group" style="flex:1">
+            <label>Writing Do's</label>
+            <textarea id="bgWritingDos" class="form-control" rows="2" placeholder="One per line..."></textarea>
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>Writing Don'ts</label>
+            <textarea id="bgWritingDonts" class="form-control" rows="2" placeholder="One per line..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. MESSAGING -->
+      <div class="card">
+        <h3>6. Messaging</h3>
+        <div class="form-group mt-3">
+          <label>Tagline</label>
+          <input type="text" id="bgTagline" class="form-control" placeholder="e.g. Marketing that moves the needle.">
+        </div>
+        <div class="form-group mt-3">
+          <label>Elevator Pitch</label>
+          <textarea id="bgElevatorPitch" class="form-control" rows="2" placeholder="30-second version of what this brand does and why it matters..."></textarea>
+        </div>
+        <div class="form-group mt-3">
+          <label>Key Messaging Pillars</label>
+          <textarea id="bgMessagingPillars" class="form-control" rows="2" placeholder="One per line..."></textarea>
+        </div>
+      </div>
+
+      <!-- 7. IMAGERY & PHOTOGRAPHY STYLE -->
+      <div class="card">
+        <h3>7. Imagery &amp; Photography Style</h3>
+        <div class="form-group mt-3">
+          <label>Style Description</label>
+          <textarea id="bgImageryStyle" class="form-control" rows="2" placeholder="Lighting, composition, mood, editing style..."></textarea>
+        </div>
+        <div class="form-group mt-3">
+          <label>Reference Links</label>
+          <div class="form-row">
+            <input type="text" id="imgRefLabel" class="form-control" placeholder="Label" style="flex:1">
+            <input type="url" id="imgRefUrl" class="form-control" placeholder="https://..." style="flex:2">
+            <button id="addImgRefBtn" class="btn-secondary" style="white-space:nowrap;">+ Add Link</button>
+          </div>
+          <ul id="imageryRefsList" style="list-style:none; margin-top:12px; display:flex; flex-direction:column; gap:8px;"></ul>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-primary" id="saveGuidelineBtn">Save Brand Guidelines</button>
+      </div>
+
+    </div>
+  </div>
+  <script src="js/app.js"></script>
+</body>
+</html>

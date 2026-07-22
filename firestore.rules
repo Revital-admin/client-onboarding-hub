@@ -58,13 +58,15 @@ service cloud.firestore {
       allow write: if isAdmin();
 
       // Unauthenticated portal visitors may ONLY ever touch their own
-      // client-facing checklist (checking off their own items) and their
-      // own content approval decisions (pendingApprovals shrinks,
-      // approvalHistory grows, as items move from one to the other). The
+      // client-facing checklist (checking off their own items), their own
+      // content approval decisions (pendingApprovals shrinks,
+      // approvalHistory grows, as items move from one to the other), and
+      // now their own testimonial submission (Leave a Testimonial view -
+      // written once, then read-only from the client's side). The
       // internal onboardingChecklist, branding, embed URLs, report
       // archive, etc. all stay immutable to public writes.
       allow update: if request.resource.data.diff(resource.data).affectedKeys()
-                        .hasOnly(['clientChecklist', 'pendingApprovals', 'approvalHistory']);
+                        .hasOnly(['clientChecklist', 'pendingApprovals', 'approvalHistory', 'testimonialSubmission']);
     }
 
     // Deny everything else by default.
