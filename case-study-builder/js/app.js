@@ -102,18 +102,43 @@ function removeDraftEmbedLink(id) {
   renderEmbedLinksList();
 }
 
+let imageDropCounter = 0;
+
+// Dropping/uploading an image adds it straight to the reference list as
+// a thumbnail - useful here especially for before/after screenshots,
+// which is literally the example given in the field's placeholder text.
+// Stored as a compressed data URL (see shared-dropzone.js), same
+// mechanism as Client Portal Manager's logo upload.
+function handleDroppedImage(file) {
+  processImageFile(file, { maxWidth: 800 }).then(dataUrl => {
+    imageDropCounter++;
+    const label = (file.name || `Image ${imageDropCounter}`).replace(/\.[^.]+$/, '');
+    draftEmbedLinks.push({ id: uid(), label, url: dataUrl, isImage: true });
+    renderEmbedLinksList();
+    if (isEmbedded && window.parent.showBanner) window.parent.showBanner('success', `Added "${label}" as a reference image.`);
+  }).catch(errMsg => {
+    if (isEmbedded && window.parent.showBanner) window.parent.showBanner('error', errMsg);
+  });
+}
+
 function renderEmbedLinksList() {
   const list = el('embedLinksList');
   if (draftEmbedLinks.length === 0) {
     list.innerHTML = '<p style="color:var(--color-text-secondary); font-size:13px; margin:0;">No reference links added yet.</p>';
     return;
   }
-  list.innerHTML = draftEmbedLinks.map(l => `
+  list.innerHTML = draftEmbedLinks.map(l => {
+    const isImage = l.isImage || (l.url || '').startsWith('data:image');
+    const main = isImage
+      ? `<img class="embed-thumb" src="${l.url}" alt=""><span><strong>${escapeHtml(l.label)}</strong> — uploaded image</span>`
+      : `<span><strong>${escapeHtml(l.label)}</strong> — ${escapeHtml(l.url)}</span>`;
+    return `
     <li class="embed-link-chip">
-      <span><strong>${escapeHtml(l.label)}</strong> — ${escapeHtml(l.url)}</span>
+      <div class="embed-link-main">${main}</div>
       <button data-id="${l.id}" class="remove-embed-btn">✕</button>
     </li>
-  `).join('');
+  `;
+  }).join('');
   document.querySelectorAll('.remove-embed-btn').forEach(btn => {
     btn.addEventListener('click', () => removeDraftEmbedLink(btn.getAttribute('data-id')));
   });
@@ -254,6 +279,16 @@ async function generateCaseStudyPdf(id) {
       <p style="font-size: 13px; font-style: italic; margin:0;">"${escapeHtml(cs.testimonial)}"</p>
       ${cs.testimonialAuthor ? `<p style="font-size: 12px; font-weight:700; margin: 8px 0 0; color:#6366f1;">— ${escapeHtml(cs.testimonialAuthor)}</p>` : ''}
     </div>` : ''}
+    ${(cs.embedLinks || []).some(l => l.isImage || (l.url || '').startsWith('data:image')) ? `
+    <h3 style="font-size: 14px; border-bottom: 1px solid #e5e5e5; padding-bottom: 6px; margin: 24px 0 12px;">Reference Images</h3>
+    <div style="display:flex; flex-wrap:wrap; gap:12px;">
+      ${cs.embedLinks.filter(l => l.isImage || (l.url || '').startsWith('data:image')).map(l => `
+        <div style="width: 47%;">
+          <img src="${l.url}" style="width:100%; border-radius:6px; border:1px solid #e5e5e5; display:block;">
+          <p style="font-size:11px; color:#888; margin:4px 0 0;">${escapeHtml(l.label)}</p>
+        </div>
+      `).join('')}
+    </div>` : ''}
     <div style="margin-top: 48px; border-top: 1px solid #e5e5e5; padding-top: 12px; font-size: 11px; color:#888;">Revital Productions — revitalproductions.com</div>
   `;
 
@@ -326,6 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
   el('saveCaseStudyBtn').addEventListener('click', saveCaseStudy);
   el('cancelEditBtn').addEventListener('click', resetForm);
   el('addEmbedBtn').addEventListener('click', addDraftEmbedLink);
+  wireDropZone(el('imageDropZone'), el('imageFileInput'), handleDroppedImage);
 
   // Same iframe-race fix used across the other client-aware modules: the
   // parent Hub's client database loads asynchronously, so poll briefly

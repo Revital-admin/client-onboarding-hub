@@ -92,6 +92,25 @@ function addDraftEmbedLink() {
   renderEmbedLinksList();
 }
 
+let imageDropCounter = 0;
+
+// Dropping/uploading an image adds it straight to the reference list as
+// a thumbnail - no need to also fill in the label/URL fields and click
+// "+ Add Link" separately. Stored as a compressed data URL (see
+// shared-dropzone.js) so it lives inline in the client doc, same as
+// Client Portal Manager's logo.
+function handleDroppedImage(file) {
+  processImageFile(file, { maxWidth: 800 }).then(dataUrl => {
+    imageDropCounter++;
+    const label = (file.name || `Image ${imageDropCounter}`).replace(/\.[^.]+$/, '');
+    draftEmbedLinks.push({ id: uid(), label, url: dataUrl, isImage: true });
+    renderEmbedLinksList();
+    if (isEmbedded && window.parent.showBanner) window.parent.showBanner('success', `Added "${label}" as a reference image.`);
+  }).catch(errMsg => {
+    if (isEmbedded && window.parent.showBanner) window.parent.showBanner('error', errMsg);
+  });
+}
+
 function removeDraftEmbedLink(id) {
   draftEmbedLinks = draftEmbedLinks.filter(l => l.id !== id);
   renderEmbedLinksList();
@@ -103,12 +122,18 @@ function renderEmbedLinksList() {
     list.innerHTML = '<p style="color:var(--color-text-secondary); font-size:13px; margin:0;">No reference links added yet.</p>';
     return;
   }
-  list.innerHTML = draftEmbedLinks.map(l => `
+  list.innerHTML = draftEmbedLinks.map(l => {
+    const isImage = l.isImage || (l.url || '').startsWith('data:image');
+    const main = isImage
+      ? `<img class="embed-thumb" src="${l.url}" alt=""><span><strong>${escapeHtml(l.label)}</strong> — uploaded image</span>`
+      : `<span><strong>${escapeHtml(l.label)}</strong> — ${escapeHtml(l.url)}</span>`;
+    return `
     <li class="embed-link-chip">
-      <span><strong>${escapeHtml(l.label)}</strong> — ${escapeHtml(l.url)}</span>
+      <div class="embed-link-main">${main}</div>
       <button data-id="${l.id}" class="remove-embed-btn">✕</button>
     </li>
-  `).join('');
+  `;
+  }).join('');
   document.querySelectorAll('.remove-embed-btn').forEach(btn => {
     btn.addEventListener('click', () => removeDraftEmbedLink(btn.getAttribute('data-id')));
   });
@@ -260,6 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
   el('saveBoardBtn').addEventListener('click', saveBoard);
   el('cancelEditBtn').addEventListener('click', resetForm);
   el('addEmbedBtn').addEventListener('click', addDraftEmbedLink);
+  wireDropZone(el('imageDropZone'), el('imageFileInput'), handleDroppedImage);
 
   // Same iframe-race fix used across the other client-aware modules: the
   // parent Hub's client database loads asynchronously, so poll briefly

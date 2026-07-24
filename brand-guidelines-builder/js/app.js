@@ -86,12 +86,61 @@ function renderLinkList(listId, arr, removeFn) {
     list.innerHTML = '<p style="color:var(--color-text-secondary); font-size:13px; margin:0;">None added yet.</p>';
     return;
   }
-  list.innerHTML = arr.map(l => `
+  list.innerHTML = arr.map(l => {
+    const isImage = l.isImage || (l.url || '').startsWith('data:image');
+    const main = isImage
+      ? `<img class="embed-thumb" src="${l.url}" alt=""><span><strong>${escapeHtml(l.label)}</strong> — uploaded image</span>`
+      : `<span><strong>${escapeHtml(l.label)}</strong> — ${escapeHtml(l.url)}</span>`;
+    return `
     <li class="embed-link-chip">
-      <span><strong>${escapeHtml(l.label)}</strong> — ${escapeHtml(l.url)}</span>
+      <div class="embed-link-main">${main}</div>
       <button data-id="${l.id}" class="${removeFn}">✕</button>
     </li>
-  `).join('');
+  `;
+  }).join('');
+}
+
+let imageDropCounter = 0;
+
+// Dropping/uploading an image adds it straight to the given list (Logo
+// Variations or Imagery References) as a thumbnail, same mechanism as
+// Mood Board Builder / Case Study Builder's reference-image drops.
+function handleDroppedImageIntoList(file, arr, rerender) {
+  processImageFile(file, { maxWidth: 800 }).then(dataUrl => {
+    imageDropCounter++;
+    const label = (file.name || `Image ${imageDropCounter}`).replace(/\.[^.]+$/, '');
+    arr.push({ id: uid(), label, url: dataUrl, isImage: true });
+    rerender();
+    if (isEmbedded && window.parent.showBanner) window.parent.showBanner('success', `Added "${label}".`);
+  }).catch(errMsg => {
+    if (isEmbedded && window.parent.showBanner) window.parent.showBanner('error', errMsg);
+  });
+}
+
+// Primary logo is a single field (bgPrimaryLogoUrl), not a list - drop
+// compresses the file and fills the URL field directly, same as Client
+// Portal Manager's own logo drop zone, plus a small preview here too.
+function handleDroppedPrimaryLogo(file) {
+  processImageFile(file, { maxWidth: 800, keepPng: true }).then(dataUrl => {
+    el('bgPrimaryLogoUrl').value = dataUrl;
+    updatePrimaryLogoPreview(dataUrl);
+    if (isEmbedded && window.parent.showBanner) window.parent.showBanner('success', 'Primary logo added.');
+  }).catch(errMsg => {
+    if (isEmbedded && window.parent.showBanner) window.parent.showBanner('error', errMsg);
+  });
+}
+
+function updatePrimaryLogoPreview(url) {
+  const preview = el('primaryLogoPreview');
+  const text = el('primaryLogoDropZoneText');
+  if (url) {
+    preview.src = url;
+    preview.style.display = 'block';
+    text.style.display = 'none';
+  } else {
+    preview.style.display = 'none';
+    text.style.display = 'block';
+  }
 }
 
 function renderLogoVariations() {
@@ -148,6 +197,7 @@ function renderState() {
   el('bgAudience').value = g.audience || '';
 
   el('bgPrimaryLogoUrl').value = g.primaryLogoUrl || '';
+  updatePrimaryLogoPreview(g.primaryLogoUrl || '');
   logoVariations = (g.logoVariations || []).map(l => ({ ...l }));
   renderLogoVariations();
   el('bgClearSpace').value = g.clearSpace || '';
@@ -241,6 +291,10 @@ document.addEventListener('DOMContentLoaded', () => {
   el('saveGuidelineBtn').addEventListener('click', saveGuideline);
   el('addLogoVarBtn').addEventListener('click', () => addLinkToList('logoVarLabel', 'logoVarUrl', logoVariations, renderLogoVariations));
   el('addImgRefBtn').addEventListener('click', () => addLinkToList('imgRefLabel', 'imgRefUrl', imageryRefs, renderImageryRefs));
+
+  wireDropZone(el('primaryLogoDropZone'), el('primaryLogoFileInput'), handleDroppedPrimaryLogo);
+  wireDropZone(el('logoVarDropZone'), el('logoVarFileInput'), (file) => handleDroppedImageIntoList(file, logoVariations, renderLogoVariations));
+  wireDropZone(el('imgRefDropZone'), el('imgRefFileInput'), (file) => handleDroppedImageIntoList(file, imageryRefs, renderImageryRefs));
 
   syncColorInputs('primaryColorPick', 'primaryColorText');
   syncColorInputs('secondaryColorPick', 'secondaryColorText');

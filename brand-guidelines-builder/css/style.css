@@ -122,6 +122,26 @@
   border-radius: 6px;
   font-size: 0.85rem;
   color: var(--color-text-secondary);
+  gap: 10px;
+}
+.embed-link-chip .embed-link-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.embed-link-chip .embed-link-main span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.embed-link-chip img.embed-thumb {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
 }
 .embed-link-chip button {
   background: none;
@@ -129,6 +149,34 @@
   color: #f68d5f;
   cursor: pointer;
   font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+/* Drag and Drop Zone (shared pattern, see shared-dropzone.js) */
+.drop-zone {
+  width: 100%;
+  border: 2px dashed var(--color-border);
+  border-radius: 8px;
+  padding: 24px 12px;
+  text-align: center;
+  color: var(--color-text-secondary);
+  background: rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.drop-zone:hover, .drop-zone.dragover {
+  border-color: var(--color-accent);
+  background: rgba(246, 141, 95, 0.08);
+}
+.drop-zone small { font-size: 0.75rem; opacity: 0.7; }
+.drop-zone img.logo-preview {
+  max-width: 100%;
+  max-height: 70px;
+  pointer-events: none;
 }
 
 @media (max-width: 768px) {
