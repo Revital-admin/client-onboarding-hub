@@ -66,10 +66,41 @@
   font-size: 14px; 
   transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition); 
 }
-.btn-primary:hover { 
-  transform: translateY(-1px); 
-  box-shadow: 0 4px 12px var(--color-accent-dim); 
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--color-accent-dim);
   opacity: 0.9;
+}
+
+/* .btn-secondary was used across several modules (Mood Board Builder,
+   Case Study Builder, Brand Guidelines Builder, Meeting Notes Logger -
+   "+ Add Link", "+ Add Variation", "Cancel Edit", etc.) but was never
+   actually defined anywhere in this shared stylesheet chain, so those
+   buttons silently fell back to the browser's unstyled native button
+   look instead of matching the rest of the Hub. Same box model as
+   .btn-primary above (padding/radius/weight/gap) so the two sit flush
+   together, with the neutral surface + accent-on-hover treatment
+   already used for secondary buttons elsewhere in the Hub. */
+.btn-secondary {
+  background: var(--color-surface-2);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-md);
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+.btn-secondary:hover {
+  background: var(--color-surface);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 /* ── PANELS & CARDS (For Generators) ──────────────────────────────────────────── */
