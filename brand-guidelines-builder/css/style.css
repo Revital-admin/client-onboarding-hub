@@ -163,6 +163,7 @@
 .drop-zone {
   width: 100%;
   box-sizing: border-box;
+  margin-top: 10px;
   border: 2px dashed var(--color-border);
   border-radius: 8px;
   padding: 10px 12px;

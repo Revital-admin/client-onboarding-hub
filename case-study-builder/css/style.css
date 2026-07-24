@@ -141,6 +141,12 @@
 .drop-zone {
   width: 100%;
   box-sizing: border-box;
+  /* Not a .form-group, and the "mt-2" utility class on this element in
+     the HTML has no effect here (undefined in this module's CSS chain -
+     a pre-existing gap, not something this fix introduced), so without
+     an explicit margin this sat flush against the row above with zero
+     gap, looking like it overlapped. */
+  margin-top: 10px;
   border: 2px dashed var(--color-border);
   border-radius: 8px;
   padding: 10px 12px;

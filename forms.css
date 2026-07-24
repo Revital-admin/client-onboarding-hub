@@ -21,7 +21,15 @@
   letter-spacing: 0.05em;
   margin-bottom: 8px; 
 }
-.form-group input,
+/* Excludes checkbox/radio: width:100% was silently applying to those too
+   (any <input> inside a .form-group matched), giving checkboxes an
+   invisible ~800px-wide hit box. Harmless-looking on its own since a
+   checkbox's native glyph ignores width visually, but it broke every
+   checkbox+label built as `<label style="display:flex"><input>Text</label>`
+   (Mood Board Builder's "Share with client", Case Study Builder's "Mark
+   as portfolio-ready") - the checkbox became a giant flex item and shoved
+   the label text far to the right instead of sitting right next to it. */
+.form-group input:not([type="checkbox"]):not([type="radio"]),
 .form-group textarea,
 .form-group select {
   width: 100%;
